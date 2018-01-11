@@ -6,7 +6,7 @@ namespace Lykke.Job.BlockchainTransfersExecutor.Contract.Events
     /// Transfer is failed
     /// </summary>
     [PublicAPI]
-    public class TransferFailedEvent
+    public class TransferFailedEvent : BaseTransferFinishingEvent
     {
         /// <summary>
         /// Error description
