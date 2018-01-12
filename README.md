@@ -1,2 +1,2 @@
-# Lykke.Job.BlockchainTransfersExecutor
-Execute generic blockchain transfers in the particular blockchain
+# Lykke.Job.BlockchainOperationsExecutor
+Execute generic blockchain operations in the particular blockchain
