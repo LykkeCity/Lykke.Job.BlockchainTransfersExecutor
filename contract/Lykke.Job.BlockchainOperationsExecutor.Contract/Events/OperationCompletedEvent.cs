@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using ProtoBuf;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
@@ -11,6 +12,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Hash of the blockchain transaction
         /// </summary>
+        [ProtoMember(9)]
         public string Hash { get; set; }
     }
 }
