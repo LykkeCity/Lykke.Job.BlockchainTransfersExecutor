@@ -12,7 +12,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Hash of the blockchain transaction
         /// </summary>
-        [ProtoMember(9)]
-        public string Hash { get; set; }
+        [ProtoMember(3)]
+        public string TransactionHash { get; set; }
+
+        /// <summary>
+        /// Actual fee of the operation
+        /// </summary>
+        [ProtoMember(4)]
+        public decimal Fee { get; set; }
     }
 }
