@@ -1,39 +1,32 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Services;
-using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
-using Lykke.SettingsReader;
+using Lykke.Job.BlockchainOperationsExecutor.Settings.Assets;
+using Lykke.Service.Assets.Client;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 {
     public class JobModule : Module
     {
-        private readonly BlockchainOperationsExecutorSettings _settings;
-        private readonly IReloadingManager<DbSettings> _dbSettingsManager;
+        private readonly AssetsSettings _assetsSettings;
         private readonly ILog _log;
-        // NOTE: you can remove it if you don't need to use IServiceCollection extensions to register service specific dependencies
-        private readonly IServiceCollection _services;
+        private readonly ServiceCollection _services;
 
-        public JobModule(BlockchainOperationsExecutorSettings settings, IReloadingManager<DbSettings> dbSettingsManager, ILog log)
+        public JobModule(
+            AssetsSettings assetsSettings,
+            ILog log)
         {
-            _settings = settings;
+            _assetsSettings = assetsSettings;
             _log = log;
-            _dbSettingsManager = dbSettingsManager;
-
             _services = new ServiceCollection();
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            // NOTE: Do not register entire settings in container, pass necessary settings to services which requires them
-            // ex:
-            // builder.RegisterType<QuotesPublisher>()
-            //  .As<IQuotesPublisher>()
-            //  .WithParameter(TypedParameter.From(_settings.Rabbit.ConnectionString))
-
             builder.RegisterInstance(_log)
                 .As<ILog>()
                 .SingleInstance();
@@ -48,10 +41,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterType<ShutdownManager>()
                 .As<IShutdownManager>();
 
-            // TODO: Add your dependencies here
+            _services.RegisterAssetsClient(new AssetServiceSettings
+            {
+                BaseUri = new Uri(_assetsSettings.ServiceUrl),
+                AssetsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod,
+                AssetPairsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod
+            });
 
             builder.Populate(_services);
         }
-
     }
 }

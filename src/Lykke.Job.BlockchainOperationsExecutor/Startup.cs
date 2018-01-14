@@ -4,17 +4,17 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AzureStorage.Tables;
 using Common.Log;
+using JetBrains.Annotations;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
-using Lykke.Job.BlockchainOperationsExecutor.Models;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Settings;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,12 +22,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Lykke.Job.BlockchainOperationsExecutor
 {
+    [UsedImplicitly]
     public class Startup
     {
-        public IHostingEnvironment Environment { get; }
-        public IContainer ApplicationContainer { get; private set; }
-        public IConfigurationRoot Configuration { get; }
-        public ILog Log { get; private set; }
+        private IContainer ApplicationContainer { get; set; }
+        private IConfigurationRoot Configuration { get; }
+        private ILog Log { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -36,9 +36,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
-            Environment = env;
         }
 
+        [UsedImplicitly]
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             try
@@ -60,7 +60,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor
 
                 Log = CreateLogWithSlack(services, appSettings);
 
-                builder.RegisterModule(new JobModule(appSettings.CurrentValue.BlockchainOperationsExecutorJob, appSettings.Nested(x => x.BlockchainOperationsExecutorJob.Db), Log));
+                builder.RegisterModule(new JobModule(
+                    appSettings.CurrentValue.Assets,
+                    Log));
+                builder.RegisterModule(new RepositoriesModule(
+                    appSettings.Nested(x => x.BlockchainOperationsExecutorJob.Db),
+                    Log));
+                builder.RegisterModule(new BlockchainsModule(
+                    appSettings.CurrentValue.BlockchainsIntegration,
+                    Log));
+                builder.RegisterModule(new CqrsModule(
+                    appSettings.CurrentValue.BlockchainOperationsExecutorJob.Cqrs,
+                    appSettings.CurrentValue.BlockchainOperationsExecutorJob.ChaosKitty,
+                    Log));
+                
 
                 builder.Populate(services);
 
@@ -75,6 +88,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor
             }
         }
 
+        [UsedImplicitly]
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime appLifetime)
         {
             try
@@ -84,7 +98,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                     app.UseDeveloperExceptionPage();
                 }
 
-                app.UseLykkeMiddleware("BlockchainOperationsExecutor", ex => new ErrorResponse {ErrorMessage = "Technical problem"});
+                app.UseLykkeMiddleware("BlockchainOperationsExecutor", ex => ErrorResponse.Create("Technical problem"));
 
                 app.UseMvc();
                 app.UseSwagger(c =>

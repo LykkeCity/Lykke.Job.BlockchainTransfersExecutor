@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="4.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Lykke.Job.BlockchainOperationsExecutor.Core\Lykke.Job.BlockchainOperationsExecutor.Core.csproj" />
   </ItemGroup>
 
