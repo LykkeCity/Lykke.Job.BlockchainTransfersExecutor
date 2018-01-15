@@ -6,6 +6,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain
     [UsedImplicitly]
     public class BlockchainSettings
     {
+        [Optional]
+        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
+        public bool IsDisabled { get; set; }
+
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string Type { get; set; }
 
