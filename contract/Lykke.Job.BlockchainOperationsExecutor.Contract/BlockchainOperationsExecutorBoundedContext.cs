@@ -11,6 +11,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract
         /// <summary>
         /// Context name
         /// </summary>
-        public static string Name = "lykke.bcn-integration.operations-executor";
+        public static string Name = "bcn-integration.operations-executor";
     }
 }
