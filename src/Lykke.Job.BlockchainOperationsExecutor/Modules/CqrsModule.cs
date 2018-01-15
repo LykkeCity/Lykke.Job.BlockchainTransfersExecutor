@@ -85,6 +85,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         {
             var defaultRetryDelay = (long)_settings.RetryDelay.TotalMilliseconds;
 
+            const string defaultPipeline = "commands";
+            const string defaultRoute = "self";
+
             return new CqrsEngine(
                 _log,
                 ctx.Resolve<IDependencyResolver>(),
@@ -100,91 +103,86 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .FailedCommandRetryDelay(defaultRetryDelay)
 
                     .ListeningCommands(typeof(StartOperationCommand))
-                    .On("start")
+                    .On(defaultRoute)
                     .WithCommandsHandler<StartOperationCommandsHandler>()
                     .PublishingEvents(typeof(OperationStartRequestedEvent))
-                    .With("start-requested")
+                    .With(defaultPipeline)
 
                     .ListeningCommands(typeof(BuildTransactionCommand))
-                    .On("build-tx")
+                    .On(defaultRoute)
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
                     .PublishingEvents(typeof(TransactionBuiltEvent))
-                    .With("tx-built")
+                    .With(defaultPipeline)
 
                     .ListeningCommands(typeof(SignTransactionCommand))
-                    .On("sign-tx")
+                    .On(defaultRoute)
                     .WithCommandsHandler<SignTransactionCommandsHandler>()
                     .PublishingEvents(typeof(TransactionSignedEvent))
-                    .With("tx-signed")
+                    .With(defaultPipeline)
 
                     .ListeningCommands(typeof(BroadcastTransactionCommand))
-                    .On("broadcast-tx")
+                    .On(defaultRoute)
                     .WithCommandsHandler<BroadcastTransactionCommandsHandler>()
                     .PublishingEvents(typeof(TransactionBroadcastedEvent))
-                    .With("tx-broadcasted")
+                    .With(defaultPipeline)
 
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
-                    .On("wait-for-tx-finish")
+                    .On(defaultRoute)
                     .WithCommandsHandler<WaitForTransactionEndingCommandsHandler>()
                     .PublishingEvents(
                         typeof(OperationCompletedEvent),
                         typeof(OperationFailedEvent))
-                    .With("finished")
+                    .With(defaultPipeline)
                     
                     .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
-                    .On("release-source-address")
+                    .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
                     .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
-                    .With("source-address-released")
+                    .With(defaultPipeline)
 
-                    .ProcessingOptions("start").MultiThreaded(4).QueueCapacity(1024)
-                    .ProcessingOptions("build-tx").MultiThreaded(4).QueueCapacity(1024)
-                    .ProcessingOptions("sign-tx").MultiThreaded(4).QueueCapacity(1024)
-                    .ProcessingOptions("broadcast-tx").MultiThreaded(4).QueueCapacity(1024)
-                    .ProcessingOptions("wait-for-tx-finish").MultiThreaded(4).QueueCapacity(1024)
-                    .ProcessingOptions("release-source-address").MultiThreaded(4).QueueCapacity(1024),
+                    .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
-                Register.Saga<OperationExecutionSaga>($"{Self}.operation-execution-saga")
+                Register.Saga<OperationExecutionSaga>($"{Self}.saga")
                     .ListeningEvents(typeof(OperationStartRequestedEvent))
                     .From(Self)
-                    .On("start-requested")
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(BuildTransactionCommand))
                     .To(Self)
-                    .With("build-tx")
+                    .With(defaultPipeline)
 
                     .ListeningEvents(typeof(TransactionBuiltEvent))
                     .From(Self)
-                    .On("tx-built")
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(SignTransactionCommand))
                     .To(Self)
-                    .With("sign-tx")
+                    .With(defaultPipeline)
 
                     .ListeningEvents(typeof(TransactionSignedEvent))
                     .From(Self)
-                    .On("tx-signed")
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(BroadcastTransactionCommand))
                     .To(Self)
-                    .With("broadcast-tx")
+                    .With(defaultPipeline)
 
                     .ListeningEvents(typeof(TransactionBroadcastedEvent))
                     .From(Self)
-                    .On("tx-broadcasted")
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(WaitForTransactionEndingCommand))
                     .To(Self)
-                    .With("wait-for-tx-finish")
+                    .With(defaultPipeline)
 
                     .ListeningEvents(
                         typeof(OperationCompletedEvent),
                         typeof(OperationFailedEvent))
                     .From(Self)
-                    .On("finished")
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
                     .To(Self)
-                    .With("release-source-address")
+                    .With(defaultPipeline)
 
                     .ListeningEvents(typeof(SourceAddressLockReleasedEvent))
                     .From(Self)
-                    .On("source-address-released"));
+                    .On(defaultRoute));
         }
     }
 }
