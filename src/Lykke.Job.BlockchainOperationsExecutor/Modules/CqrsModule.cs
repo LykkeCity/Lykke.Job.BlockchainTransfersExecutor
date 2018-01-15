@@ -129,7 +129,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(
                         typeof(OperationCompletedEvent),
                         typeof(OperationFailedEvent))
-                    .With("tx-finished")
+                    .With("finished")
                     
                     .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
                     .On("release-source-address")
@@ -177,7 +177,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(OperationCompletedEvent),
                         typeof(OperationFailedEvent))
                     .From(Self)
-                    .On("tx-finished")
+                    .On("finished")
                     .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
                     .To(Self)
                     .With("release-source-address")
