@@ -91,10 +91,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
-                Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
-                    "RabbitMq",
-                    "protobuf",
-                    environment: "lykke.bcn-integration")),
+                Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver("RabbitMq", "protobuf")),
 
                 Register.BoundedContext(Self)
                     .FailedCommandRetryDelay(defaultRetryDelay)
