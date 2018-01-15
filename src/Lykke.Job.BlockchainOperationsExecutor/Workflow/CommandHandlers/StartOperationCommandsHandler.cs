@@ -14,7 +14,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         {
             // TODO: In the further there could be a start of the operations aggregation.
             // Just by saving them to the storage for example.
-            // Waiting period for aggregation should be passed in the command
+            // Waiting period for aggregation should be passed in the command to let
+            // the initiator of the command decide how long operation can wait to aggregate 
+            // with other operations
 
             publisher.PublishEvent(new OperationStartRequestedEvent
             {

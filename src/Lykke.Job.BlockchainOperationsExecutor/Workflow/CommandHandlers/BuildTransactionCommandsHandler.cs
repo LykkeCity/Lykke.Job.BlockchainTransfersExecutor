@@ -54,7 +54,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
             // TODO: Cache it
 
-            var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockChainAssetId);
+            var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockchainIntegrationLayerAssetId);
 
             var buildingResult = await apiClient.BuildTransactionAsync(
                 command.OperationId,
