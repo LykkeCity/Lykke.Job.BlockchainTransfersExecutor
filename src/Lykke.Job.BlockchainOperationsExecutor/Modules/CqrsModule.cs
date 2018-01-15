@@ -141,7 +141,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ProcessingOptions("wait-for-tx-finish").MultiThreaded(4).QueueCapacity(1024)
                     .ProcessingOptions("release-source-address").MultiThreaded(4).QueueCapacity(1024),
 
-                Register.Saga<OperationExecutionSaga>("operation-execution-saga")
+                Register.Saga<OperationExecutionSaga>($"{Self}.operation-execution-saga")
                     .ListeningEvents(typeof(OperationStartRequestedEvent))
                     .From(Self)
                     .On("start-requested")
