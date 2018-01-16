@@ -45,7 +45,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             {
                 throw new InvalidOperationException("BlockchainIntegrationLayerId of the asset is not configured");
             }
-            
+
+            if (string.IsNullOrWhiteSpace(asset.BlockchainIntegrationLayerAssetId))
+            {
+                throw new InvalidOperationException("BlockchainIntegrationLayerAssetId of the asset is not configured");
+            }
+
             var isSourceAdressCaptured = await _sourceAddresLocksRepoistory.TryGetLockAsync(
                 asset.BlockchainIntegrationLayerId,
                 command.FromAddress,
