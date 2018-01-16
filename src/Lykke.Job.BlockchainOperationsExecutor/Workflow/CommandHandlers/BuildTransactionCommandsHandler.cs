@@ -34,8 +34,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
+            var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
+
+            if (asset == null)
+            {
+                throw new InvalidOperationException("Asset not found");
+            }
+
+            if (string.IsNullOrWhiteSpace(asset.BlockchainIntegrationLayerId))
+            {
+                throw new InvalidOperationException("BlockchainIntegrationLayerId of the asset is not configured");
+            }
+            
             var isSourceAdressCaptured = await _sourceAddresLocksRepoistory.TryGetLockAsync(
-                command.BlockchainType,
+                asset.BlockchainIntegrationLayerId,
                 command.FromAddress,
                 command.OperationId);
 
@@ -44,14 +56,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 return CommandHandlingResult.Fail(_retryDelayProvider.SourceAddressLockingRetryDelay);
             }
 
-            var apiClient = _apiClientProvider.Get(command.BlockchainType);
-            var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
-
-            if (asset == null)
-            {
-                throw new InvalidOperationException("Asset not found");
-            }
-
+            var apiClient = _apiClientProvider.Get(asset.BlockchainIntegrationLayerId);
+            
             // TODO: Cache it
 
             var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockchainIntegrationLayerAssetId);
@@ -69,6 +75,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             publisher.PublishEvent(new TransactionBuiltEvent
             {
                 OperationId = command.OperationId,
+                BlockchainType = asset.BlockchainIntegrationLayerAssetId,
                 BlockchainAssetId = blockchainAsset.AssetId,
                 TransactionContext = buildingResult.TransactionContext
             });

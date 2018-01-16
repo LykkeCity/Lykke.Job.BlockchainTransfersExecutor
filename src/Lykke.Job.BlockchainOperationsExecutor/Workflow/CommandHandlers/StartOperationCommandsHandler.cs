@@ -21,7 +21,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             publisher.PublishEvent(new OperationStartRequestedEvent
             {
                 OperationId = command.OperationId,
-                BlockchainType = command.BlockchainType,
                 FromAddress = command.FromAddress,
                 ToAddress = command.ToAddress,
                 AssetId = command.AssetId,

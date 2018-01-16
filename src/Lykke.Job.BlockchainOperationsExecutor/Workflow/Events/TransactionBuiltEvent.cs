@@ -14,5 +14,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
 
         [ProtoMember(3)]
         public string BlockchainAssetId { get; set; }
+
+        [ProtoMember(4)]
+        public string BlockchainType { get; set; }
     }
 }

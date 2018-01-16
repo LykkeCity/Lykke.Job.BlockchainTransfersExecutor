@@ -16,12 +16,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public DateTime? SourceAddressReleaseMoment { get; private set; }
 
         public Guid OperationId { get; }
-        public string BlockchainType { get; }
         public string FromAddress { get; }
         public string ToAddress { get; }
         public string AssetId { get; }
         public decimal Amount { get; }
         public bool IncludeFee { get; }
+        public string BlockchainType { get; private set; }
         public string TransactionContext { get; private set; }
         public string BlockchainAssetId { get; private set; }
         public string SignedTransaction { get; private set; }
@@ -32,7 +32,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         private OperationExecutionAggregate(
             Guid operationId, 
-            string blockchainType, 
             string fromAddress, 
             string toAddress, 
             string assetId, 
@@ -42,7 +41,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             StartMoment = DateTime.UtcNow;
 
             OperationId = operationId;
-            BlockchainType = blockchainType;
             FromAddress = fromAddress;
             ToAddress = toAddress;
             AssetId = assetId;
@@ -102,7 +100,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public static OperationExecutionAggregate CreateNew(
             Guid operationId,
-            string blockchainType,
             string fromAddress,
             string toAddress,
             string assetId,
@@ -111,7 +108,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         {
             return new OperationExecutionAggregate(
                 operationId,
-                blockchainType,
                 fromAddress,
                 toAddress,
                 assetId,
@@ -168,7 +164,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 transactionError);
         }
         
-        public bool OnTransactionBuilt(string transactionContext, string blockchainAssetId)
+        public bool OnTransactionBuilt(string transactionContext, string blockchainType, string blockchainAssetId)
         {
             if (State != OperationExecutionState.Started)
             {
@@ -176,6 +172,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             }
 
             TransactionContext = transactionContext;
+            BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
 
             State = OperationExecutionState.TransactionIsBuilt;

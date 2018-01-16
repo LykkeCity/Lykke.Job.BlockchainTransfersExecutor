@@ -44,7 +44,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 evt.OperationId,
                 () => OperationExecutionAggregate.CreateNew(
                     evt.OperationId,
-                    evt.BlockchainType,
                     evt.FromAddress,
                     evt.ToAddress,
                     evt.AssetId,
@@ -58,7 +57,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 sender.SendCommand(new BuildTransactionCommand
                     {
                         OperationId = aggregate.OperationId,
-                        BlockchainType = aggregate.BlockchainType,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,
                         AssetId = aggregate.AssetId,
@@ -74,7 +72,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
             
-            if (aggregate.OnTransactionBuilt(evt.TransactionContext, evt.BlockchainAssetId))
+            if (aggregate.OnTransactionBuilt(evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
             {
                 sender.SendCommand(new SignTransactionCommand
                     {
