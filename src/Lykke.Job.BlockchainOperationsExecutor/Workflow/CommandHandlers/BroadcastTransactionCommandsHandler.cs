@@ -28,7 +28,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         {
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
-            if (await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
+            if (!await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
             {
                 _log.WriteInfo(nameof(BroadcastTransactionCommand), command.OperationId, "API said that transaction is already broadcasted");
             }
