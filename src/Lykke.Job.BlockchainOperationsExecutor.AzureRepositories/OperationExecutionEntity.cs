@@ -49,8 +49,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         [UsedImplicitly]
         public string TransactionHash { get; set; }
         [UsedImplicitly]
-        public DateTime? TransactionTimestamp { get; set; }
-        [UsedImplicitly]
         public decimal? Fee { get; set; }
         [UsedImplicitly]
         public string TransactionError { get; set; }
@@ -103,7 +101,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 BlockchainAssetId = aggregate.BlockchainAssetId,
                 SignedTransaction = aggregate.SignedTransaction,
                 TransactionHash = aggregate.TransactionHash,
-                TransactionTimestamp = aggregate.TransactionTimestamp,
                 Fee = aggregate.Fee,
                 TransactionError = aggregate.TransactionError
             };
@@ -131,7 +128,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 BlockchainAssetId,
                 SignedTransaction,
                 TransactionHash,
-                TransactionTimestamp,
                 Fee,
                 TransactionError);
         }

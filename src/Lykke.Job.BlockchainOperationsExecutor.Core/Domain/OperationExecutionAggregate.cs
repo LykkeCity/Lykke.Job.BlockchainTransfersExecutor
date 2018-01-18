@@ -1,4 +1,5 @@
 ﻿using System;
+using Lykke.Job.BlockchainOperationsExecutor.Contract;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 {
@@ -26,7 +27,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public string BlockchainAssetId { get; private set; }
         public string SignedTransaction { get; private set; }
         public string TransactionHash { get; private set; }
-        public DateTime? TransactionTimestamp { get; private set; }
         public decimal? Fee { get; private set; }
         public string TransactionError { get; private set; }
         
@@ -70,7 +70,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string blockchainAssetId,
             string signedTransaction,
             string transactionHash,
-            DateTime? transactionTimestamp,
             decimal? fee,
             string transactionError)
         {
@@ -93,7 +92,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             BlockchainAssetId = blockchainAssetId;
             SignedTransaction = signedTransaction;
             TransactionHash = transactionHash;
-            TransactionTimestamp = transactionTimestamp;
             Fee = fee;
             TransactionError = transactionError;
         }
@@ -135,7 +133,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string blockchainAssetId,
             string signedTransaction,
             string transactionHash,
-            DateTime? transactionTimestamp,
             decimal? fee,
             string transactionError)
         {
@@ -159,7 +156,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 blockchainAssetId,
                 signedTransaction,
                 transactionHash,
-                transactionTimestamp,
                 fee,
                 transactionError);
         }
@@ -212,7 +208,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
-        public bool OnTransactionCompleted(string transactionHash, DateTime transactionTimestamp, decimal fee)
+        public bool OnTransactionCompleted(string transactionHash, decimal fee)
         {
             if (State != OperationExecutionState.TransactionIsBroadcasted)
             {
@@ -220,7 +216,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             }
 
             TransactionHash = transactionHash;
-            TransactionTimestamp = transactionTimestamp;
             Fee = fee;
 
             State = OperationExecutionState.TransactionIsCompleted;
@@ -230,14 +225,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
-        public bool OnTransactionFailed(DateTime transactionTimestamp, string error)
+        public bool OnTransactionFailed(string error)
         {
             if (State != OperationExecutionState.TransactionIsBroadcasted)
             {
                 return false;
             }
 
-            TransactionTimestamp = transactionTimestamp;
             TransactionError = error;
 
             State = OperationExecutionState.TransactionIsFailed;

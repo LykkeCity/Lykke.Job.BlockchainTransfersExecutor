@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {

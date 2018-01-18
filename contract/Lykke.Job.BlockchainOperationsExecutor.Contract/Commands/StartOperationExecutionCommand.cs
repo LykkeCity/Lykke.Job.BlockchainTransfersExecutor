@@ -1,10 +1,15 @@
 ﻿using System;
+using JetBrains.Annotations;
 using ProtoBuf;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Commands
 {
+    /// <summary>
+    /// Command to start new blockchain operation execution
+    /// </summary>
+    [PublicAPI]
     [ProtoContract]
-    public class OperationStartRequestedEvent
+    public class StartOperationExecutionCommand
     {
         /// <summary>
         /// Lykke unique operation ID

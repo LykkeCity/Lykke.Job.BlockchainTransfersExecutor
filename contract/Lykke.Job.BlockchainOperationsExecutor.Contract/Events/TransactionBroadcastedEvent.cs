@@ -1,15 +1,13 @@
 ﻿using System;
-using JetBrains.Annotations;
 using ProtoBuf;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
     /// <summary>
-    /// Base class for the operation finishing events
+    /// Blockchain transaction is broadcasted event
     /// </summary>
-    [PublicAPI]
     [ProtoContract]
-    public abstract class BaseOperationFinishingEvent
+    public class TransactionBroadcastedEvent
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -17,4 +15,5 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         [ProtoMember(1)]
         public Guid OperationId { get; set; }
     }
+
 }

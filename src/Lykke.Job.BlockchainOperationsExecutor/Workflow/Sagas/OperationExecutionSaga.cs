@@ -7,13 +7,12 @@ using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
     /// <summary>
-    /// -> StartOperationCommand
-    /// -> OperationStartRequestedEvent
+    /// -> StartOperationExecutionCommand
+    /// -> OperationExecutionStartedEvent
     ///     -> BuildTransactionCommand
     /// -> TransactionBuiltEvent
     ///     -> SignTransactionCommand
@@ -21,7 +20,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     ///     -> BroadcastTransactionCommand
     /// -> TransactionBroadcasted
     ///     -> WaitForTransactionEndingCommand
-    /// -> OperationCompletedEvent | OperationFailedEvent
+    /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
     ///     -> ReleaseSourceAddressLockCommand
     /// -> SourceAddressLockReleasedEvent
     /// </summary>
@@ -38,7 +37,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationStartRequestedEvent evt, ICommandSender sender)
+        private async Task Handle(OperationExecutionStartedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetOrAddAsync(
                 evt.OperationId,
@@ -145,11 +144,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationCompletedEvent evt, ICommandSender sender)
+        private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.TransactionTimestamp, evt.Fee))
+            if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Fee))
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {
@@ -168,11 +167,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationFailedEvent evt, ICommandSender sender)
+        private async Task Handle(OperationExecutionFailedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionFailed(evt.TransactionTimestamp, evt.Error))
+            if (aggregate.OnTransactionFailed(evt.Error))
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {

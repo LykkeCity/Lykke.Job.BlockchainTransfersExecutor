@@ -2,15 +2,15 @@
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
     [UsedImplicitly]
-    public class StartOperationCommandsHandler
+    public class StartOperationExecutionCommandsHandler
     {
         [UsedImplicitly]
-        public Task<CommandHandlingResult> Handle(StartOperationCommand command, IEventPublisher publisher)
+        public Task<CommandHandlingResult> Handle(StartOperationExecutionCommand command, IEventPublisher publisher)
         {
             // TODO: In the further there could be a start of the operations aggregation.
             // Just by saving them to the storage for example.
@@ -18,7 +18,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             // the initiator of the command decide how long operation can wait to aggregate 
             // with other operations
 
-            publisher.PublishEvent(new OperationStartRequestedEvent
+            publisher.PublishEvent(new OperationExecutionStartedEvent
             {
                 OperationId = command.OperationId,
                 FromAddress = command.FromAddress,

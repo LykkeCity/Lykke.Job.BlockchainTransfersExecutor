@@ -4,21 +4,21 @@ using ProtoBuf;
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
     /// <summary>
-    /// Operation is completed
+    /// Operation execution is completed
     /// </summary>
     [PublicAPI]
-    public class OperationCompletedEvent : BaseOperationFinishingEvent
+    public class OperationExecutionCompletedEvent : BaseOperationFinishingEvent
     {
         /// <summary>
         /// Hash of the blockchain transaction
         /// </summary>
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public string TransactionHash { get; set; }
 
         /// <summary>
         /// Actual fee of the operation
         /// </summary>
-        [ProtoMember(4)]
+        [ProtoMember(3)]
         public decimal Fee { get; set; }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Single transaction can include multiple operations,
         /// so this value can include multiple operations amount
         /// </summary>
-        [ProtoMember(5)]
+        [ProtoMember(4)]
         public decimal TransactionAmount { get; set; }
     }
 }

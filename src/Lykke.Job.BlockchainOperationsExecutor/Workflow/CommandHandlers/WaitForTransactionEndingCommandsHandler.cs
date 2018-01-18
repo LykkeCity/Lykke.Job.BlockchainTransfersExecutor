@@ -46,10 +46,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             switch (transaction.State)
             {
                 case BroadcastedTransactionState.Completed:
-                    publisher.PublishEvent(new OperationCompletedEvent
+                    publisher.PublishEvent(new OperationExecutionCompletedEvent
                     {
                         OperationId = transaction.OperationId,
-                        TransactionTimestamp = transaction.Timestamp,
                         TransactionHash = transaction.Hash,
                         TransactionAmount = transaction.Amount,
                         Fee = transaction.Fee
@@ -61,10 +60,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                     return CommandHandlingResult.Ok();
 
                 case BroadcastedTransactionState.Failed:
-                    publisher.PublishEvent(new OperationFailedEvent
+                    publisher.PublishEvent(new OperationExecutionFailedEvent
                     {
                         OperationId = transaction.OperationId,
-                        TransactionTimestamp = transaction.Timestamp,
                         Error = transaction.Error
                     });
 
