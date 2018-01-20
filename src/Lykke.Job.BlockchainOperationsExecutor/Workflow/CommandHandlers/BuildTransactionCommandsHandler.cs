@@ -80,7 +80,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             publisher.PublishEvent(new TransactionBuiltEvent
             {
                 OperationId = command.OperationId,
-                BlockchainType = asset.BlockchainIntegrationLayerAssetId,
+                BlockchainType = asset.BlockchainIntegrationLayerId,
                 BlockchainAssetId = blockchainAsset.AssetId,
                 TransactionContext = buildingResult.TransactionContext
             });
