@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using ProtoBuf;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
@@ -6,6 +7,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// <summary>
     /// Blockchain transaction is broadcasted event
     /// </summary>
+    [PublicAPI]
     [ProtoContract]
     public class TransactionBroadcastedEvent
     {

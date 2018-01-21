@@ -7,6 +7,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// Operation execution is completed
     /// </summary>
     [PublicAPI]
+    [ProtoContract]
     public class OperationExecutionCompletedEvent : BaseOperationFinishingEvent
     {
         /// <summary>
