@@ -18,7 +18,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     ///     -> SignTransactionCommand
     /// -> TransactionSignedEvent
     ///     -> BroadcastTransactionCommand
-    /// -> TransactionBroadcasted
+    /// -> TransactionBroadcastedEvent
     ///     -> WaitForTransactionEndingCommand
     /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
     ///     -> ReleaseSourceAddressLockCommand
