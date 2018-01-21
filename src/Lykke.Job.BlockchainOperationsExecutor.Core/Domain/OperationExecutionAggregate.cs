@@ -1,5 +1,4 @@
 ﻿using System;
-using Lykke.Job.BlockchainOperationsExecutor.Contract;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 {
@@ -8,6 +7,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public string Version { get; }
 
         public OperationExecutionState State { get; private set; }
+        public OperationExecutionResult Result { get; private set; }
 
         public DateTime StartMoment { get; }
         public DateTime? TransactionBuildingMoment { get; private set; }
@@ -15,6 +15,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public DateTime? TransactionBroadcastingMoment { get; private set; }
         public DateTime? TransactionFinishMoment { get; private set; }
         public DateTime? SourceAddressReleaseMoment { get; private set; }
+        public DateTime? BroadcastedTransactionForgetMoment { get; private set; }
 
         public Guid OperationId { get; }
         public string FromAddress { get; }
@@ -48,17 +49,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             IncludeFee = includeFee;
 
             State = OperationExecutionState.Started;
+            Result = OperationExecutionResult.Unknown;
         }
 
         private OperationExecutionAggregate(
             string version, 
             OperationExecutionState state,
+            OperationExecutionResult result,
             DateTime startMoment,
             DateTime? transactionBuildingMoment,
             DateTime? transactionSigningMoment,
             DateTime? transactionBroadcastingMoment,
             DateTime? transactionFinishMoment,
             DateTime? sourceAddressReleaseMoment,
+            DateTime? broadcastedTransactionForgetMoment,
             Guid operationId,
             string blockchainType,
             string fromAddress,
@@ -75,12 +79,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         {
             Version = version;
             State = state;
+            Result = result;
             StartMoment = startMoment;
             TransactionBuildingMoment = transactionBuildingMoment;
             TransactionSigningMoment = transactionSigningMoment;
             TransactionBroadcastingMoment = transactionBroadcastingMoment;
             TransactionFinishMoment = transactionFinishMoment;
             SourceAddressReleaseMoment = sourceAddressReleaseMoment;
+            BroadcastedTransactionForgetMoment = broadcastedTransactionForgetMoment;
             OperationId = operationId;
             BlockchainType = blockchainType;
             FromAddress = fromAddress;
@@ -116,12 +122,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public static OperationExecutionAggregate Restore(
             string version,
             OperationExecutionState state,
+            OperationExecutionResult result,
             DateTime startMoment,
             DateTime? transactionBuildingMoment,
             DateTime? transactionSigningMoment,
             DateTime? transactionBroadcastingMoment,
             DateTime? transactionFinishMoment,
             DateTime? sourceAddressReleaseMoment,
+            DateTime? broadcastedTransactionForgetMoment,
             Guid operationId,
             string blockchainType,
             string fromAddress,
@@ -139,12 +147,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return new OperationExecutionAggregate(
                 version,
                 state,
+                result,
                 startMoment,
                 transactionBuildingMoment,
                 transactionSigningMoment,
                 transactionBroadcastingMoment,
                 transactionFinishMoment,
                 sourceAddressReleaseMoment,
+                broadcastedTransactionForgetMoment,
                 operationId,
                 blockchainType,
                 fromAddress,
@@ -218,7 +228,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             TransactionHash = transactionHash;
             Fee = fee;
 
-            State = OperationExecutionState.TransactionIsCompleted;
+            State = OperationExecutionState.TransactionIsFinished;
+            Result = OperationExecutionResult.Success;
 
             TransactionFinishMoment = DateTime.UtcNow;
 
@@ -234,7 +245,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
             TransactionError = error;
 
-            State = OperationExecutionState.TransactionIsFailed;
+            State = OperationExecutionState.TransactionIsFinished;
+            Result = OperationExecutionResult.Failure;
 
             TransactionFinishMoment = DateTime.UtcNow;
 
@@ -243,22 +255,28 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         public bool OnSourceAddressLockReleased()
         {
-            // ReSharper disable once SwitchStatementMissingSomeCases
-            switch (State)
+            if (State != OperationExecutionState.TransactionIsFinished)
             {
-                case OperationExecutionState.TransactionIsCompleted:
-                    State = OperationExecutionState.Completed;
-                    break;
-
-                case OperationExecutionState.TransactionIsFailed:
-                    State = OperationExecutionState.Failed;
-                    break;
-
-                default:
-                    return false;
+                return false;
             }
 
+            State = OperationExecutionState.SourceAddresIsReleased;
+
             SourceAddressReleaseMoment = DateTime.UtcNow;
+
+            return true;
+        }
+
+        public bool OnBroadcastedTransactionForgotten()
+        {
+            if (State != OperationExecutionState.SourceAddresIsReleased)
+            {
+                return false;
+            }
+
+            State = OperationExecutionState.BroadcastedTransactionIsForgotten;
+
+            BroadcastedTransactionForgetMoment = DateTime.UtcNow;
 
             return true;
         }

@@ -73,6 +73,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterType<BroadcastTransactionCommandsHandler>();
             builder.RegisterType<WaitForTransactionEndingCommandsHandler>();
             builder.RegisterType<ReleaseSourceAddressLockCommandsHandler>();
+            builder.RegisterType<ForgetBroadcastedTransactionCommandsHandler>();
 
             builder.Register(ctx => CreateEngine(ctx, messagingEngine))
                 .As<ICqrsEngine>()
@@ -139,6 +140,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
                     .With(defaultPipeline)
 
+                    .ListeningCommands(typeof(ForgetBroadcastedTransactionCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<ForgetBroadcastedTransactionCommandsHandler>()
+                    .PublishingEvents(typeof(BroadcastedTransactionForgottenEvent))
+                    .With(defaultPipeline)
+
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
                 Register.Saga<OperationExecutionSaga>($"{Self}.saga")
@@ -180,6 +187,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .With(defaultPipeline)
 
                     .ListeningEvents(typeof(SourceAddressLockReleasedEvent))
+                    .From(Self)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(ForgetBroadcastedTransactionCommand))
+                    .To(Self)
+                    .With(defaultPipeline)
+
+                    .ListeningEvents(typeof(BroadcastedTransactionForgottenEvent))
                     .From(Self)
                     .On(defaultRoute));
         }

@@ -12,6 +12,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 
         [UsedImplicitly]
         public OperationExecutionState State { get; set; }
+        [UsedImplicitly]
+        public OperationExecutionResult Result { get; set; }
 
         [UsedImplicitly]
         public DateTime StartMoment { get; set; }
@@ -25,6 +27,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public DateTime? TransactionFinishMoment { get; set; }
         [UsedImplicitly]
         public DateTime? SourceAddressReleaseMoment { get; set; }
+        [UsedImplicitly]
+        public DateTime? BroadcastedTransactionForgetMoment { get; set; }
 
         [UsedImplicitly]
         public Guid OperationId { get; set; }
@@ -84,12 +88,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 PartitionKey = GetPartitionKey(aggregate.OperationId),
                 RowKey = GetRowKey(aggregate.OperationId),
                 State = aggregate.State,
+                Result = aggregate.Result,
                 StartMoment = aggregate.StartMoment,
                 TransactionBuildingMoment = aggregate.TransactionBuildingMoment,
                 TransactionSigningMoment = aggregate.TransactionSigningMoment,
                 TransactionBroadcastingMoment = aggregate.TransactionBroadcastingMoment,
                 TransactionFinishMoment = aggregate.TransactionFinishMoment,
                 SourceAddressReleaseMoment = aggregate.SourceAddressReleaseMoment,
+                BroadcastedTransactionForgetMoment = aggregate.BroadcastedTransactionForgetMoment,
                 OperationId = aggregate.OperationId,
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
@@ -111,12 +117,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             return OperationExecutionAggregate.Restore(
                 ETag,
                 State,
+                Result,
                 StartMoment,
                 TransactionBuildingMoment,
                 TransactionSigningMoment,
                 TransactionBroadcastingMoment,
                 TransactionFinishMoment,
                 SourceAddressReleaseMoment,
+                BroadcastedTransactionForgetMoment,
                 OperationId,
                 BlockchainType,
                 FromAddress,

@@ -2,7 +2,6 @@
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
@@ -54,9 +53,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         Fee = transaction.Fee
                     });
 
-                    ChaosKitty.Meow();
-
-                    await apiClient.ForgetBroadcastedTransactionsAsync(command.OperationId);
                     return CommandHandlingResult.Ok();
 
                 case BroadcastedTransactionState.Failed:
@@ -66,9 +62,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         Error = transaction.Error
                     });
 
-                    ChaosKitty.Meow();
-
-                    await apiClient.ForgetBroadcastedTransactionsAsync(command.OperationId);
                     return CommandHandlingResult.Ok();
             }
 

@@ -23,6 +23,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
     ///     -> ReleaseSourceAddressLockCommand
     /// -> SourceAddressLockReleasedEvent
+    ///     -> ForgetBroadcastedTransactionCommand
+    /// -> BroadcastedTransactionForgottenEvent
     /// </summary>
     [UsedImplicitly]
     public class OperationExecutionSaga
@@ -195,6 +197,26 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (aggregate.OnSourceAddressLockReleased())
+            {
+                sender.SendCommand(new ForgetBroadcastedTransactionCommand
+                    {
+                        BlockchainType = aggregate.BlockchainType,
+                        OperationId = aggregate.OperationId
+                    },
+                    Self);
+
+                await _repository.SaveAsync(aggregate);
+
+                ChaosKitty.Meow();
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(BroadcastedTransactionForgottenEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (aggregate.OnBroadcastedTransactionForgotten())
             {
                 await _repository.SaveAsync(aggregate);
 

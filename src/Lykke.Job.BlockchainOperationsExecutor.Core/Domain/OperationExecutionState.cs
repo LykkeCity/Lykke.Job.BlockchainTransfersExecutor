@@ -6,9 +6,8 @@
         TransactionIsBuilt,
         TransactionIsSigned,
         TransactionIsBroadcasted,
-        TransactionIsCompleted,
-        TransactionIsFailed,
-        Completed,
-        Failed
+        TransactionIsFinished,
+        SourceAddresIsReleased,
+        BroadcastedTransactionIsForgotten
     }
 }
