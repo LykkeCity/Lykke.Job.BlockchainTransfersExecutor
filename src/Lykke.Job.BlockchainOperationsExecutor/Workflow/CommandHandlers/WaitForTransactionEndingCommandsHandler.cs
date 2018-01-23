@@ -41,49 +41,36 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             // TODO: Check for the availability of the tranaction rebuilding function and publish 
             // TransactionTimeoutEvent after configured timeout to run transaction rebuild process path
 
-            if (command.BlockchainType != "EthereumClassic")
+            var transaction =
+                await apiClient.TryGetBroadcastedTransactionAsync(command.OperationId, blockchainAsset);
+
+            if (transaction == null)
             {
-                var transaction =
-                    await apiClient.TryGetBroadcastedTransactionAsync(command.OperationId, blockchainAsset);
-
-                if (transaction == null)
-                {
-                    return CommandHandlingResult.Fail(_delayProvider.WaitForTransactionRetryDelay);
-                }
-
-                // ReSharper disable once SwitchStatementMissingSomeCases
-                switch (transaction.State)
-                {
-                    case BroadcastedTransactionState.Completed:
-                        publisher.PublishEvent(new OperationExecutionCompletedEvent
-                        {
-                            OperationId = transaction.OperationId,
-                            TransactionHash = transaction.Hash,
-                            TransactionAmount = transaction.Amount,
-                            Fee = transaction.Fee
-                        });
-
-                        return CommandHandlingResult.Ok();
-
-                    case BroadcastedTransactionState.Failed:
-                        publisher.PublishEvent(new OperationExecutionFailedEvent
-                        {
-                            OperationId = transaction.OperationId,
-                            Error = transaction.Error
-                        });
-
-                        return CommandHandlingResult.Ok();
-                }
+                return CommandHandlingResult.Fail(_delayProvider.WaitForTransactionRetryDelay);
             }
-            else
+
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (transaction.State)
             {
-                publisher.PublishEvent(new OperationExecutionCompletedEvent
-                {
-                    OperationId = command.OperationId,
-                    TransactionHash = "aborted",
-                    TransactionAmount = 0,
-                    Fee = 0
-                });
+                case BroadcastedTransactionState.Completed:
+                    publisher.PublishEvent(new OperationExecutionCompletedEvent
+                    {
+                        OperationId = transaction.OperationId,
+                        TransactionHash = transaction.Hash,
+                        TransactionAmount = transaction.Amount,
+                        Fee = transaction.Fee
+                    });
+
+                    return CommandHandlingResult.Ok();
+
+                case BroadcastedTransactionState.Failed:
+                    publisher.PublishEvent(new OperationExecutionFailedEvent
+                    {
+                        OperationId = transaction.OperationId,
+                        Error = transaction.Error
+                    });
+
+                    return CommandHandlingResult.Ok();
             }
 
             return CommandHandlingResult.Fail(_delayProvider.WaitForTransactionRetryDelay);
