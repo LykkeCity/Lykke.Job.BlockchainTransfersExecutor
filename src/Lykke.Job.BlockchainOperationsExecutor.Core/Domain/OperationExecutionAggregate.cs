@@ -283,6 +283,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 return false;
             }
 
+            State = nextState;
+
             return true;
         }
     }
