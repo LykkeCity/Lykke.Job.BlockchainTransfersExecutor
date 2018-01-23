@@ -172,7 +172,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         public bool OnTransactionBuilt(string transactionContext, string blockchainType, string blockchainAssetId)
         {
-            if (State != OperationExecutionState.Started)
+            if (!SwitchState(OperationExecutionState.Started, OperationExecutionState.TransactionIsBuilt))
             {
                 return false;
             }
@@ -181,8 +181,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
 
-            State = OperationExecutionState.TransactionIsBuilt;
-
             TransactionBuildingMoment = DateTime.UtcNow;
 
             return true;
@@ -190,14 +188,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionSigned(string signedTransaction)
         {
-            if (State != OperationExecutionState.TransactionIsBuilt)
+            if (!SwitchState(OperationExecutionState.TransactionIsBuilt, OperationExecutionState.TransactionIsSigned))
             {
                 return false;
             }
-
+            
             SignedTransaction = signedTransaction;
-
-            State = OperationExecutionState.TransactionIsSigned;
 
             TransactionSigningMoment = DateTime.UtcNow;
 
@@ -206,12 +202,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionBroadcasted()
         {
-            if (State != OperationExecutionState.TransactionIsSigned)
+            if (!SwitchState(OperationExecutionState.TransactionIsSigned, OperationExecutionState.TransactionIsBroadcasted))
             {
                 return false;
             }
-
-            State = OperationExecutionState.TransactionIsBroadcasted;
 
             TransactionBroadcastingMoment = DateTime.UtcNow;
 
@@ -220,7 +214,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionCompleted(string transactionHash, decimal fee)
         {
-            if (State != OperationExecutionState.TransactionIsBroadcasted)
+            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.TransactionIsFinished))
             {
                 return false;
             }
@@ -228,7 +222,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             TransactionHash = transactionHash;
             Fee = fee;
 
-            State = OperationExecutionState.TransactionIsFinished;
             Result = OperationExecutionResult.Success;
 
             TransactionFinishMoment = DateTime.UtcNow;
@@ -238,14 +231,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionFailed(string error)
         {
-            if (State != OperationExecutionState.TransactionIsBroadcasted)
+            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.TransactionIsFinished))
             {
                 return false;
             }
 
             TransactionError = error;
 
-            State = OperationExecutionState.TransactionIsFinished;
             Result = OperationExecutionResult.Failure;
 
             TransactionFinishMoment = DateTime.UtcNow;
@@ -255,12 +247,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         public bool OnSourceAddressLockReleased()
         {
-            if (State != OperationExecutionState.TransactionIsFinished)
+            if (!SwitchState(OperationExecutionState.TransactionIsFinished, OperationExecutionState.SourceAddresIsReleased))
             {
                 return false;
             }
-
-            State = OperationExecutionState.SourceAddresIsReleased;
 
             SourceAddressReleaseMoment = DateTime.UtcNow;
 
@@ -269,14 +259,29 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnBroadcastedTransactionForgotten()
         {
-            if (State != OperationExecutionState.SourceAddresIsReleased)
+            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.BroadcastedTransactionIsForgotten))
             {
                 return false;
             }
 
-            State = OperationExecutionState.BroadcastedTransactionIsForgotten;
-
             BroadcastedTransactionForgetMoment = DateTime.UtcNow;
+
+            return true;
+        }
+
+        private bool SwitchState(OperationExecutionState expectedState, OperationExecutionState nextState)
+        {
+            if (State < expectedState)
+            {
+                // Throws to retry and wait until aggregate will be in the required state
+                throw new InvalidAggregateStateException(State, expectedState, nextState);
+            }
+
+            if (State > expectedState)
+            {
+                // Aggregate already in the next state, so this event can be just ignored
+                return false;
+            }
 
             return true;
         }
