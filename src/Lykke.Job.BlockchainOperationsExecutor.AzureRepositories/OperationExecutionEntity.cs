@@ -1,6 +1,5 @@
 ﻿using System;
 using Common;
-using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 
@@ -10,56 +9,38 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
     {
         #region Fields
 
-        [UsedImplicitly]
+        // ReSharper disable MemberCanBePrivate.Global
+
         public OperationExecutionState State { get; set; }
-        [UsedImplicitly]
         public OperationExecutionResult Result { get; set; }
 
-        [UsedImplicitly]
         public DateTime StartMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? TransactionBuildingMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? TransactionSigningMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? TransactionBroadcastingMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? TransactionFinishMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? SourceAddressReleaseMoment { get; set; }
-        [UsedImplicitly]
         public DateTime? BroadcastedTransactionForgetMoment { get; set; }
 
-        [UsedImplicitly]
         public Guid OperationId { get; set; }
-        [UsedImplicitly]
         public string BlockchainType { get; set; }
-        [UsedImplicitly]
         public string FromAddress { get; set; }
-        [UsedImplicitly]
         public string ToAddress { get; set; }
-        [UsedImplicitly]
         public string AssetId { get; set; }
-        [UsedImplicitly]
         public decimal Amount { get; set; }
-        [UsedImplicitly]
         public bool IncludeFee { get; set; }
-        [UsedImplicitly]
         public string TransactionContext { get; set; }
-        [UsedImplicitly]
         public string BlockchainAssetId { get; set; }
-        [UsedImplicitly]
         public string SignedTransaction { get; set; }
-        [UsedImplicitly]
         public string TransactionHash { get; set; }
-        [UsedImplicitly]
         public decimal? Fee { get; set; }
-        [UsedImplicitly]
         public string TransactionError { get; set; }
+
+        // ReSharper restore MemberCanBePrivate.Global
 
         #endregion
 
-        
+
         #region Keys
 
         public static string GetPartitionKey(Guid operationId)
