@@ -1,21 +1,21 @@
 ﻿using System;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
-    [ProtoContract]
+    [MessagePackObject]
     public class SignTransactionCommand
     {
-        [ProtoMember(1)]
+        [Key(0)]
         public string BlockchainType { get; set; }
 
-        [ProtoMember(2)]
+        [Key(1)]
         public Guid OperationId { get; set; }
 
-        [ProtoMember(3)]
+        [Key(2)]
         public string SignerAddress { get; set; }
 
-        [ProtoMember(4)]
+        [Key(3)]
         public string TransactionContext { get; set; }
     }
 }

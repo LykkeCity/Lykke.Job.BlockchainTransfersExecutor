@@ -20,7 +20,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core
             }
         }
 
-        public static void Meow()
+        public static void Meow(object tag)
         {
             if (_stateOfChaos < 1e-10)
             {
@@ -29,7 +29,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core
 
             if (Randmom.NextDouble() < _stateOfChaos)
             {
-                throw new Exception("Meow");
+                throw new Exception($"Meow: {tag}");
             }
         }
     }

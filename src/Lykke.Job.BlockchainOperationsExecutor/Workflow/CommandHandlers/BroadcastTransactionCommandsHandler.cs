@@ -26,6 +26,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
+#if DEBUG
+            _log.WriteInfo(nameof(BroadcastTransactionCommand), command, "");
+#endif
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
             if (!await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
@@ -33,7 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 _log.WriteInfo(nameof(BroadcastTransactionCommand), command.OperationId, "API said that transaction is already broadcasted");
             }
 
-            ChaosKitty.Meow();
+            ChaosKitty.Meow(command.OperationId);
 
             publisher.PublishEvent(new TransactionBroadcastedEvent
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
@@ -14,17 +15,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     [UsedImplicitly]
     public class BuildTransactionCommandsHandler
     {
+        private readonly ILog _log;
         private readonly RetryDelayProvider _retryDelayProvider;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
         private readonly IAssetsServiceWithCache _assetsService;
         private readonly ISourceAddresLocksRepoistory _sourceAddresLocksRepoistory;
 
         public BuildTransactionCommandsHandler(
+            ILog log,
             RetryDelayProvider retryDelayProvider,
             IBlockchainApiClientProvider apiClientProvider,
             IAssetsServiceWithCache assetsService,
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory)
         {
+            _log = log;
             _retryDelayProvider = retryDelayProvider;
             _apiClientProvider = apiClientProvider;
             _assetsService = assetsService;
@@ -34,6 +38,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
+#if DEBUG
+            _log.WriteInfo(nameof(BuildTransactionCommand), command, "");
+#endif
             var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
 
             if (asset == null)
@@ -75,7 +82,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 command.Amount,
                 command.IncludeFee);
 
-            ChaosKitty.Meow();
+            ChaosKitty.Meow(command.OperationId);
 
             publisher.PublishEvent(new TransactionBuiltEvent
             {

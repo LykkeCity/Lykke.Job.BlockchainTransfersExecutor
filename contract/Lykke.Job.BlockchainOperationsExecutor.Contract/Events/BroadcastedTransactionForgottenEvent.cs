@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
@@ -8,13 +8,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// Transaction is removed from the list of the broadcasted transactions in the blockchain API 
     /// </summary>
     [PublicAPI]
-    [ProtoContract]
+    [MessagePackObject]
     public class BroadcastedTransactionForgottenEvent
     {
         /// <summary>
         /// Lykke unique operation ID
         /// </summary>
-        [ProtoMember(1)]
+        [Key(0)]
         public Guid OperationId { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
@@ -8,44 +8,44 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// Operation execution is started
     /// </summary>
     [PublicAPI]
-    [ProtoContract]
+    [MessagePackObject]
     public class OperationExecutionStartedEvent
     {
         /// <summary>
         /// Lykke unique operation ID
         /// </summary>
-        [ProtoMember(1)]
+        [Key(0)]
         public Guid OperationId { get; set; }
 
         /// <summary>
         /// Source address in the blockchain
         /// </summary>
-        [ProtoMember(2)]
+        [Key(1)]
         public string FromAddress { get; set; }
 
         /// <summary>
         /// Destination address in the blockchain
         /// </summary>
-        [ProtoMember(3)]
+        [Key(2)]
         public string ToAddress { get; set; }
 
         /// <summary>
         /// Lykke asset ID (not the blockchain one)
         /// </summary>
-        [ProtoMember(4)]
+        [Key(3)]
         public string AssetId { get; set; }
 
         /// <summary>
         /// Amount of funds to transfer
         /// </summary>
-        [ProtoMember(5)]
+        [Key(4)]
         public decimal Amount { get; set; }
 
         /// <summary>
         /// Flag, which indicates, that the fee should be included
         /// in the specified amount
         /// </summary>
-        [ProtoMember(6)]
+        [Key(5)]
         public bool IncludeFee { get; set; }
     }
 }

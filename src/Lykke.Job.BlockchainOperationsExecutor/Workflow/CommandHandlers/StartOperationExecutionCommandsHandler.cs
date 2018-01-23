@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
@@ -9,9 +10,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     [UsedImplicitly]
     public class StartOperationExecutionCommandsHandler
     {
+        private readonly ILog _log;
+
+        public StartOperationExecutionCommandsHandler(ILog log)
+        {
+            _log = log;
+        }
+
         [UsedImplicitly]
         public Task<CommandHandlingResult> Handle(StartOperationExecutionCommand command, IEventPublisher publisher)
         {
+#if DEBUG
+            _log.WriteInfo(nameof(StartOperationExecutionCommand), command, "");
+#endif
             // TODO: In the further there could be a start of the operations aggregation.
             // Just by saving them to the storage for example.
             // Waiting period for aggregation should be passed in the command to let

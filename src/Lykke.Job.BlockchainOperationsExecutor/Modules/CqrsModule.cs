@@ -55,7 +55,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         new TransportInfo(rabbitMqSettings.Endpoint.ToString(), rabbitMqSettings.UserName,
                             rabbitMqSettings.Password, "None", "RabbitMq")
                     }
-                }),
+                }),                
                 new RabbitMqTransportFactory());
 
             builder.Register(c => new RetryDelayProvider(
@@ -95,8 +95,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 new DefaultEndpointProvider(),
                 true,
                 Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
-                    "RabbitMq", 
-                    "protobuf", 
+                    "RabbitMq",
+                    "messagepack",
                     environment: "lykke")),
 
                 Register.BoundedContext(Self)

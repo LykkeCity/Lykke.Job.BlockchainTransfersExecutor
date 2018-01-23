@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
@@ -8,13 +8,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// Operation source address lock is released event
     /// </summary>
     [PublicAPI]
-    [ProtoContract]
+    [MessagePackObject]
     public class SourceAddressLockReleasedEvent
     {
         /// <summary>
         /// Lykke unique operation ID
         /// </summary>
-        [ProtoMember(1)]
+        [Key(0)]
         public Guid OperationId { get; set; }
     }
 }

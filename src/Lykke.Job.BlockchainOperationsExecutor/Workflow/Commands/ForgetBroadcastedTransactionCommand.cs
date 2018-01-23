@@ -1,15 +1,15 @@
 ﻿using System;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
-    [ProtoContract]
+    [MessagePackObject]
     public class ForgetBroadcastedTransactionCommand
     {
-        [ProtoMember(1)]
+        [Key(0)]
         public string BlockchainType { get; set; }
 
-        [ProtoMember(2)]
+        [Key(1)]
         public Guid OperationId { get; set; }
     }
 }

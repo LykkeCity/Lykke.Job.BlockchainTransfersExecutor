@@ -1,24 +1,24 @@
 ﻿using System;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
-    [ProtoContract]
+    [MessagePackObject]
     public class WaitForTransactionEndingCommand
     {
-        [ProtoMember(1)]
+        [Key(0)]
         public string BlockchainType { get; set; }
 
-        [ProtoMember(2)]
+        [Key(1)]
         public string BlockchainAssetId { get; set; }
 
-        [ProtoMember(3)]
+        [Key(2)]
         public Guid OperationId { get; set; }
 
-        [ProtoMember(4)]
+        [Key(3)]
         public DateTime OperationStartMoment { get; set; }
 
-        [ProtoMember(5)]
+        [Key(4)]
         public DateTime TransactionBroadcastingMoment { get; set; }
     }
 }

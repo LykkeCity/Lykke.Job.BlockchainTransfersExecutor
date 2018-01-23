@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
@@ -8,25 +8,25 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// Operation execution is completed
     /// </summary>
     [PublicAPI]
-    [ProtoContract]
+    [MessagePackObject]
     public class OperationExecutionCompletedEvent
     {
         /// <summary>
         /// Lykke unique operation ID
         /// </summary>
-        [ProtoMember(1)]
+        [Key(0)]
         public Guid OperationId { get; set; }
 
         /// <summary>
         /// Hash of the blockchain transaction
         /// </summary>
-        [ProtoMember(2)]
+        [Key(1)]
         public string TransactionHash { get; set; }
 
         /// <summary>
         /// Actual fee of the operation
         /// </summary>
-        [ProtoMember(3)]
+        [Key(2)]
         public decimal Fee { get; set; }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Single transaction can include multiple operations,
         /// so this value can include multiple operations amount
         /// </summary>
-        [ProtoMember(4)]
+        [Key(3)]
         public decimal TransactionAmount { get; set; }
     }
 }

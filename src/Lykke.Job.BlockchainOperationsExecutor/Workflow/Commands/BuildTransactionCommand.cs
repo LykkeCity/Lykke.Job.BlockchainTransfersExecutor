@@ -1,27 +1,27 @@
 ﻿using System;
-using ProtoBuf;
+using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
-    [ProtoContract]
+    [MessagePackObject]
     public class BuildTransactionCommand
     {
-        [ProtoMember(1)]
+        [Key(0)]
         public string AssetId { get; set; }
 
-        [ProtoMember(2)]
+        [Key(1)]
         public Guid OperationId { get; set; }
 
-        [ProtoMember(3)]
+        [Key(2)]
         public string FromAddress { get; set; }
 
-        [ProtoMember(4)]
+        [Key(3)]
         public string ToAddress { get; set; }
 
-        [ProtoMember(5)]
+        [Key(4)]
         public decimal Amount { get; set; }
 
-        [ProtoMember(6)]
+        [Key(5)]
         public bool IncludeFee { get; set; }
     }
 }
