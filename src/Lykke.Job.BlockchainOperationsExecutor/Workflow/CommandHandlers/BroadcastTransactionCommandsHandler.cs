@@ -29,14 +29,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 #if DEBUG
             _log.WriteInfo(nameof(BroadcastTransactionCommand), command, "");
 #endif
-            var apiClient = _apiClientProvider.Get(command.BlockchainType);
+            // TODO: Temp
 
-            if (!await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
+            if (command.BlockchainType != "EthereumClassic")
             {
-                _log.WriteInfo(nameof(BroadcastTransactionCommand), command.OperationId, "API said that transaction is already broadcasted");
-            }
+                var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
-            ChaosKitty.Meow(command.OperationId);
+                if (!await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
+                {
+                    _log.WriteInfo(nameof(BroadcastTransactionCommand), command.OperationId,
+                        "API said that transaction is already broadcasted");
+                }
+
+                ChaosKitty.Meow(command.OperationId);
+            }
 
             publisher.PublishEvent(new TransactionBroadcastedEvent
             {
