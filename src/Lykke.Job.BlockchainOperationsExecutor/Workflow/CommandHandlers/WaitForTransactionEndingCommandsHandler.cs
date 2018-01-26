@@ -41,8 +41,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             // TODO: Check for the availability of the tranaction rebuilding function and publish 
             // TransactionTimeoutEvent after configured timeout to run transaction rebuild process path
 
-            var transaction =
-                await apiClient.TryGetBroadcastedTransactionAsync(command.OperationId, blockchainAsset);
+            var transaction = await apiClient.TryGetBroadcastedTransactionAsync(command.OperationId, blockchainAsset);
 
             if (transaction == null)
             {
