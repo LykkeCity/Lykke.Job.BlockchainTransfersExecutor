@@ -9,7 +9,6 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers;
@@ -24,23 +23,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         private static readonly string Self = BlockchainOperationsExecutorBoundedContext.Name;
 
         private readonly CqrsSettings _settings;
-        private readonly ChaosSettings _chaosSettings;
         private readonly ILog _log;
 
-        public CqrsModule(CqrsSettings settings, ChaosSettings chaosSettings, ILog log)
+        public CqrsModule(CqrsSettings settings, ILog log)
         {
             _settings = settings;
-            _chaosSettings = chaosSettings;
             _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            if (_chaosSettings != null)
-            {
-                ChaosKitty.StateOfChaos = _chaosSettings.StateOfChaos;
-            }
-
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>().SingleInstance();
 
             var rabbitMqSettings = new RabbitMQ.Client.ConnectionFactory

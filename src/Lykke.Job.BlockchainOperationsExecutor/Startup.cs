@@ -61,7 +61,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                 Log = CreateLogWithSlack(services, appSettings);
 
                 builder.RegisterModule(new JobModule(
-                    appSettings.CurrentValue.Assets,
+                    appSettings.CurrentValue.Assets, 
+                    appSettings.CurrentValue.BlockchainOperationsExecutorJob.ChaosKitty,
                     Log));
                 builder.RegisterModule(new RepositoriesModule(
                     appSettings.Nested(x => x.BlockchainOperationsExecutorJob.Db),
@@ -71,7 +72,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                     Log));
                 builder.RegisterModule(new CqrsModule(
                     appSettings.CurrentValue.BlockchainOperationsExecutorJob.Cqrs,
-                    appSettings.CurrentValue.BlockchainOperationsExecutorJob.ChaosKitty,
                     Log));
                 
 

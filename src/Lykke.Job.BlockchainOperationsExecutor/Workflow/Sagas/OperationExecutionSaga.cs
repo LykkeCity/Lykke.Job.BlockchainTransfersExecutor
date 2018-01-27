@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 
@@ -32,11 +32,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     {
         private static string Self => BlockchainOperationsExecutorBoundedContext.Name;
 
+        private readonly IChaosKitty _chaosKitty;
         private readonly ILog _log;
         private readonly IOperationExecutionsRepository _repository;
 
-        public OperationExecutionSaga(ILog log, IOperationExecutionsRepository repository)
+        public OperationExecutionSaga(
+            IChaosKitty chaosKitty,
+            ILog log, 
+            IOperationExecutionsRepository repository)
         {
+            _chaosKitty = chaosKitty;
             _log = log;
             _repository = repository;
         }
@@ -60,7 +65,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         evt.Amount,
                         evt.IncludeFee));
 
-                ChaosKitty.Meow(evt.OperationId);
+                _chaosKitty.Meow(evt.OperationId);
 
                 if (aggregate.State == OperationExecutionState.Started)
                 {
@@ -104,7 +109,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }
@@ -136,7 +141,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }
@@ -176,7 +181,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }
@@ -208,7 +213,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }
@@ -240,7 +245,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }
@@ -271,7 +276,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         },
                         Self);
 
-                    ChaosKitty.Meow(evt.OperationId);
+                    _chaosKitty.Meow(evt.OperationId);
 
                     await _repository.SaveAsync(aggregate);
                 }

@@ -2,6 +2,7 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Common.Log;
+using Lykke.Common.Chaos;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.Assets;
@@ -13,14 +14,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
     public class JobModule : Module
     {
         private readonly AssetsSettings _assetsSettings;
+        private readonly ChaosSettings _chaosSettings;
         private readonly ILog _log;
         private readonly ServiceCollection _services;
 
         public JobModule(
             AssetsSettings assetsSettings,
+            ChaosSettings chaosSettings,
             ILog log)
         {
             _assetsSettings = assetsSettings;
+            _chaosSettings = chaosSettings;
             _log = log;
             _services = new ServiceCollection();
         }
@@ -47,6 +51,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 AssetsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod,
                 AssetPairsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod
             });
+
+            builder.RegisterChaosKitty(_chaosSettings);
 
             builder.Populate(_services);
         }
