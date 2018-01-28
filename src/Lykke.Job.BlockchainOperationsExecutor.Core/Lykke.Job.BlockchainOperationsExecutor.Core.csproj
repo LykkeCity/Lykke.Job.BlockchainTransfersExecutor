@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+	<Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lykke.Common" Version="4.3.0" />
+    <PackageReference Include="Lykke.Service.BlockchainApi.Client" Version="12.0.6" />
+    <PackageReference Include="Lykke.Service.BlockchainSignService.Client" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\contract\Lykke.Job.BlockchainOperationsExecutor.Contract\Lykke.Job.BlockchainOperationsExecutor.Contract.csproj" />
+  </ItemGroup>
+
+</Project>
