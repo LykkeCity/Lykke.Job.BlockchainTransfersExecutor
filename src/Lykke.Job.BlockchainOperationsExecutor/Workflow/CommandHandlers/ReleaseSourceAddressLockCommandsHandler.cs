@@ -29,9 +29,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(ReleaseSourceAddressLockCommand command, IEventPublisher publisher)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(ReleaseSourceAddressLockCommand), command, "");
-#endif
+
             await _locksRepoistory.ReleaseLockAsync(command.BlockchainType, command.FromAddress, command.OperationId);
 
             _chaosKitty.Meow(command.OperationId);

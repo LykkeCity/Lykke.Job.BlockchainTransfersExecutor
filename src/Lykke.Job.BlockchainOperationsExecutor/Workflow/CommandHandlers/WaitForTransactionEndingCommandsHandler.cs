@@ -29,9 +29,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(WaitForTransactionEndingCommand), command, "");
-#endif
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
             // TODO: Cache it

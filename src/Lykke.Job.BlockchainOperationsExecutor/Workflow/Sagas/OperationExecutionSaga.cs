@@ -49,9 +49,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionStartedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionStartedEvent), evt, "");
-#endif
+
 
             try
             {
@@ -91,9 +91,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionBuiltEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -124,9 +124,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionSignedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionSignedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -156,9 +156,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionBroadcastedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionBroadcastedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -188,9 +188,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(SourceAddressLockReleasedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(SourceAddressLockReleasedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -228,9 +228,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionCompletedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -259,9 +259,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionFailedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionFailedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -290,9 +290,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(BroadcastedTransactionForgottenEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(BroadcastedTransactionForgottenEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
