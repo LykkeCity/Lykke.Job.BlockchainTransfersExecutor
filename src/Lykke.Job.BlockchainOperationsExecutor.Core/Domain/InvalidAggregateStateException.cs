@@ -12,7 +12,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         private static string BuildMessage(OperationExecutionState currentState, OperationExecutionState expectedState, OperationExecutionState targetState)
         {
-            return $"Cashin state can't be switched: {currentState} -> {targetState}. Waiting for the {expectedState} state.";
+            return $"Operation execution state can't be switched: {currentState} -> {targetState}. Waiting for the {expectedState} state.";
         }
     }
 }
