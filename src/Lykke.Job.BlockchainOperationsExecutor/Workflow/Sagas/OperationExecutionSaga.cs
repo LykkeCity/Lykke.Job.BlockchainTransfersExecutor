@@ -20,10 +20,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     /// -> TransactionSignedEvent
     ///     -> BroadcastTransactionCommand
     /// -> TransactionBroadcastedEvent
-    ///     -> WaitForTransactionEndingCommand
-    /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
     ///     -> ReleaseSourceAddressLockCommand
     /// -> SourceAddressLockReleasedEvent
+    ///     -> WaitForTransactionEndingCommand
+    /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
     ///     -> ForgetBroadcastedTransactionCommand
     /// -> BroadcastedTransactionForgottenEvent
     /// </summary>
@@ -49,9 +49,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionStartedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionStartedEvent), evt, "");
-#endif
+
 
             try
             {
@@ -91,9 +91,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionBuiltEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -124,9 +124,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionSignedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionSignedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
@@ -156,14 +156,46 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionBroadcastedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(TransactionBroadcastedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
 
                 if (aggregate.OnTransactionBroadcasted())
+                {
+                    sender.SendCommand(new ReleaseSourceAddressLockCommand
+                        {
+                            BlockchainType = aggregate.BlockchainType,
+                            FromAddress = aggregate.FromAddress,
+                            OperationId = aggregate.OperationId
+                        },
+                        Self);
+
+                    _chaosKitty.Meow(evt.OperationId);
+
+                    await _repository.SaveAsync(aggregate);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(nameof(TransactionBroadcastedEvent), evt, ex);
+                throw;
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(SourceAddressLockReleasedEvent evt, ICommandSender sender)
+        {
+
+            _log.WriteInfo(nameof(SourceAddressLockReleasedEvent), evt, "");
+
+            try
+            {
+                var aggregate = await _repository.GetAsync(evt.OperationId);
+
+                if (aggregate.OnSourceAddressLockReleased())
                 {
                     if (!aggregate.TransactionBroadcastingMoment.HasValue)
                     {
@@ -188,7 +220,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             }
             catch (Exception ex)
             {
-                _log.WriteError(nameof(TransactionBroadcastedEvent), evt, ex);
+                _log.WriteError(nameof(SourceAddressLockReleasedEvent), evt, ex);
                 throw;
             }
         }
@@ -196,19 +228,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionCompletedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
 
                 if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Fee))
                 {
-                    sender.SendCommand(new ReleaseSourceAddressLockCommand
+                    sender.SendCommand(new ForgetBroadcastedTransactionCommand
                         {
                             BlockchainType = aggregate.BlockchainType,
-                            FromAddress = aggregate.FromAddress,
                             OperationId = aggregate.OperationId
                         },
                         Self);
@@ -228,19 +259,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(OperationExecutionFailedEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(OperationExecutionFailedEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
 
                 if (aggregate.OnTransactionFailed(evt.Error))
                 {
-                    sender.SendCommand(new ReleaseSourceAddressLockCommand
+                    sender.SendCommand(new ForgetBroadcastedTransactionCommand
                         {
                             BlockchainType = aggregate.BlockchainType,
-                            FromAddress = aggregate.FromAddress,
                             OperationId = aggregate.OperationId
                         },
                         Self);
@@ -258,42 +288,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(SourceAddressLockReleasedEvent evt, ICommandSender sender)
-        {
-#if DEBUG
-            _log.WriteInfo(nameof(SourceAddressLockReleasedEvent), evt, "");
-#endif
-            try
-            {
-                var aggregate = await _repository.GetAsync(evt.OperationId);
-
-                if (aggregate.OnSourceAddressLockReleased())
-                {
-                    sender.SendCommand(new ForgetBroadcastedTransactionCommand
-                        {
-                            BlockchainType = aggregate.BlockchainType,
-                            OperationId = aggregate.OperationId
-                        },
-                        Self);
-
-                    _chaosKitty.Meow(evt.OperationId);
-
-                    await _repository.SaveAsync(aggregate);
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.WriteError(nameof(SourceAddressLockReleasedEvent), evt, ex);
-                throw;
-            }
-        }
-
-        [UsedImplicitly]
         private async Task Handle(BroadcastedTransactionForgottenEvent evt, ICommandSender sender)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(BroadcastedTransactionForgottenEvent), evt, "");
-#endif
+
             try
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);

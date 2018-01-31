@@ -41,9 +41,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(BuildTransactionCommand), command, "");
-#endif
+
             var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
 
             if (asset == null)

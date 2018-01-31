@@ -31,9 +31,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(SignTransactionCommand command, IEventPublisher publisher)
         {
-#if DEBUG
+
             _log.WriteInfo(nameof(SignTransactionCommand), command, "");
-#endif
+
             var signServiceClient = _signServiceClientProvider.Get(command.BlockchainType);
 
             var transactionSigningResult = await signServiceClient.SignTransactionAsync(new SignRequestModel(
