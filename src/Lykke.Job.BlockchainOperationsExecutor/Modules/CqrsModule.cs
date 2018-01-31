@@ -118,6 +118,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(typeof(TransactionBroadcastedEvent))
                     .With(defaultPipeline)
 
+                    .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
+                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
+                    .With(defaultPipeline)
+
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<WaitForTransactionEndingCommandsHandler>()
@@ -126,12 +132,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(OperationExecutionFailedEvent))
                     .With(defaultPipeline)
                     
-                    .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
-                    .On(defaultRoute)
-                    .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
-                    .With(defaultPipeline)
-
                     .ListeningCommands(typeof(ForgetBroadcastedTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ForgetBroadcastedTransactionCommandsHandler>()
@@ -165,6 +165,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningEvents(typeof(TransactionBroadcastedEvent))
                     .From(Self)
                     .On(defaultRoute)
+                    .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
+                    .To(Self)
+                    .With(defaultPipeline)
+
+                    .ListeningEvents(typeof(SourceAddressLockReleasedEvent))
+                    .From(Self)
+                    .On(defaultRoute)
                     .PublishingCommands(typeof(WaitForTransactionEndingCommand))
                     .To(Self)
                     .With(defaultPipeline)
@@ -172,13 +179,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningEvents(
                         typeof(OperationExecutionCompletedEvent),
                         typeof(OperationExecutionFailedEvent))
-                    .From(Self)
-                    .On(defaultRoute)
-                    .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
-                    .To(Self)
-                    .With(defaultPipeline)
-
-                    .ListeningEvents(typeof(SourceAddressLockReleasedEvent))
                     .From(Self)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ForgetBroadcastedTransactionCommand))

@@ -212,9 +212,21 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
+        public bool OnSourceAddressLockReleased()
+        {
+            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.SourceAddresIsReleased))
+            {
+                return false;
+            }
+
+            SourceAddressReleaseMoment = DateTime.UtcNow;
+
+            return true;
+        }
+
         public bool OnTransactionCompleted(string transactionHash, decimal fee)
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.TransactionIsFinished))
+            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.TransactionIsFinished))
             {
                 return false;
             }
@@ -231,7 +243,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionFailed(string error)
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.TransactionIsFinished))
+            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.TransactionIsFinished))
             {
                 return false;
             }
@@ -245,21 +257,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
         
-        public bool OnSourceAddressLockReleased()
-        {
-            if (!SwitchState(OperationExecutionState.TransactionIsFinished, OperationExecutionState.SourceAddresIsReleased))
-            {
-                return false;
-            }
-
-            SourceAddressReleaseMoment = DateTime.UtcNow;
-
-            return true;
-        }
-
         public bool OnBroadcastedTransactionForgotten()
         {
-            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.BroadcastedTransactionIsForgotten))
+            if (!SwitchState(OperationExecutionState.TransactionIsFinished, OperationExecutionState.BroadcastedTransactionIsForgotten))
             {
                 return false;
             }
