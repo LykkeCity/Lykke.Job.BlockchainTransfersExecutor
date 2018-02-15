@@ -30,7 +30,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public string TransactionHash { get; private set; }
         public decimal? Fee { get; private set; }
         public string TransactionError { get; private set; }
-        
+        public string FromAddressContext { get; private set; }
+
         private OperationExecutionAggregate(
             Guid operationId, 
             string fromAddress, 
@@ -66,6 +67,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             Guid operationId,
             string blockchainType,
             string fromAddress,
+            string fromAddressContext,
             string toAddress,
             string assetId,
             decimal amount,
@@ -90,6 +92,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             OperationId = operationId;
             BlockchainType = blockchainType;
             FromAddress = fromAddress;
+            FromAddressContext = fromAddressContext;
             ToAddress = toAddress;
             AssetId = assetId;
             Amount = amount;
@@ -133,6 +136,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             Guid operationId,
             string blockchainType,
             string fromAddress,
+            string fromAddressContext,
             string toAddress,
             string assetId,
             decimal amount,
@@ -158,6 +162,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 operationId,
                 blockchainType,
                 fromAddress,
+                fromAddressContext,
                 toAddress,
                 assetId,
                 amount,
@@ -170,13 +175,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 transactionError);
         }
         
-        public bool OnTransactionBuilt(string transactionContext, string blockchainType, string blockchainAssetId)
+        public bool OnTransactionBuilt(string addressContext, string transactionContext, string blockchainType, string blockchainAssetId)
         {
             if (!SwitchState(OperationExecutionState.Started, OperationExecutionState.TransactionIsBuilt))
             {
                 return false;
             }
 
+            FromAddressContext = addressContext;
             TransactionContext = transactionContext;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;

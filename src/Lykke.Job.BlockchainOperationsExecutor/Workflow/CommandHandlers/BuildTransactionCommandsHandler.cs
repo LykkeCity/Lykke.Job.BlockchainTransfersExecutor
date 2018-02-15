@@ -21,6 +21,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         private readonly IBlockchainApiClientProvider _apiClientProvider;
         private readonly IAssetsServiceWithCache _assetsService;
         private readonly ISourceAddresLocksRepoistory _sourceAddresLocksRepoistory;
+        private readonly IBlockchainSignServiceClientProvider _signServiceClientProvider;
 
         public BuildTransactionCommandsHandler(
             IChaosKitty chaosKitty,
@@ -28,7 +29,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             RetryDelayProvider retryDelayProvider,
             IBlockchainApiClientProvider apiClientProvider,
             IAssetsServiceWithCache assetsService,
-            ISourceAddresLocksRepoistory sourceAddresLocksRepoistory)
+            ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
+            IBlockchainSignServiceClientProvider signServiceClientProvider)
         {
             _chaosKitty = chaosKitty;
             _log = log;
@@ -36,6 +38,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             _apiClientProvider = apiClientProvider;
             _assetsService = assetsService;
             _sourceAddresLocksRepoistory = sourceAddresLocksRepoistory;
+            _signServiceClientProvider = signServiceClientProvider;
         }
 
         [UsedImplicitly]
@@ -72,14 +75,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             }
 
             var apiClient = _apiClientProvider.Get(asset.BlockchainIntegrationLayerId);
-            
+            var signServiceClient = _signServiceClientProvider.Get(asset.BlockchainIntegrationLayerId);
+
             // TODO: Cache it
 
             var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockchainIntegrationLayerAssetId);
+            var wallet = await signServiceClient.GetWalletByPublicAddressAsync(command.FromAddress);
 
-            var buildingResult = await apiClient.BuildTransactionAsync(
+            var buildingResult = await apiClient.BuildSingleTransactionAsync(
                 command.OperationId,
                 command.FromAddress,
+                wallet.AddressContext,
                 command.ToAddress,
                 blockchainAsset,
                 command.Amount,
@@ -92,7 +98,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 OperationId = command.OperationId,
                 BlockchainType = asset.BlockchainIntegrationLayerId,
                 BlockchainAssetId = blockchainAsset.AssetId,
-                TransactionContext = buildingResult.TransactionContext
+                TransactionContext = buildingResult.TransactionContext,
+                AddressContext = wallet.AddressContext
             });
 
             return CommandHandlingResult.Ok();

@@ -36,5 +36,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// </summary>
         [Key(3)]
         public decimal TransactionAmount { get; set; }
+
+        /// <summary>
+        /// Number of the block, transaction was included to
+        /// </summary>
+        [Key(4)]
+        public long Block { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using System.Transactions;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -6,6 +8,7 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Service.BlockchainApi.Client.Models;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
@@ -33,13 +36,34 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             _log.WriteInfo(nameof(BroadcastTransactionCommand), command, "");
 
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
+            var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction);
 
-            if (!await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction))
+            switch (broadcastingResult)
             {
-                _log.WriteInfo(nameof(BroadcastTransactionCommand), command.OperationId,
-                    "API said that transaction is already broadcasted");
+                case TransactionBroadcastingResult.Success:
+                    break;
+                case TransactionBroadcastingResult.AlreadyBroadcasted:
+                    _log.WriteInfo
+                    (
+                        nameof(BroadcastTransactionCommand),
+                        command.OperationId,
+                        "API said that transaction is already broadcasted"
+                    );
+                    break;
+                case TransactionBroadcastingResult.AmountIsTooSmall:
+                case TransactionBroadcastingResult.NotEnoughBalance:
+                    throw new TransactionException
+                    (
+                        $"Failed to broadcast transaction: {broadcastingResult}."
+                    );
+                default:
+                    throw new ArgumentOutOfRangeException
+                    (
+                        nameof(broadcastingResult),
+                        $"Transaction broadcastring result [{broadcastingResult}] is not supported."
+                    );
             }
-
+            
             _chaosKitty.Meow(command.OperationId);
 
 
