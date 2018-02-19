@@ -45,7 +45,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
             if (transaction == null)
             {
-                return CommandHandlingResult.Fail(_delayProvider.WaitForTransactionRetryDelay);
+                // Transaction already has been forgotten, this means, 
+                // that process has been went further and no events should be generated here.
+
+                return CommandHandlingResult.Ok();
             }
             
             // ReSharper disable once SwitchStatementMissingSomeCases
