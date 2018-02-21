@@ -41,7 +41,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
                 builder.RegisterType<BlockchainSignServiceClient>()
                     .Named<IBlockchainSignServiceClient>(blockchain.Type)
-                    .WithParameter(TypedParameter.From(blockchain.SignFacadeUrl));
+                    .WithParameter(new NamedParameter("serviceUrl", blockchain.SignFacadeUrl))
+                    .WithParameter(new NamedParameter("apiKey", blockchain.SignFacadeApiKey));
             }
         }
     }

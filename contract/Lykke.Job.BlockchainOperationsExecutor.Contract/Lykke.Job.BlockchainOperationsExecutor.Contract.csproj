@@ -24,13 +24,6 @@
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup Label="dotnet pack instructions">
-    <Content Include="$(OutputPath)Lykke.Job.BlockchainOperationsExecutor.Contract.pdb">
-      <Pack>true</Pack>
-      <PackagePath>lib/netstandard2.0</PackagePath>
-    </Content>
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="MessagePack" Version="1.7.3.2" />

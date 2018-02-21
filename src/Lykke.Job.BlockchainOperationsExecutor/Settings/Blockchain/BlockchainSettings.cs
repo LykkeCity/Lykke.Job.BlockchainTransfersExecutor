@@ -22,6 +22,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain
         public string SignFacadeUrl { get; set; }
 
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
+        public string SignFacadeApiKey { get; set; }
+
+        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string HotWalletAddress { get; set; }
     }
 }
