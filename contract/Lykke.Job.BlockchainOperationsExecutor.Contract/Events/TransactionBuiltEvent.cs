@@ -38,7 +38,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Source address context
         /// </summary>
-        [Key(6)]
+        [Key(4)]
         public string AddressContext { get; set; }
     }
 }
