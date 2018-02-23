@@ -99,7 +99,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 BlockchainType = asset.BlockchainIntegrationLayerId,
                 BlockchainAssetId = blockchainAsset.AssetId,
                 TransactionContext = buildingResult.TransactionContext,
-                AddressContext = wallet.AddressContext
+                FromAddressContext = wallet.AddressContext
             });
 
             return CommandHandlingResult.Ok();

@@ -31,6 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public decimal? Fee { get; private set; }
         public string TransactionError { get; private set; }
         public string FromAddressContext { get; private set; }
+        public long? TransactionBlock { get; private set; }
 
         private OperationExecutionAggregate(
             Guid operationId, 
@@ -77,7 +78,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string signedTransaction,
             string transactionHash,
             decimal? fee,
-            string transactionError)
+            string transactionError,
+            long? transactionBlock)
         {
             Version = version;
             State = state;
@@ -103,6 +105,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             TransactionHash = transactionHash;
             Fee = fee;
             TransactionError = transactionError;
+            TransactionBlock = transactionBlock;
         }
 
         public static OperationExecutionAggregate CreateNew(
@@ -146,7 +149,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string signedTransaction,
             string transactionHash,
             decimal? fee,
-            string transactionError)
+            string transactionError,
+            long? transactionBlock)
         {
             return new OperationExecutionAggregate(
                 version,
@@ -172,17 +176,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 signedTransaction,
                 transactionHash,
                 fee,
-                transactionError);
+                transactionError,
+                transactionBlock);
         }
         
-        public bool OnTransactionBuilt(string addressContext, string transactionContext, string blockchainType, string blockchainAssetId)
+        public bool OnTransactionBuilt(string fromAddressContext, string transactionContext, string blockchainType, string blockchainAssetId)
         {
             if (!SwitchState(OperationExecutionState.Started, OperationExecutionState.TransactionIsBuilt))
             {
                 return false;
             }
 
-            FromAddressContext = addressContext;
+            FromAddressContext = fromAddressContext;
             TransactionContext = transactionContext;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
@@ -230,7 +235,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
-        public bool OnTransactionCompleted(string transactionHash, decimal fee)
+        public bool OnTransactionCompleted(string transactionHash, long transactionBlock, decimal fee)
         {
             if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.TransactionIsFinished))
             {
@@ -238,6 +243,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             }
 
             TransactionHash = transactionHash;
+            TransactionBlock = transactionBlock;
             Fee = fee;
 
             Result = OperationExecutionResult.Success;
