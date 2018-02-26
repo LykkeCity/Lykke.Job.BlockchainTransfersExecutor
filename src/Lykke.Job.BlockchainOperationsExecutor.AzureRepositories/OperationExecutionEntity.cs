@@ -25,6 +25,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public Guid OperationId { get; set; }
         public string BlockchainType { get; set; }
         public string FromAddress { get; set; }
+        public string FromAddressContext { get; set; }
         public string ToAddress { get; set; }
         public string AssetId { get; set; }
         public decimal Amount { get; set; }
@@ -35,6 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public string TransactionHash { get; set; }
         public decimal? Fee { get; set; }
         public string TransactionError { get; set; }
+        public long? TransactionBlock { get; set; }
 
         // ReSharper restore MemberCanBePrivate.Global
 
@@ -80,6 +82,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 OperationId = aggregate.OperationId,
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
+                FromAddressContext = aggregate.FromAddressContext,
                 ToAddress = aggregate.ToAddress,
                 AssetId = aggregate.AssetId,
                 Amount = aggregate.Amount,
@@ -89,7 +92,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 SignedTransaction = aggregate.SignedTransaction,
                 TransactionHash = aggregate.TransactionHash,
                 Fee = aggregate.Fee,
-                TransactionError = aggregate.TransactionError
+                TransactionError = aggregate.TransactionError,
+                TransactionBlock = aggregate.TransactionBlock
             };
         }
 
@@ -109,6 +113,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 OperationId,
                 BlockchainType,
                 FromAddress,
+                FromAddressContext,
                 ToAddress,
                 AssetId,
                 Amount,
@@ -118,7 +123,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 SignedTransaction,
                 TransactionHash,
                 Fee,
-                TransactionError);
+                TransactionError,
+                TransactionBlock);
         }
 
         #endregion

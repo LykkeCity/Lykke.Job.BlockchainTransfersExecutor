@@ -98,7 +98,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
 
-                if (aggregate.OnTransactionBuilt(evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
+                if (aggregate.OnTransactionBuilt(evt.FromAddressContext, evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
                 {
                     sender.SendCommand(new SignTransactionCommand
                         {
@@ -235,7 +235,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             {
                 var aggregate = await _repository.GetAsync(evt.OperationId);
 
-                if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Fee))
+                if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Block, evt.Fee))
                 {
                     sender.SendCommand(new ForgetBroadcastedTransactionCommand
                         {

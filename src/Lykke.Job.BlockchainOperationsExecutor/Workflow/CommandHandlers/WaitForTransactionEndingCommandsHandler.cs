@@ -41,13 +41,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             // TODO: Check for the availability of the tranaction rebuilding function and publish 
             // TransactionTimeoutEvent after configured timeout to run transaction rebuild process path
 
-            var transaction = await apiClient.TryGetBroadcastedTransactionAsync(command.OperationId, blockchainAsset);
+            var transaction = await apiClient.TryGetBroadcastedSingleTransactionAsync(command.OperationId, blockchainAsset);
 
             if (transaction == null)
             {
-                return CommandHandlingResult.Fail(_delayProvider.WaitForTransactionRetryDelay);
-            }
+                // Transaction already has been forgotten, this means, 
+                // that process has been went further and no events should be generated here.
 
+                return CommandHandlingResult.Ok();
+            }
+            
             // ReSharper disable once SwitchStatementMissingSomeCases
             switch (transaction.State)
             {
@@ -57,7 +60,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         OperationId = transaction.OperationId,
                         TransactionHash = transaction.Hash,
                         TransactionAmount = transaction.Amount,
-                        Fee = transaction.Fee
+                        Fee = transaction.Fee,
+                        Block = transaction.Block
                     });
 
                     return CommandHandlingResult.Ok();
