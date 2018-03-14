@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using Autofac;
 using Common.Log;
-using Inceptum.Cqrs.Configuration;
-using Inceptum.Messaging;
-using Inceptum.Messaging.Contract;
-using Inceptum.Messaging.RabbitMq;
 using Lykke.Cqrs;
+using Lykke.Cqrs.Configuration;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
@@ -15,6 +12,8 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
+using Lykke.Messaging.Contract;
+using Lykke.Messaging.RabbitMq;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 {
