@@ -68,7 +68,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                     appSettings.Nested(x => x.BlockchainOperationsExecutorJob.Db),
                     Log));
                 builder.RegisterModule(new BlockchainsModule(
+                    appSettings.CurrentValue.BlockchainOperationsExecutorJob,
                     appSettings.CurrentValue.BlockchainsIntegration,
+                    appSettings.CurrentValue.BlockchainSignFacadeClient,
                     Log));
                 builder.RegisterModule(new CqrsModule(
                     appSettings.CurrentValue.BlockchainOperationsExecutorJob.Cqrs,

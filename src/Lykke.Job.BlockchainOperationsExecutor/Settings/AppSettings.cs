@@ -2,6 +2,7 @@
 using Lykke.Job.BlockchainOperationsExecutor.Settings.Assets;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
+using Lykke.Job.BlockchainOperationsExecutor.Settings.SignFacade;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.SlackNotifications;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Settings
@@ -20,5 +21,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings
 
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public AssetsSettings Assets { get; set; }
+
+        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
+        public BlockchainSignFacadeClientSettings BlockchainSignFacadeClient { get; set; }
     }
 }

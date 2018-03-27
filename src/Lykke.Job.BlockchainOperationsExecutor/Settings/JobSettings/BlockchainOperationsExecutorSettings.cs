@@ -16,5 +16,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings
         [Optional]
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public ChaosSettings ChaosKitty { get; set; }
+
+        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
+        public string SignFacadeApiKey { get; set; }
+
     }
 }
