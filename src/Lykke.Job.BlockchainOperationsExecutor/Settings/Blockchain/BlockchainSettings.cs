@@ -16,14 +16,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain
         [HttpCheck("/api/isalive")]
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string ApiUrl { get; set; }
-
-        [HttpCheck("/api/isalive")]
-        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
-        public string SignFacadeUrl { get; set; }
-
-        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
-        public string SignFacadeApiKey { get; set; }
-
+        
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string HotWalletAddress { get; set; }
     }
