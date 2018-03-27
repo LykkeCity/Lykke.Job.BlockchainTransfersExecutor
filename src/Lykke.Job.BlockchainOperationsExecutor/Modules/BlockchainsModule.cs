@@ -36,8 +36,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 .As<IBlockchainApiClientProvider>();
 
             builder.RegisterInstance(CreateBlockchainSignFacadeClient())
-                .AsSelf();
-            
+                .As<IBlockchainSignFacadeClient>();
+
 
             foreach (var blockchain in _blockchainsIntegrationSettings.Blockchains.Where(b => !b.IsDisabled))
             {
