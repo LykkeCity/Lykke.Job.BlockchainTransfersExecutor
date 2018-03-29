@@ -40,7 +40,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 request: new SignTransactionRequest
                 {
                     PublicAddresses = new[] { command.SignerAddress },
-                    TransactionHex = command.TransactionContext
+                    TransactionContext = command.TransactionContext
                 }
             );
 
