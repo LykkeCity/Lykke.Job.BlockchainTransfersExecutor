@@ -7,7 +7,7 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.BlockchainSignFacade.Client;
-using Lykke.Service.BlockchainSignFacade.Client.Models;
+using Lykke.Service.BlockchainSignFacade.Contract.Models;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
@@ -36,7 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             
             var transactionSigningResult = await _signFacadeClient.SignTransactionAsync
             (
-                integrationLayerId: command.BlockchainType,
+                blockchainType: command.BlockchainType,
                 request: new SignTransactionRequest
                 {
                     PublicAddresses = new[] { command.SignerAddress },
