@@ -36,7 +36,6 @@
     <!-- #endif -->
     <!-- #if rabbitpub || rabbitsub -->
     <PackageReference Include="Lykke.Service.Assets.Client" Version="3.3.2" />
-    <PackageReference Include="Lykke.Service.BlockchainSignService.Client" Version="4.0.2" />
     <!-- #endif -->
     <PackageReference Include="Lykke.SettingsReader" Version="2.3.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.2" />
