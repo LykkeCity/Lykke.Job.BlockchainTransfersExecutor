@@ -27,7 +27,7 @@
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.4.0" />
     <PackageReference Include="Lykke.Cqrs" Version="4.4.0" />
     <!-- #if azurequeuesub -->
-    <PackageReference Include="Lykke.JobTriggers" Version="1.2.0" />
+    <PackageReference Include="Lykke.JobTriggers" Version="2.0.0" />
     <!-- #endif -->
     <PackageReference Include="Lykke.Logs" Version="3.6.2" />
     <PackageReference Include="Lykke.Messaging" Version="5.0.0" />
@@ -38,7 +38,7 @@
     <PackageReference Include="Lykke.Service.Assets.Client" Version="3.3.2" />
     <PackageReference Include="Lykke.Service.BlockchainSignService.Client" Version="4.0.2" />
     <!-- #endif -->
-    <PackageReference Include="Lykke.SettingsReader" Version="2.2.0" />
+    <PackageReference Include="Lykke.SettingsReader" Version="2.3.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
