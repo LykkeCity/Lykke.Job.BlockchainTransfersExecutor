@@ -9,6 +9,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.Assets.Client;
+using Lykke.Service.BlockchainSignFacade.Client;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
@@ -21,7 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         private readonly IBlockchainApiClientProvider _apiClientProvider;
         private readonly IAssetsServiceWithCache _assetsService;
         private readonly ISourceAddresLocksRepoistory _sourceAddresLocksRepoistory;
-        private readonly IBlockchainSignServiceClientProvider _signServiceClientProvider;
+        private readonly IBlockchainSignFacadeClient _blockchainSignFacadeClient;
 
         public BuildTransactionCommandsHandler(
             IChaosKitty chaosKitty,
@@ -30,7 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             IBlockchainApiClientProvider apiClientProvider,
             IAssetsServiceWithCache assetsService,
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
-            IBlockchainSignServiceClientProvider signServiceClientProvider)
+            IBlockchainSignFacadeClient blockchainSignFacadeClient)
         {
             _chaosKitty = chaosKitty;
             _log = log;
@@ -38,7 +39,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             _apiClientProvider = apiClientProvider;
             _assetsService = assetsService;
             _sourceAddresLocksRepoistory = sourceAddresLocksRepoistory;
-            _signServiceClientProvider = signServiceClientProvider;
+            _blockchainSignFacadeClient = blockchainSignFacadeClient;
         }
 
         [UsedImplicitly]
@@ -75,12 +76,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             }
 
             var apiClient = _apiClientProvider.Get(asset.BlockchainIntegrationLayerId);
-            var signServiceClient = _signServiceClientProvider.Get(asset.BlockchainIntegrationLayerId);
-
-            // TODO: Cache it
-
             var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockchainIntegrationLayerAssetId);
-            var wallet = await signServiceClient.GetWalletByPublicAddressAsync(command.FromAddress);
+            var wallet = await _blockchainSignFacadeClient.GetWalletByPublicAddressAsync(asset.BlockchainIntegrationLayerId, command.FromAddress);
 
             var buildingResult = await apiClient.BuildSingleTransactionAsync(
                 command.OperationId,

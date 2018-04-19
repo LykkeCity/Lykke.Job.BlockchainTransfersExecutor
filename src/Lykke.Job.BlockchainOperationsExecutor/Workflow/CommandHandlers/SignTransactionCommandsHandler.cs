@@ -5,27 +5,27 @@ using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
-using Lykke.Service.BlockchainSignService.Client.Models;
+using Lykke.Service.BlockchainSignFacade.Client;
+using Lykke.Service.BlockchainSignFacade.Contract.Models;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
     [UsedImplicitly]
     public class SignTransactionCommandsHandler
     {
+        private readonly IBlockchainSignFacadeClient _signFacadeClient;
         private readonly IChaosKitty _chaosKitty;
         private readonly ILog _log;
-        private readonly IBlockchainSignServiceClientProvider _signServiceClientProvider;
 
         public SignTransactionCommandsHandler(
+            IBlockchainSignFacadeClient signFacadeClient,
             IChaosKitty chaosKitty,
-            ILog log, 
-            IBlockchainSignServiceClientProvider signServiceClientProvider)
+            ILog log)
         {
+            _signFacadeClient = signFacadeClient;
             _chaosKitty = chaosKitty;
             _log = log;
-            _signServiceClientProvider = signServiceClientProvider;
         }
 
         [UsedImplicitly]
@@ -33,12 +33,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         {
 
             _log.WriteInfo(nameof(SignTransactionCommand), command, "");
-
-            var signServiceClient = _signServiceClientProvider.Get(command.BlockchainType);
-
-            var transactionSigningResult = await signServiceClient.SignTransactionAsync(new SignRequestModel(
-                new[] {command.SignerAddress},
-                command.TransactionContext));
+            
+            var transactionSigningResult = await _signFacadeClient.SignTransactionAsync
+            (
+                blockchainType: command.BlockchainType,
+                request: new SignTransactionRequest
+                {
+                    PublicAddresses = new[] { command.SignerAddress },
+                    TransactionContext = command.TransactionContext
+                }
+            );
 
             _chaosKitty.Meow(command.OperationId);
 
