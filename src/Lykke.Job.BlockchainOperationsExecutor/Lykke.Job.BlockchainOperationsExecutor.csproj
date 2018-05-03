@@ -29,7 +29,7 @@
     <!-- #if azurequeuesub -->
     <PackageReference Include="Lykke.JobTriggers" Version="2.0.0" />
     <!-- #endif -->
-    <PackageReference Include="Lykke.Logs" Version="3.6.2" />
+    <PackageReference Include="Lykke.Logs" Version="4.3.0" />
     <PackageReference Include="Lykke.Messaging" Version="5.0.0" />
     <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.0.0" />
     <!-- #if rabbitpub -->
