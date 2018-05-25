@@ -32,9 +32,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
-
-            _log.WriteInfo(nameof(BroadcastTransactionCommand), command, "");
-
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction);
 

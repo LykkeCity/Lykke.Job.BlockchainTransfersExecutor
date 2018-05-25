@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
@@ -13,25 +12,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     public class ReleaseSourceAddressLockCommandsHandler
     {
         private readonly IChaosKitty _chaosKitty;
-        private readonly ILog _log;
         private readonly ISourceAddresLocksRepoistory _locksRepoistory;
 
         public ReleaseSourceAddressLockCommandsHandler(
             IChaosKitty chaosKitty,
-            ILog log,
             ISourceAddresLocksRepoistory locksRepoistory)
         {
             _chaosKitty = chaosKitty;
-            _log = log;
             _locksRepoistory = locksRepoistory;
         }
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(ReleaseSourceAddressLockCommand command, IEventPublisher publisher)
         {
-
-            _log.WriteInfo(nameof(ReleaseSourceAddressLockCommand), command, "");
-
             await _locksRepoistory.ReleaseLockAsync(command.BlockchainType, command.FromAddress, command.OperationId);
 
             _chaosKitty.Meow(command.OperationId);
