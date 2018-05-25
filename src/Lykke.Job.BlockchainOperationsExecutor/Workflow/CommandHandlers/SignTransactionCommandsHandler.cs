@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
@@ -16,24 +15,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     {
         private readonly IBlockchainSignFacadeClient _signFacadeClient;
         private readonly IChaosKitty _chaosKitty;
-        private readonly ILog _log;
 
         public SignTransactionCommandsHandler(
             IBlockchainSignFacadeClient signFacadeClient,
-            IChaosKitty chaosKitty,
-            ILog log)
+            IChaosKitty chaosKitty)
         {
             _signFacadeClient = signFacadeClient;
             _chaosKitty = chaosKitty;
-            _log = log;
         }
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(SignTransactionCommand command, IEventPublisher publisher)
         {
-
-            _log.WriteInfo(nameof(SignTransactionCommand), command, "");
-            
             var transactionSigningResult = await _signFacadeClient.SignTransactionAsync
             (
                 blockchainType: command.BlockchainType,

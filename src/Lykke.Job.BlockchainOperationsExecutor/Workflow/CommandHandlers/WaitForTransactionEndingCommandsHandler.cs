@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
@@ -12,16 +11,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     [UsedImplicitly]
     public class WaitForTransactionEndingCommandsHandler
     {
-        private readonly ILog _log;
         private readonly RetryDelayProvider _delayProvider;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
 
         public WaitForTransactionEndingCommandsHandler(
-            ILog log,
             RetryDelayProvider delayProvider,
             IBlockchainApiClientProvider apiClientProvider)
         {
-            _log = log;
             _delayProvider = delayProvider;
             _apiClientProvider = apiClientProvider;
         }
@@ -29,9 +25,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
         {
-
-            _log.WriteInfo(nameof(WaitForTransactionEndingCommand), command, "");
-
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
             // TODO: Cache it
