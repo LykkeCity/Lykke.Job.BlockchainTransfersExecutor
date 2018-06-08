@@ -1,19 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <Version>1.0.1</Version>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -22,14 +18,13 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.4.0" />
     <PackageReference Include="Lykke.Cqrs" Version="4.4.0" />
     <!-- #if azurequeuesub -->
     <PackageReference Include="Lykke.JobTriggers" Version="2.0.0" />
     <!-- #endif -->
-    <PackageReference Include="Lykke.Logs" Version="3.6.2" />
+    <PackageReference Include="Lykke.Logs" Version="4.3.4" />
     <PackageReference Include="Lykke.Messaging" Version="5.0.0" />
     <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.0.0" />
     <!-- #if rabbitpub -->
@@ -37,8 +32,8 @@
     <!-- #if rabbitpub || rabbitsub -->
     <PackageReference Include="Lykke.Service.Assets.Client" Version="3.3.2" />
     <!-- #endif -->
-    <PackageReference Include="Lykke.SettingsReader" Version="2.3.0" />
-    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.2" />
+    <PackageReference Include="Lykke.SettingsReader" Version="2.4.0" />
+    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.2" />
@@ -50,7 +45,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Lykke.Job.BlockchainOperationsExecutor.AzureRepositories\Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.csproj" />
     <ProjectReference Include="..\Lykke.Job.BlockchainOperationsExecutor.Core\Lykke.Job.BlockchainOperationsExecutor.Core.csproj" />
