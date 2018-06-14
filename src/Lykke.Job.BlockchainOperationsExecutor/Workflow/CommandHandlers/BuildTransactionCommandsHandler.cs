@@ -110,6 +110,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                     command.ToJson(),
                     "API said, that transaction is already broadcasted");
 
+                publisher.PublishEvent(new TransactionBuildingRejectedEvent
+                {
+                    OperationId = command.OperationId
+                });
+
                 return CommandHandlingResult.Ok();
             }
         }

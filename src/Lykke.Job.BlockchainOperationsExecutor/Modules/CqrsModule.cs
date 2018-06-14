@@ -102,7 +102,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(BuildTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
-                    .PublishingEvents(typeof(TransactionBuiltEvent))
+                    .PublishingEvents(
+                        typeof(TransactionBuiltEvent),
+                        typeof(TransactionBuildingRejectedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(SignTransactionCommand))
@@ -161,7 +163,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .To(Self)
                     .With(defaultPipeline)
 
-                    .ListeningEvents(typeof(TransactionBroadcastedEvent))
+                    .ListeningEvents(
+                        typeof(TransactionBroadcastedEvent),
+                        typeof(TransactionBuildingRejectedEvent))
                     .From(Self)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
