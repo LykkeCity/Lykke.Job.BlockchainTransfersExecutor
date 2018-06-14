@@ -66,8 +66,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             }
             
             _chaosKitty.Meow(command.OperationId);
-
-
+            
             publisher.PublishEvent(new TransactionBroadcastedEvent
             {
                 OperationId = command.OperationId

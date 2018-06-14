@@ -197,6 +197,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
+        public bool OnTransactionBuildingRejected()
+        {
+            // If transaction building is rejected, than address lock is captured.
+            // This is a redundant operation execution thread and main operation execution thread is probably
+            // went futher.
+            // So we should return true, if lock should be already released. We don't need
+            // to switch state since this is just redundant operation execution thread.
+
+            // Lock should be released right after broadcasting
+            return State >= OperationExecutionState.TransactionIsBroadcasted;
+        }
+
         public bool OnTransactionSigned(string signedTransaction)
         {
             if (!SwitchState(OperationExecutionState.TransactionIsBuilt, OperationExecutionState.TransactionIsSigned))
