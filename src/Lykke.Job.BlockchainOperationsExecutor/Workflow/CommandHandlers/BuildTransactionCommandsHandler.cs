@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Common;
+using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
@@ -8,6 +10,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.Assets.Client;
+using Lykke.Service.BlockchainApi.Client;
 using Lykke.Service.BlockchainSignFacade.Client;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
@@ -15,6 +18,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
     [UsedImplicitly]
     public class BuildTransactionCommandsHandler
     {
+        private readonly ILog _log;
         private readonly IChaosKitty _chaosKitty;
         private readonly RetryDelayProvider _retryDelayProvider;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
@@ -23,6 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         private readonly IBlockchainSignFacadeClient _blockchainSignFacadeClient;
 
         public BuildTransactionCommandsHandler(
+            ILog log,
             IChaosKitty chaosKitty,
             RetryDelayProvider retryDelayProvider,
             IBlockchainApiClientProvider apiClientProvider,
@@ -30,6 +35,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
             IBlockchainSignFacadeClient blockchainSignFacadeClient)
         {
+            _log = log;
             _chaosKitty = chaosKitty;
             _retryDelayProvider = retryDelayProvider;
             _apiClientProvider = apiClientProvider;
@@ -72,27 +78,40 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             var blockchainAsset = await apiClient.GetAssetAsync(asset.BlockchainIntegrationLayerAssetId);
             var wallet = await _blockchainSignFacadeClient.GetWalletByPublicAddressAsync(asset.BlockchainIntegrationLayerId, command.FromAddress);
 
-            var buildingResult = await apiClient.BuildSingleTransactionAsync(
-                command.OperationId,
-                command.FromAddress,
-                wallet.AddressContext,
-                command.ToAddress,
-                blockchainAsset,
-                command.Amount,
-                command.IncludeFee);
-
-            _chaosKitty.Meow(command.OperationId);
-
-            publisher.PublishEvent(new TransactionBuiltEvent
+            try
             {
-                OperationId = command.OperationId,
-                BlockchainType = asset.BlockchainIntegrationLayerId,
-                BlockchainAssetId = blockchainAsset.AssetId,
-                TransactionContext = buildingResult.TransactionContext,
-                FromAddressContext = wallet.AddressContext
-            });
+                var buildingResult = await apiClient.BuildSingleTransactionAsync(
+                    command.OperationId,
+                    command.FromAddress,
+                    wallet.AddressContext,
+                    command.ToAddress,
+                    blockchainAsset,
+                    command.Amount,
+                    command.IncludeFee);
 
-            return CommandHandlingResult.Ok();
+                _chaosKitty.Meow(command.OperationId);
+
+                publisher.PublishEvent(new TransactionBuiltEvent
+                {
+                    OperationId = command.OperationId,
+                    BlockchainType = asset.BlockchainIntegrationLayerId,
+                    BlockchainAssetId = blockchainAsset.AssetId,
+                    TransactionContext = buildingResult.TransactionContext,
+                    FromAddressContext = wallet.AddressContext
+                });
+
+                return CommandHandlingResult.Ok();
+            }
+            catch (TransactionAlreadyBroadcastedException)
+            {
+                await _log.WriteInfoAsync(
+                    nameof(BuildTransactionCommandsHandler),
+                    nameof(BuildTransactionCommand),
+                    command.ToJson(),
+                    "API said, that transaction is already broadcasted");
+
+                return CommandHandlingResult.Ok();
+            }
         }
     }
 }

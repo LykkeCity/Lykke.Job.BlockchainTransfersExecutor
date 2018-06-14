@@ -39,20 +39,24 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             {
                 case TransactionBroadcastingResult.Success:
                     break;
+                
                 case TransactionBroadcastingResult.AlreadyBroadcasted:
-                    _log.WriteInfo
+                    await _log.WriteInfoAsync
                     (
+                        nameof(BroadcastTransactionCommandsHandler),
                         nameof(BroadcastTransactionCommand),
-                        command.OperationId,
+                        command.ToString(),
                         "API said that transaction is already broadcasted"
                     );
                     break;
+
                 case TransactionBroadcastingResult.AmountIsTooSmall:
                 case TransactionBroadcastingResult.NotEnoughBalance:
                     throw new TransactionException
                     (
                         $"Failed to broadcast transaction: {broadcastingResult}."
                     );
+                
                 default:
                     throw new ArgumentOutOfRangeException
                     (
