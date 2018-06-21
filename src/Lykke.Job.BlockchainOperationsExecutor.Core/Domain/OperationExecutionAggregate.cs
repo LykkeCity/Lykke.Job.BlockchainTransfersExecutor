@@ -199,7 +199,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionBuildingRejected()
         {
-            // If transaction building is rejected, than address lock is captured.
+            // If transaction building is rejected, then address lock has been captured.
             // This is a redundant operation execution thread and main operation execution thread is probably
             // went futher.
             // So we should return true, if lock should be already released. We don't need
