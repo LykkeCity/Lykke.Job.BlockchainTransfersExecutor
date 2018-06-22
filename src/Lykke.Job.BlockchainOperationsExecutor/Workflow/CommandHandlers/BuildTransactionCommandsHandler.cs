@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Common;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -35,7 +34,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
             IBlockchainSignFacadeClient blockchainSignFacadeClient)
         {
-            _log = log;
+            _log = log.CreateComponentScope(nameof(BuildTransactionCommandsHandler));
             _chaosKitty = chaosKitty;
             _retryDelayProvider = retryDelayProvider;
             _apiClientProvider = apiClientProvider;
@@ -104,11 +103,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             }
             catch (TransactionAlreadyBroadcastedException)
             {
-                await _log.WriteInfoAsync(
-                    nameof(BuildTransactionCommandsHandler),
+                _log.WriteInfo
+                (
                     nameof(BuildTransactionCommand),
-                    command.ToJson(),
-                    "API said, that transaction is already broadcasted");
+                    command,
+                    "API said, that transaction is already broadcasted"
+                );
 
                 publisher.PublishEvent(new TransactionBuildingRejectedEvent
                 {
