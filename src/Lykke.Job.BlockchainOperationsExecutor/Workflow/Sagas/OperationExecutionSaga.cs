@@ -14,15 +14,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     /// -> StartOperationExecutionCommand
     /// -> OperationExecutionStartedEvent
     ///     -> BuildTransactionCommand
-    /// -> TransactionBuiltEvent
-    ///     -> SignTransactionCommand
+    /// -> TransactionBuiltEvent                    | TransactionBuildingRejectedEvent
+    ///     -> SignTransactionCommand               | -> ReleaseSourceAddressLockCommand
     /// -> TransactionSignedEvent
     ///     -> BroadcastTransactionCommand
     /// -> TransactionBroadcastedEvent
     ///     -> ReleaseSourceAddressLockCommand
     /// -> SourceAddressLockReleasedEvent
     ///     -> WaitForTransactionEndingCommand
-    /// -> OperationExecutionCompletedEvent | OperationExecutionFailedEvent
+    /// -> OperationExecutionCompletedEvent         | OperationExecutionFailedEvent
     ///     -> ForgetBroadcastedTransactionCommand
     /// -> BroadcastedTransactionForgottenEvent
     /// </summary>
@@ -85,6 +85,27 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         OperationId = aggregate.OperationId,
                         SignerAddress = aggregate.FromAddress,
                         TransactionContext = aggregate.TransactionContext
+                    },
+                    Self);
+
+                _chaosKitty.Meow(evt.OperationId);
+
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(TransactionBuildingRejectedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (aggregate.OnTransactionBuildingRejected())
+            {
+                sender.SendCommand(new ReleaseSourceAddressLockCommand
+                    {
+                        BlockchainType = aggregate.BlockchainType,
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress
                     },
                     Self);
 

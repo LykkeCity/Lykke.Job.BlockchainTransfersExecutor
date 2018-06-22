@@ -25,7 +25,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             IBlockchainApiClientProvider apiClientProvider)
         {
             _chaosKitty = chaosKitty;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(BroadcastTransactionCommandsHandler));
             _apiClientProvider = apiClientProvider;
         }
 
@@ -39,20 +39,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             {
                 case TransactionBroadcastingResult.Success:
                     break;
+                
                 case TransactionBroadcastingResult.AlreadyBroadcasted:
                     _log.WriteInfo
                     (
                         nameof(BroadcastTransactionCommand),
-                        command.OperationId,
+                        command,
                         "API said that transaction is already broadcasted"
                     );
                     break;
+
                 case TransactionBroadcastingResult.AmountIsTooSmall:
                 case TransactionBroadcastingResult.NotEnoughBalance:
                     throw new TransactionException
                     (
                         $"Failed to broadcast transaction: {broadcastingResult}."
                     );
+                
                 default:
                     throw new ArgumentOutOfRangeException
                     (
@@ -62,8 +65,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             }
             
             _chaosKitty.Meow(command.OperationId);
-
-
+            
             publisher.PublishEvent(new TransactionBroadcastedEvent
             {
                 OperationId = command.OperationId
