@@ -25,7 +25,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             IBlockchainApiClientProvider apiClientProvider)
         {
             _chaosKitty = chaosKitty;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(BroadcastTransactionCommandsHandler));
             _apiClientProvider = apiClientProvider;
         }
 
@@ -41,11 +41,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                     break;
                 
                 case TransactionBroadcastingResult.AlreadyBroadcasted:
-                    await _log.WriteInfoAsync
+                    _log.WriteInfo
                     (
-                        nameof(BroadcastTransactionCommandsHandler),
                         nameof(BroadcastTransactionCommand),
-                        command.ToString(),
+                        command,
                         "API said that transaction is already broadcasted"
                     );
                     break;
