@@ -51,6 +51,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.OperationId,
                     evt.FromAddress,
                     evt.ToAddress,
+                    evt.BlockchainType,
+                    evt.BlockchainAssetId,
                     evt.AssetId,
                     evt.Amount,
                     evt.IncludeFee));
@@ -61,6 +63,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             {
                 sender.SendCommand(new BuildTransactionCommand
                     {
+                        BlockchainType = aggregate.BlockchainType,
+                        BlockchainAssetId = aggregate.BlockchainAssetId,
                         OperationId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,

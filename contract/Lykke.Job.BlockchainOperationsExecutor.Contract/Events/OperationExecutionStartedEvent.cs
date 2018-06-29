@@ -47,5 +47,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// </summary>
         [Key(5)]
         public bool IncludeFee { get; set; }
+
+        /// <summary>
+        /// Blockchain type
+        /// </summary>
+        [Key(6)]
+        public string BlockchainType { get; set; }
+
+        /// <summary>
+        /// Blockchain asset ID
+        /// </summary>
+        [Key(7)]
+        public string BlockchainAssetId { get; set; }
     }
 }
