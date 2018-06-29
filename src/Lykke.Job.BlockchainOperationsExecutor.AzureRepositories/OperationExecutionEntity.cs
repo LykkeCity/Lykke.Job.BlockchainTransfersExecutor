@@ -1,5 +1,6 @@
 ﻿using System;
 using Common;
+using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 
@@ -30,9 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public string AssetId { get; set; }
         public decimal Amount { get; set; }
         public bool IncludeFee { get; set; }
-        public string TransactionContext { get; set; }
         public string BlockchainAssetId { get; set; }
-        public string SignedTransaction { get; set; }
         public string TransactionHash { get; set; }
         public decimal? Fee { get; set; }
         public string TransactionError { get; set; }
@@ -87,9 +86,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 AssetId = aggregate.AssetId,
                 Amount = aggregate.Amount,
                 IncludeFee = aggregate.IncludeFee,
-                TransactionContext = aggregate.TransactionContext,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
-                SignedTransaction = aggregate.SignedTransaction,
                 TransactionHash = aggregate.TransactionHash,
                 Fee = aggregate.Fee,
                 TransactionError = aggregate.TransactionError,
@@ -97,7 +94,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             };
         }
 
-        public OperationExecutionAggregate ToDomain()
+        public OperationExecutionAggregate ToDomain([CanBeNull] OperationExecutionBlobEntity blobData)
         {
             return OperationExecutionAggregate.Restore(
                 ETag,
@@ -118,9 +115,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 AssetId,
                 Amount,
                 IncludeFee,
-                TransactionContext,
+                blobData?.TransactionContext,
                 BlockchainAssetId,
-                SignedTransaction,
+                blobData?.SignedTransaction,
                 TransactionHash,
                 Fee,
                 TransactionError,

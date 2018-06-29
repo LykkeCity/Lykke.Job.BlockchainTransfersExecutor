@@ -23,5 +23,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 
         [Key(5)]
         public bool IncludeFee { get; set; }
+
+        [Key(6)]
+        public string BlockchainType { get; set; }
+
+        [Key(7)]
+        public string BlockchainAssetId { get; set; }
     }
 }
