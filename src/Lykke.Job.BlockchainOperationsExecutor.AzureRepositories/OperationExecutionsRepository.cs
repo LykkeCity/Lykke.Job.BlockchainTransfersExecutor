@@ -112,6 +112,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             var containerName = OperationExecutionBlobEntity.GetContainerName(blockchainType);
             var blobName = OperationExecutionBlobEntity.GetBlobName(operationId);
 
+            if (!await _blob.HasBlobAsync(containerName, blobName))
+            {
+                return null;
+            }
+            
             using (var stream = await _blob.GetAsync(containerName, blobName))
             using (var textReader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(textReader))
