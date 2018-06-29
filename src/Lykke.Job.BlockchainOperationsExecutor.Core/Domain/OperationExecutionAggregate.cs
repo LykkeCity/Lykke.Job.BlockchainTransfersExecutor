@@ -23,9 +23,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public string AssetId { get; }
         public decimal Amount { get; }
         public bool IncludeFee { get; }
+
+        // TODO: Should be made read-only property, when obsolete properties will be removed from the OnTransactionBuilt  
         public string BlockchainType { get; private set; }
-        public string TransactionContext { get; private set; }
+        // TODO: Should be made read-only property, when obsolete properties will be removed from the OnTransactionBuilt  
         public string BlockchainAssetId { get; private set; }
+
+        public string TransactionContext { get; private set; }
         public string SignedTransaction { get; private set; }
         public string TransactionHash { get; private set; }
         public decimal? Fee { get; private set; }
@@ -37,6 +41,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             Guid operationId, 
             string fromAddress, 
             string toAddress, 
+            string blockchainType,
+            string blockchainAssetId,
             string assetId, 
             decimal amount, 
             bool includeFee)
@@ -46,6 +52,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             OperationId = operationId;
             FromAddress = fromAddress;
             ToAddress = toAddress;
+            BlockchainType = blockchainType;
+            BlockchainAssetId = blockchainAssetId;
             AssetId = assetId;
             Amount = amount;
             IncludeFee = includeFee;
@@ -112,6 +120,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             Guid operationId,
             string fromAddress,
             string toAddress,
+            string blockchainType,
+            string blockchainAssetId,
             string assetId,
             decimal amount,
             bool includeFee)
@@ -120,6 +130,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 operationId,
                 fromAddress,
                 toAddress,
+                blockchainType,
+                blockchainAssetId,
                 assetId,
                 amount,
                 includeFee);

@@ -27,12 +27,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Blockchain asset ID
         /// </summary>
         [Key(2)]
+        [Obsolete("Will be removed with next release")]
         public string BlockchainAssetId { get; set; }
 
         /// <summary>
         /// Blockchain type
         /// </summary>
         [Key(3)]
+        [Obsolete("Will be removed with next release")]
         public string BlockchainType { get; set; }
 
         /// <summary>
