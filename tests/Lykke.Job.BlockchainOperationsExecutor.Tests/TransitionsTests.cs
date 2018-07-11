@@ -1,6 +1,5 @@
 ﻿using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using System;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Xunit;
@@ -32,15 +31,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var checkResult1 = core.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(checkResult1.IsValid);
-            Assert.NotNull(checkResult1.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, checkResult1.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsBuilt, checkResult1.NextState);
 
 
             var checkResult2 = core.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new SourceAddressLockReleasedEvent());
 
             Assert.True(checkResult2.IsValid);
-            Assert.NotNull(checkResult2.NextState);
-            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, checkResult2.NextState.Value);
+            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, checkResult2.NextState);
         }
 
         [Fact]
@@ -62,15 +59,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var checkResult1 = core.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(checkResult1.IsValid);
-            Assert.NotNull(checkResult1.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, checkResult1.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsBuilt, checkResult1.NextState);
 
 
             var checkResult2 = core.CheckTransition(OperationExecutionState.Started, new SourceAddressLockReleasedEvent());
 
             Assert.True(checkResult2.IsValid);
-            Assert.NotNull(checkResult2.NextState);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, checkResult2.NextState.Value);
+            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, checkResult2.NextState);
         }
 
         [Fact]
@@ -125,13 +120,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var checkResult1 = core.CheckTransition(OperationExecutionState.Started, new SourceAddressLockReleasedEvent());
 
             Assert.False(checkResult1.IsValid);
-            Assert.Null(checkResult1.NextState);
 
 
             var checkResult2 = core.CheckTransition(OperationExecutionState.Started, new BroadcastedTransactionForgottenEvent());
             
             Assert.False(checkResult2.IsValid);
-            Assert.Null(checkResult2.NextState);
         }
 
         [Fact]

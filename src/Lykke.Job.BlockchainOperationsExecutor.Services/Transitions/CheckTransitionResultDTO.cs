@@ -8,6 +8,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
     {
         public bool IsValid { get; set; }
 
-        public T? NextState { get; set; }
+        public T NextState { get; set; }
     }
 }

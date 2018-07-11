@@ -6,6 +6,9 @@ using Lykke.Cqrs.Configuration;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
+using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
+using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers;
@@ -53,6 +56,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     _settings.SourceAddressLockingRetryDelay,
                     _settings.WaitForTransactionRetryDelay))
                 .AsSelf();
+
+            builder.RegisterInstance(TransitionCheckerFactory.BuildTransitionsForService())
+                .As<ITransitionChecker<OperationExecutionState>>();
 
             // Sagas
             builder.RegisterType<OperationExecutionSaga>();

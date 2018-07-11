@@ -6,6 +6,7 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
+using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
@@ -33,13 +34,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
         private readonly IChaosKitty _chaosKitty;
         private readonly IOperationExecutionsRepository _repository;
+        private readonly ITransitionChecker<OperationExecutionState> _transitionChecker;
 
         public OperationExecutionSaga(
             IChaosKitty chaosKitty,
-            IOperationExecutionsRepository repository)
+            IOperationExecutionsRepository repository,
+            ITransitionChecker<OperationExecutionState> transitionChecker)
         {
             _chaosKitty = chaosKitty;
             _repository = repository;
+            _transitionChecker = transitionChecker;
         }
 
         [UsedImplicitly]
@@ -80,8 +84,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         private async Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (aggregate.OnTransactionBuilt(evt.FromAddressContext, evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
+            
+            if (HandleEventTransition(aggregate, evt) 
+                && aggregate.OnTransactionBuilt(evt.FromAddressContext, evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
             {
                 sender.SendCommand(new SignTransactionCommand
                     {
@@ -103,7 +108,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionBuildingRejected())
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionBuildingRejected())
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {
@@ -124,7 +130,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionSigned(evt.SignedTransaction))
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionSigned(evt.SignedTransaction))
             {
                 sender.SendCommand(new BroadcastTransactionCommand
                     {
@@ -145,7 +152,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionBroadcasted())
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionBroadcasted())
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {
@@ -166,7 +174,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnSourceAddressLockReleased())
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnSourceAddressLockReleased())
             {
                 if (!aggregate.TransactionBroadcastingMoment.HasValue)
                 {
@@ -195,7 +204,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Block, evt.Fee))
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Block, evt.Fee))
             {
                 sender.SendCommand(new ForgetBroadcastedTransactionCommand
                     {
@@ -215,7 +225,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionFailed(evt.Error))
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionFailed(evt.Error))
             {
                 sender.SendCommand(new ForgetBroadcastedTransactionCommand
                     {
@@ -235,10 +246,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnBroadcastedTransactionForgotten())
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnBroadcastedTransactionForgotten())
             {
                 await _repository.SaveAsync(aggregate);
             }
+        }
+
+        private bool HandleEventTransition(OperationExecutionAggregate aggregate, object @event)
+        {
+            var checkTranstionResult = _transitionChecker.CheckTransition(aggregate.State, @event);
+
+            if (checkTranstionResult.IsValid)
+            {
+                aggregate.State = checkTranstionResult.NextState;
+            }
+
+            return checkTranstionResult.IsValid;
         }
     }
 }

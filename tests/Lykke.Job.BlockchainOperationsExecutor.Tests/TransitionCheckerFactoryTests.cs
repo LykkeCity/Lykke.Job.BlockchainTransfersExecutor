@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
+﻿using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
 using Xunit;
@@ -18,8 +15,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult.NextState);
         }
 
         [Fact]
@@ -30,8 +26,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult.NextState);
         }
 
         [Fact]
@@ -42,8 +37,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionBroadcastedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsBroadcasted, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsBroadcasted, transitionResult.NextState);
         }
 
         [Fact]
@@ -54,8 +48,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBroadcasted, new SourceAddressLockReleasedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult.NextState);
         }
 
         [Fact]
@@ -66,8 +59,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new OperationExecutionCompletedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState);
         }
 
         [Fact]
@@ -78,8 +70,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new OperationExecutionFailedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState);
         }
 
         [Fact]
@@ -90,8 +81,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsFinished, new BroadcastedTransactionForgottenEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.NotNull(transitionResult.NextState);
-            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, transitionResult.NextState.Value);
+            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, transitionResult.NextState);
         }
 
         [Fact]
@@ -102,14 +92,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.NotNull(transitionResult1.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult1.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult1.NextState);
 
             var transitionResult2 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
 
             Assert.True(transitionResult2.IsValid);
-            Assert.NotNull(transitionResult2.NextState);
-            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult2.NextState.Value);
+            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult2.NextState);
         }
     }
 }

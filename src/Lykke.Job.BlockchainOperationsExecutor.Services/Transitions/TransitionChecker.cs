@@ -40,7 +40,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
             {
                 return new CheckTransitionResultDto<TState>
                 {
-                    IsValid = false
+                    IsValid = false,
+                    NextState = currentState
                 };
             }
 

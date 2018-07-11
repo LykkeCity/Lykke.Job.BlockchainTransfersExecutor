@@ -6,7 +6,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
     {
         public string Version { get; }
 
-        public OperationExecutionState State { get; private set; }
+        public OperationExecutionState State { get; set; }
         public OperationExecutionResult Result { get; private set; }
 
         public DateTime StartMoment { get; }
@@ -194,11 +194,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         public bool OnTransactionBuilt(string fromAddressContext, string transactionContext, string blockchainType, string blockchainAssetId)
         {
-            if (!SwitchState(OperationExecutionState.Started, OperationExecutionState.TransactionIsBuilt))
-            {
-                return false;
-            }
-
             FromAddressContext = fromAddressContext;
             TransactionContext = transactionContext;
             BlockchainType = blockchainType;
@@ -223,11 +218,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionSigned(string signedTransaction)
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsBuilt, OperationExecutionState.TransactionIsSigned))
-            {
-                return false;
-            }
-            
             SignedTransaction = signedTransaction;
 
             TransactionSigningMoment = DateTime.UtcNow;
@@ -237,11 +227,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionBroadcasted()
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsSigned, OperationExecutionState.TransactionIsBroadcasted))
-            {
-                return false;
-            }
-
             TransactionBroadcastingMoment = DateTime.UtcNow;
 
             return true;
@@ -249,11 +234,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnSourceAddressLockReleased()
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsBroadcasted, OperationExecutionState.SourceAddresIsReleased))
-            {
-                return false;
-            }
-
             SourceAddressReleaseMoment = DateTime.UtcNow;
 
             return true;
@@ -261,11 +241,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionCompleted(string transactionHash, long transactionBlock, decimal fee)
         {
-            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.TransactionIsFinished))
-            {
-                return false;
-            }
-
             TransactionHash = transactionHash;
             TransactionBlock = transactionBlock;
             Fee = fee;
@@ -279,11 +254,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
         public bool OnTransactionFailed(string error)
         {
-            if (!SwitchState(OperationExecutionState.SourceAddresIsReleased, OperationExecutionState.TransactionIsFinished))
-            {
-                return false;
-            }
-
             TransactionError = error;
 
             Result = OperationExecutionResult.Failure;
@@ -295,31 +265,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         
         public bool OnBroadcastedTransactionForgotten()
         {
-            if (!SwitchState(OperationExecutionState.TransactionIsFinished, OperationExecutionState.BroadcastedTransactionIsForgotten))
-            {
-                return false;
-            }
-
             BroadcastedTransactionForgetMoment = DateTime.UtcNow;
-
-            return true;
-        }
-
-        private bool SwitchState(OperationExecutionState expectedState, OperationExecutionState nextState)
-        {
-            if (State < expectedState)
-            {
-                // Throws to retry and wait until aggregate will be in the required state
-                throw new InvalidAggregateStateException(State, expectedState, nextState);
-            }
-
-            if (State > expectedState)
-            {
-                // Aggregate already in the next state, so this event can be just ignored
-                return false;
-            }
-
-            State = nextState;
 
             return true;
         }
