@@ -6,6 +6,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces
 {
     public interface ITransitionChecker<TState> where TState : struct, Enum
     {
-        CheckTransitionResultDto<TState> CheckTransition(TState currentState, object @event);
+        TransitionCheckResult<TState> CheckTransition(TState currentState, object @event);
     }
 }

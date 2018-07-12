@@ -8,41 +8,32 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
     internal class TransitionChecker<TState>: ITransitionChecker<TState> 
         where TState :struct ,Enum
     {
-        private readonly IDictionary<TransitionAttempt<TState>, TState> _validStateTransitions;
-        private readonly IEnumerable<TransitionAttempt<TState>> _ignoredAttempts;
+        private readonly IReadOnlyDictionary<TransitionRegistration<TState>, TState> _validStateTransitions;
+        private readonly ISet<TransitionRegistration<TState>> _ignoredTransitions;
 
 
-        public TransitionChecker(IDictionary<TransitionAttempt<TState>, TState> validStateTransitions, 
-            IEnumerable<TransitionAttempt<TState>> ignoredTransitions)
+        public TransitionChecker(IDictionary<TransitionRegistration<TState>, TState> validStateTransitions, 
+            ISet<TransitionRegistration<TState>> ignoredTransitions)
         {
-            _validStateTransitions = validStateTransitions;
-            _ignoredAttempts = ignoredTransitions;
+            _validStateTransitions = validStateTransitions.ToDictionary(kv => kv.Key, kv => kv.Value);
+            _ignoredTransitions = ignoredTransitions;
         }
 
-        public CheckTransitionResultDto<TState> CheckTransition(TState currentState, object @event)
+        public TransitionCheckResult<TState> CheckTransition(TState currentState, object @event)
         {
             if (@event == null)
             {
                 throw new ArgumentNullException();
             }
 
-            var transitionState = new TransitionAttempt<TState>(currentState, @event.GetType());
+            var transitionState = new TransitionRegistration<TState>(currentState, @event.GetType());
             if (_validStateTransitions.ContainsKey(transitionState))
             {
-                return new CheckTransitionResultDto<TState>
-                {
-                    IsValid = true,
-                    NextState = _validStateTransitions[transitionState]
-                };
+                return new TransitionCheckResult<TState>(isValid:true, nextState: _validStateTransitions[transitionState]);
             }
-
-            if (_ignoredAttempts.Any(p => Equals(p, transitionState)))
+            if (_ignoredTransitions.Any(p => Equals(p, transitionState)))
             {
-                return new CheckTransitionResultDto<TState>
-                {
-                    IsValid = false,
-                    NextState = currentState
-                };
+                return new TransitionCheckResult<TState> (isValid:false, nextState:currentState);
             }
 
             throw new ArgumentException($"Unknown transition switch: {currentState} {@event.GetType().Name}");

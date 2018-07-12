@@ -2,19 +2,19 @@
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 {
-    internal class TransitionAttempt<TState> where TState:struct, Enum
+    internal class TransitionRegistration<TState> where TState:struct, Enum
     {
         public readonly TState InitialState;
         public readonly Type TransitionCommandType;
 
-        public TransitionAttempt(TState initialState, Type commandType)
+        public TransitionRegistration(TState initialState, Type commandType)
         {
             InitialState = initialState;
             TransitionCommandType = commandType ?? throw new ArgumentNullException(nameof(commandType));
         }
 
         #region  Equals
-        protected bool Equals(TransitionAttempt<TState> other)
+        protected bool Equals(TransitionRegistration<TState> other)
         {
             return Equals(InitialState, other.InitialState) && TransitionCommandType == other.TransitionCommandType;
         }
@@ -24,7 +24,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((TransitionAttempt<TState>)obj);
+            return Equals((TransitionRegistration<TState>)obj);
         }
 
         public override int GetHashCode()

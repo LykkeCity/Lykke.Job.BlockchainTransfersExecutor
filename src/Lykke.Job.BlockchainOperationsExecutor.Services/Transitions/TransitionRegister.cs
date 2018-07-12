@@ -13,16 +13,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
         ITransitionIgnoreRegister<TState>
         where TState : struct, Enum
     {
-        private readonly IDictionary<TransitionAttempt<TState>, TState> _stateTransitionStorage;
-        private readonly IList<TransitionAttempt<TState>> _ignoredTransitionsStorage;
+        private readonly IDictionary<TransitionRegistration<TState>, TState> _stateTransitionStorage;
+        private readonly ISet<TransitionRegistration<TState>> _ignoredTransitionsStorage;
 
-        private TState? _currentInitialState;
-        private Type _currentEventType;
+        private readonly TransitionRegistrationChain<TState> _registrationChain;
 
         public TransitionRegister()
         {
-            _ignoredTransitionsStorage = new List<TransitionAttempt<TState>>();
-            _stateTransitionStorage = new Dictionary<TransitionAttempt<TState>, TState>();
+            _ignoredTransitionsStorage = new HashSet<TransitionRegistration<TState>>();
+            _stateTransitionStorage = new Dictionary<TransitionRegistration<TState>, TState>();
+            _registrationChain = new TransitionRegistrationChain<TState>();
         }
 
         public ITransitionInitialStateRegister<TState> From(TState initialState, Action<ITransitionEventRegister<TState>> registerTransition)
@@ -34,49 +34,49 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 
         public ITransitionEventRegister<TState> From(TState initialState)
         {
-            _currentInitialState = initialState;
+            _registrationChain.State = initialState;
 
             return this;
         }
 
         public ITransitionIgnoreRegister<TState> In(TState initialState)
         {
-            _currentInitialState = initialState;
+            _registrationChain.State = initialState;
 
             return this;
         }
 
         public ITransitonSwitchStateRegister<TState> On<TEvent>()
         {
-            _currentEventType = typeof(TEvent);
+            _registrationChain.EventType = typeof(TEvent);
 
             return this;
         }
 
         public ITransitionInitialStateRegister<TState> SwitchTo(TState state)
         {
-            if (_currentInitialState == null)
+            if (_registrationChain.State == null)
             {
                 throw new InvalidOperationException("Initial state not registered");
             };
 
-            if (_currentEventType == null)
+            if (_registrationChain.EventType == null)
             {
                 throw new InvalidOperationException("Initial state not registered");
             };
 
-            AddTransition(_currentInitialState.Value, _currentEventType, state);
+            AddTransition(_registrationChain.State.Value, _registrationChain.EventType, state);
             
             return this;
         }
         public ITransitionIgnoreRegister<TState> Ignore<TCommand>()
         {
-            if (_currentInitialState == null)
+            if (_registrationChain.State == null)
             {
                 throw new InvalidOperationException("Initial state not registered");
             };
 
-            AddIgnoredTransition(_currentInitialState.Value, typeof(TCommand));
+            AddIgnoredTransition(_registrationChain.State.Value, typeof(TCommand));
 
             return this;
         }
@@ -88,7 +88,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 
         private void AddTransition(TState initialState, Type eventType, TState nextState)
         {
-            var transitionToAdd = new TransitionAttempt<TState>(initialState, eventType);
+            var transitionToAdd = new TransitionRegistration<TState>(initialState, eventType);
 
             ValidateTransitionDuplication(transitionToAdd);
 
@@ -102,14 +102,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 
         private void AddIgnoredTransition(TState initialState, Type eventType)
         {
-            var transitionToAdd = new TransitionAttempt<TState>(initialState, eventType);
+            var transitionToAdd = new TransitionRegistration<TState>(initialState, eventType);
 
             ValidateTransitionDuplication(transitionToAdd);
 
             _ignoredTransitionsStorage.Add(transitionToAdd);
         }
 
-        private void ValidateTransitionDuplication(TransitionAttempt<TState> transition)
+        private void ValidateTransitionDuplication(TransitionRegistration<TState> transition)
         {
             if (_stateTransitionStorage.ContainsKey(transition) 
                 || _ignoredTransitionsStorage.Any(p => Equals(p, transition)))
