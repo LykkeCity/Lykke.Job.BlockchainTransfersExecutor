@@ -19,6 +19,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
         public DateTime OperationStartMoment { get; set; }
 
         [Key(4)]
-        public DateTime TransactionBroadcastingMoment { get; set; }
+        public bool WasBroadcasted { get; set; }
     }
 }

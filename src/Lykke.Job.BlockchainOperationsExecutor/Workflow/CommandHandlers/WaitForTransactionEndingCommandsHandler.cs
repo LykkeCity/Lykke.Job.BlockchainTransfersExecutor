@@ -4,6 +4,7 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
@@ -25,14 +26,22 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
         {
+            if (command.WasBroadcasted)
+            {
+                publisher.PublishEvent(new OperationExecutionFailedEvent
+                {
+                    OperationId = command.OperationId,
+                    Error = "Transaction was not broadcasted"
+                });
+
+                return CommandHandlingResult.Ok();
+            }
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
             // TODO: Cache it
 
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
-
-            // TODO: Check for the availability of the tranaction rebuilding function and publish 
-            // TransactionTimeoutEvent after configured timeout to run transaction rebuild process path
 
             var transaction = await apiClient.TryGetBroadcastedSingleTransactionAsync(command.OperationId, blockchainAsset);
 
@@ -60,11 +69,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                     return CommandHandlingResult.Ok();
 
                 case BroadcastedTransactionState.Failed:
-                    publisher.PublishEvent(new OperationExecutionFailedEvent
+
+                    if (transaction.ErrorCode == BlockchainErrorCode.AmountIsTooSmall ||
+                        transaction.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
                     {
-                        OperationId = transaction.OperationId,
-                        Error = transaction.Error
-                    });
+                        publisher.PublishEvent(new TransactionReBuildingIsRequested
+                        {
+                            OperationId = command.OperationId
+                        });
+                    }
+                    else
+                    {
+                        publisher.PublishEvent(new OperationExecutionFailedEvent
+                        {
+                            OperationId = transaction.OperationId,
+                            Error = transaction.Error
+                        });
+                    }
 
                     return CommandHandlingResult.Ok();
             }

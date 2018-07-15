@@ -29,10 +29,22 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
             _chaosKitty.Meow(command.OperationId);
 
-            publisher.PublishEvent(new SourceAddressLockReleasedEvent
+            if (command.BuildingRepeatsIsRequested)
             {
-                OperationId = command.OperationId
-            });
+                publisher.PublishEvent(new TransactionReBuildingIsRequested
+                {
+                    OperationId = command.OperationId
+                });
+            } 
+            else
+            {
+                publisher.PublishEvent(new SourceAddressLockReleasedEvent
+                {
+                    OperationId = command.OperationId,
+                    WasBroadcasted = command.WasBroadcasted
+                });
+            }
+
 
             return CommandHandlingResult.Ok();
         }

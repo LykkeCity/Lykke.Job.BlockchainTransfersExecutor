@@ -3,21 +3,17 @@ using JetBrains.Annotations;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
-{
+{    
     /// <summary>
-    /// Operation source address lock is released event
+    /// Blockchain transaction building repeats is requested
     /// </summary>
     [PublicAPI]
     [MessagePackObject]
-    public class SourceAddressLockReleasedEvent
-    {
-        /// <summary>
+    public class TransactionReBuildingIsRequested
+    {        /// <summary>
         /// Lykke unique operation ID
         /// </summary>
         [Key(0)]
         public Guid OperationId { get; set; }
-
-        [Key(1)]
-        public bool WasBroadcasted { get; set; }
     }
 }

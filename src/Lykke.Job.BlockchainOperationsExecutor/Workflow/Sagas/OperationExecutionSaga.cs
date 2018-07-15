@@ -11,22 +11,6 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
-    /// <summary>
-    /// -> StartOperationExecutionCommand
-    /// -> OperationExecutionStartedEvent
-    ///     -> BuildTransactionCommand
-    /// -> TransactionBuiltEvent                    | TransactionBuildingRejectedEvent
-    ///     -> SignTransactionCommand               | -> ReleaseSourceAddressLockCommand
-    /// -> TransactionSignedEvent
-    ///     -> BroadcastTransactionCommand
-    /// -> TransactionBroadcastedEvent
-    ///     -> ReleaseSourceAddressLockCommand
-    /// -> SourceAddressLockReleasedEvent
-    ///     -> WaitForTransactionEndingCommand
-    /// -> OperationExecutionCompletedEvent         | OperationExecutionFailedEvent
-    ///     -> ForgetBroadcastedTransactionCommand
-    /// -> BroadcastedTransactionForgottenEvent
-    /// </summary>
     [UsedImplicitly]
     public class OperationExecutionSaga
     {
@@ -115,7 +99,83 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress
+                        FromAddress = aggregate.FromAddress,
+                        WasBroadcasted = true,
+                        BuildingRepeatsIsRequested = false
+                    },
+                    Self);
+
+                _chaosKitty.Meow(evt.OperationId);
+
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+        [UsedImplicitly]
+        private async Task Handle(TransactionReBuildingIsRequested evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionRebuildingRequested())
+            {
+                sender.SendCommand(new BuildTransactionCommand
+                    {
+                        BlockchainType = aggregate.BlockchainType,
+                        BlockchainAssetId = aggregate.BlockchainAssetId,
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress,
+                        ToAddress = aggregate.ToAddress,
+                        AssetId = aggregate.AssetId,
+                        Amount = aggregate.Amount,
+                        IncludeFee = aggregate.IncludeFee
+                    },
+                    Self);
+
+                _chaosKitty.Meow(evt.OperationId);
+
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(TransactionBuildingFailedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionBuildingRejected())
+            {
+                sender.SendCommand(new ReleaseSourceAddressLockCommand
+                    {
+                        BlockchainType = aggregate.BlockchainType,
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress,
+                        BuildingRepeatsIsRequested = false,
+                        WasBroadcasted = false
+                    },
+                    Self);
+
+                _chaosKitty.Meow(evt.OperationId);
+
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(TransactionBroadcastingFailed evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (HandleEventTransition(aggregate, evt)
+                && aggregate.OnTransactionBuildingRejected())
+            {
+                sender.SendCommand(new ReleaseSourceAddressLockCommand
+                    {
+                        BlockchainType = aggregate.BlockchainType,
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress,
+                        BuildingRepeatsIsRequested = false,
+                        WasBroadcasted = false
                     },
                     Self);
 
@@ -159,7 +219,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         BlockchainType = aggregate.BlockchainType,
                         FromAddress = aggregate.FromAddress,
-                        OperationId = aggregate.OperationId
+                        OperationId = aggregate.OperationId,
+                        WasBroadcasted = true,
+                        BuildingRepeatsIsRequested = false
                     },
                     Self);
 
@@ -177,19 +239,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             if (HandleEventTransition(aggregate, evt)
                 && aggregate.OnSourceAddressLockReleased())
             {
-                if (!aggregate.TransactionBroadcastingMoment.HasValue)
-                {
-                    throw new InvalidOperationException(
-                        "TransactionBroadcastingMoment should be not null at this moment");
-                }
-
                 sender.SendCommand(new WaitForTransactionEndingCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         OperationId = aggregate.OperationId,
                         OperationStartMoment = aggregate.StartMoment,
-                        TransactionBroadcastingMoment = aggregate.TransactionBroadcastingMoment.Value
+                        WasBroadcasted = evt.WasBroadcasted
                     },
                     Self);
 

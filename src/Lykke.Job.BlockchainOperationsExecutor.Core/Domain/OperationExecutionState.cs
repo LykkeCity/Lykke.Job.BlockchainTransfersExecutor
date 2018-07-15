@@ -4,6 +4,8 @@
     {
         Started,
         TransactionIsBuilt,
+        TransactionBuildingFailed,
+        TransactionBroadcastingFailed,
         TransactionIsSigned,
         TransactionIsBroadcasted,
         SourceAddresIsReleased,

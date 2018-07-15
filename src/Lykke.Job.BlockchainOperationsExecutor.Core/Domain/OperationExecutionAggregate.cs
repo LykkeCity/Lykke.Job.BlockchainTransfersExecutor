@@ -204,6 +204,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
+        public bool OnTransactionRebuildingRequested()
+        {
+            return true;
+        }
+
         public bool OnTransactionBuildingRejected()
         {
             // If transaction building is rejected, then address lock has been captured.
@@ -214,6 +219,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 
             // Lock should be released right after broadcasting
             return State >= OperationExecutionState.TransactionIsBroadcasted;
+        }
+
+        public bool OnTransactionBuildingFailed()
+        {
+            return true;
         }
 
         public bool OnTransactionSigned(string signedTransaction)

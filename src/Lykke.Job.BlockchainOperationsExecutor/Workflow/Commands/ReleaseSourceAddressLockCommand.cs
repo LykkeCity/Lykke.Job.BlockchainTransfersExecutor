@@ -14,5 +14,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 
         [Key(2)]
         public Guid OperationId { get; set; }
+        
+        [Key(3)]
+        public bool BuildingRepeatsIsRequested { get; set; }
+
+        [Key(4)]
+        public bool WasBroadcasted { get; set; }
     }
 }

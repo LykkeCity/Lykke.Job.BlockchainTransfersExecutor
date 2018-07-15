@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Transactions;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -18,15 +17,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         private readonly IChaosKitty _chaosKitty;
         private readonly ILog _log;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
+        private readonly RetryDelayProvider _retryDelayProvider;
 
         public BroadcastTransactionCommandsHandler(
             IChaosKitty chaosKitty,
             ILog log,
-            IBlockchainApiClientProvider apiClientProvider)
+            IBlockchainApiClientProvider apiClientProvider, 
+            RetryDelayProvider retryDelayProvider)
         {
             _chaosKitty = chaosKitty;
             _log = log.CreateComponentScope(nameof(BroadcastTransactionCommandsHandler));
             _apiClientProvider = apiClientProvider;
+            _retryDelayProvider = retryDelayProvider;
         }
 
         [UsedImplicitly]
@@ -48,14 +50,43 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         "API said that transaction is already broadcasted"
                     );
                     break;
-
                 case TransactionBroadcastingResult.AmountIsTooSmall:
-                case TransactionBroadcastingResult.NotEnoughBalance:
-                    throw new TransactionException
+                    _log.WriteInfo
                     (
-                        $"Failed to broadcast transaction: {broadcastingResult}."
+                        nameof(BroadcastTransactionCommand),
+                        command,
+                        "API said, that amount is too small"
                     );
-                
+
+                    publisher.PublishEvent(new TransactionBroadcastingFailed
+                    {
+                        OperationId = command.OperationId
+                    });
+
+                    return CommandHandlingResult.Ok();
+                case TransactionBroadcastingResult.NotEnoughBalance:
+                    _log.WriteInfo
+                    (
+                        nameof(BroadcastTransactionCommand),
+                        command,
+                        "API said, that amount is too small"
+                    );
+
+                    return CommandHandlingResult.Fail(_retryDelayProvider.NotEnoughBalanceRetryDelay);
+                case TransactionBroadcastingResult.BuildingShouldBeRepeated:
+                    _log.WriteInfo
+                    (
+                        nameof(BroadcastTransactionCommand),
+                        command,
+                        "API said, that building should be repeated"
+                    );
+
+                    publisher.PublishEvent(new TransactionReBuildingIsRequested
+                    {
+                        OperationId = command.OperationId
+                    });
+
+                    return CommandHandlingResult.Ok();
                 default:
                     throw new ArgumentOutOfRangeException
                     (

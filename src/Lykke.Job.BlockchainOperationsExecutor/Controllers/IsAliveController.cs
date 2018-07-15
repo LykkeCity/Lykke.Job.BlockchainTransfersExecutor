@@ -3,6 +3,7 @@ using System.Net;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client.Impl;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Controllers

@@ -10,7 +10,9 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.BlockchainApi.Client;
+using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainSignFacade.Client;
+using ErrorResponseException = Lykke.Service.BlockchainApi.Client.ErrorResponseException;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
@@ -103,6 +105,31 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 });
 
                 return CommandHandlingResult.Ok();
+            }
+            catch (ErrorResponseException e) when(e.ErrorCode == BlockchainErrorCode.AmountIsTooSmall)
+            {
+                _log.WriteInfo
+                (
+                    nameof(BuildTransactionCommand),
+                    command,
+                    "API said, that amount is too small"
+                );
+                publisher.PublishEvent(new TransactionBuildingFailedEvent
+                {
+                    OperationId = command.OperationId
+                });
+
+                return CommandHandlingResult.Ok();
+            }
+            catch (ErrorResponseException e) when (e.ErrorCode == BlockchainErrorCode.NotEnoughBalance)
+            {
+                _log.WriteInfo
+                (
+                    nameof(BuildTransactionCommand),
+                    command,
+                    "API said, that balance is not enough to proceed the operation"
+                );
+                return CommandHandlingResult.Fail(_retryDelayProvider.NotEnoughBalanceRetryDelay);
             }
             catch (TransactionAlreadyBroadcastedException)
             {
