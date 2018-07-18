@@ -73,7 +73,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                     if (transaction.ErrorCode == BlockchainErrorCode.AmountIsTooSmall ||
                         transaction.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
                     {
-                        publisher.PublishEvent(new TransactionReBuildingIsRequested
+                        publisher.PublishEvent(new TransactionReBuildingIsRequestedEvent
                         {
                             OperationId = command.OperationId
                         });

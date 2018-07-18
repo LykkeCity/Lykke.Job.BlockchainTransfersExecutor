@@ -9,8 +9,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// </summary>
     [PublicAPI]
     [MessagePackObject]
-    public class TransactionReBuildingIsRequested
-    {        /// <summary>
+    public class TransactionReBuildingIsRequestedEvent
+    {        
+        /// <summary>
         /// Lykke unique operation ID
         /// </summary>
         [Key(0)]

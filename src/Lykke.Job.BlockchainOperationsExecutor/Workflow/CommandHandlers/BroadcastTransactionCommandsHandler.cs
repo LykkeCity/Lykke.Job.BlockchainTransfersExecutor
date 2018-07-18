@@ -58,7 +58,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         "API said, that amount is too small"
                     );
 
-                    publisher.PublishEvent(new TransactionBroadcastingFailed
+                    publisher.PublishEvent(new TransactionBroadcastingFailedEvent
                     {
                         OperationId = command.OperationId
                     });
@@ -81,7 +81,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         "API said, that building should be repeated"
                     );
 
-                    publisher.PublishEvent(new TransactionReBuildingIsRequested
+                    publisher.PublishEvent(new TransactionReBuildingIsRequestedEvent
                     {
                         OperationId = command.OperationId
                     });

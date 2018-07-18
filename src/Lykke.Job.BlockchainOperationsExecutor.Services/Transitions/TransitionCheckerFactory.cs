@@ -40,10 +40,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                     outputs.On<TransactionBroadcastedEvent>()
                         .SwitchTo(OperationExecutionState.TransactionIsBroadcasted);
 
-                    outputs.On<TransactionBroadcastingFailed>()
+                    outputs.On<TransactionBroadcastingFailedEvent>()
                         .SwitchTo(OperationExecutionState.TransactionBroadcastingFailed);
 
-                    outputs.On<TransactionReBuildingIsRequested>()
+                    outputs.On<TransactionReBuildingIsRequestedEvent>()
                         .SwitchTo(OperationExecutionState.Started);
                 })
                 .In(OperationExecutionState.TransactionIsSigned)
@@ -66,7 +66,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                 .In(OperationExecutionState.TransactionBroadcastingFailed)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
-                .Ignore<TransactionBroadcastingFailed>();
+                .Ignore<TransactionBroadcastingFailedEvent>();
             
 
 
@@ -78,7 +78,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                     outputs.On<OperationExecutionFailedEvent>()
                         .SwitchTo(OperationExecutionState.TransactionIsFinished);
 
-                    outputs.On<TransactionReBuildingIsRequested>()
+                    outputs.On<TransactionReBuildingIsRequestedEvent>()
                         .SwitchTo(OperationExecutionState.Started);
                 })
 

@@ -9,8 +9,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     /// </summary>
     [PublicAPI]
     [MessagePackObject]
-    public class TransactionBroadcastingFailed
-    {        /// <summary>
+    public class TransactionBroadcastingFailedEvent
+    {        
+        /// <summary>
         /// Lykke unique operation ID
         /// </summary>
         [Key(0)]

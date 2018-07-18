@@ -31,7 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
             if (command.BuildingRepeatsIsRequested)
             {
-                publisher.PublishEvent(new TransactionReBuildingIsRequested
+                publisher.PublishEvent(new TransactionReBuildingIsRequestedEvent
                 {
                     OperationId = command.OperationId
                 });

@@ -111,7 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             }
         }
         [UsedImplicitly]
-        private async Task Handle(TransactionReBuildingIsRequested evt, ICommandSender sender)
+        private async Task Handle(TransactionReBuildingIsRequestedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
@@ -162,7 +162,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(TransactionBroadcastingFailed evt, ICommandSender sender)
+        private async Task Handle(TransactionBroadcastingFailedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
