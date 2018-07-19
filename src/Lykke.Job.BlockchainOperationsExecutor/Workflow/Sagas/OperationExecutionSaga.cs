@@ -4,8 +4,10 @@ using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
+using Lykke.Job.BlockchainOperationsExecutor.Helpers;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 
@@ -100,7 +102,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
-                        WasBroadcasted = true,
                         BuildingRepeatsIsRequested = false
                     },
                     Self);
@@ -110,6 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 await _repository.SaveAsync(aggregate);
             }
         }
+
         [UsedImplicitly]
         private async Task Handle(TransactionReBuildingIsRequestedEvent evt, ICommandSender sender)
         {
@@ -151,7 +153,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         OperationId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
                         BuildingRepeatsIsRequested = false,
-                        WasBroadcasted = false
+                        OperationExecutionErrorCode = evt.ErrorCode.MapToOperationExecutionErrorCode()
                     },
                     Self);
 
@@ -175,8 +177,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         OperationId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
                         BuildingRepeatsIsRequested = false,
-                        WasBroadcasted = false
-                    },
+                        OperationExecutionErrorCode = evt.ErrorCode.MapToOperationExecutionErrorCode()
+                },
                     Self);
 
                 _chaosKitty.Meow(evt.OperationId);
@@ -220,7 +222,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         FromAddress = aggregate.FromAddress,
                         OperationId = aggregate.OperationId,
-                        WasBroadcasted = true,
                         BuildingRepeatsIsRequested = false
                     },
                     Self);
@@ -244,8 +245,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         OperationId = aggregate.OperationId,
-                        OperationStartMoment = aggregate.StartMoment,
-                        WasBroadcasted = evt.WasBroadcasted
+                        ErrorCode = evt.OperationExecutionErrorCode
                     },
                     Self);
 

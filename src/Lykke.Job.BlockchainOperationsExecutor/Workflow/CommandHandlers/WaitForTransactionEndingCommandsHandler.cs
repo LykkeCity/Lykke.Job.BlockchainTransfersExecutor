@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
+using Lykke.Job.BlockchainOperationsExecutor.Helpers;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
@@ -26,15 +28,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
         {
-            if (command.WasBroadcasted)
+            //transaction building or broadcasting failure - so we do not have to check transaction state from blockchain api
+            if (command.ErrorCode != null)
             {
                 publisher.PublishEvent(new OperationExecutionFailedEvent
                 {
                     OperationId = command.OperationId,
-                    Error = "Transaction was not broadcasted"
+                    ErrorCode = command.ErrorCode.Value
                 });
-
-                return CommandHandlingResult.Ok();
             }
 
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
@@ -70,7 +71,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
                 case BroadcastedTransactionState.Failed:
 
-                    if (transaction.ErrorCode == BlockchainErrorCode.AmountIsTooSmall ||
+                    if (transaction.ErrorCode == BlockchainErrorCode.NotEnoughBalance ||
                         transaction.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
                     {
                         publisher.PublishEvent(new TransactionReBuildingIsRequestedEvent
@@ -83,7 +84,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         publisher.PublishEvent(new OperationExecutionFailedEvent
                         {
                             OperationId = transaction.OperationId,
-                            Error = transaction.Error
+                            Error = transaction.Error,
+                            ErrorCode = transaction.ErrorCode?.MapToOperationExecutionErrorCode() ?? OperationExecutionErrorCode.Unknown
                         });
                     }
 

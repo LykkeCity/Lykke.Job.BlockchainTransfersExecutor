@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
@@ -22,5 +23,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// </summary>
         [Key(1)]
         public string Error { get; set; }
+
+        /// <summary>
+        /// Error code
+        /// </summary>
+        [Key(2)]
+        public OperationExecutionErrorCode ErrorCode { get; set; }
     }
 }

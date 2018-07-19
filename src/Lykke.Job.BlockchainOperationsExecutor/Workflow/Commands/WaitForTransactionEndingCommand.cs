@@ -1,4 +1,5 @@
 ﻿using System;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
@@ -16,9 +17,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
         public Guid OperationId { get; set; }
 
         [Key(3)]
-        public DateTime OperationStartMoment { get; set; }
-
-        [Key(4)]
-        public bool WasBroadcasted { get; set; }
+        public OperationExecutionErrorCode? ErrorCode { get; set; }
     }
 }

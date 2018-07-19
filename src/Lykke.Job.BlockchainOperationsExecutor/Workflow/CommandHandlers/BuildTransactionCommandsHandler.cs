@@ -4,6 +4,7 @@ using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
@@ -116,7 +117,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 );
                 publisher.PublishEvent(new TransactionBuildingFailedEvent
                 {
-                    OperationId = command.OperationId
+                    OperationId = command.OperationId,
+                    ErrorCode = TransactionBuildingErrorCode.AmountTooSmall
                 });
 
                 return CommandHandlingResult.Ok();

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
@@ -17,7 +18,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         [Key(0)]
         public Guid OperationId { get; set; }
 
-        [Key(1)]
-        public bool WasBroadcasted { get; set; }
+        /// <summary>
+        /// Error code
+        /// </summary>
+        [Key(4)]
+        public OperationExecutionErrorCode? OperationExecutionErrorCode { get; set; }
     }
 }

@@ -11,6 +11,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     [MessagePackObject]
     public class TransactionBuildingRejectedEvent
     {
+        /// <summary>
+        /// Lykke unique operation ID
+        /// </summary>
         [Key(0)]
         public Guid OperationId { get;set; }
     }

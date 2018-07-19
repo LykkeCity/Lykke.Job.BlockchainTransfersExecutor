@@ -35,13 +35,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 {
                     OperationId = command.OperationId
                 });
-            } 
+            }
             else
             {
                 publisher.PublishEvent(new SourceAddressLockReleasedEvent
                 {
                     OperationId = command.OperationId,
-                    WasBroadcasted = command.WasBroadcasted
+                    OperationExecutionErrorCode = command.OperationExecutionErrorCode
                 });
             }
 

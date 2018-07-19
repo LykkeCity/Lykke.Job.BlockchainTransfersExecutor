@@ -1,4 +1,5 @@
 ﻿using System;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
@@ -19,6 +20,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
         public bool BuildingRepeatsIsRequested { get; set; }
 
         [Key(4)]
-        public bool WasBroadcasted { get; set; }
+        public OperationExecutionErrorCode? OperationExecutionErrorCode { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
@@ -10,10 +11,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
     [PublicAPI]
     [MessagePackObject]
     public class TransactionBuildingFailedEvent
-    {        /// <summary>
+    {        
+        /// <summary>
         /// Lykke unique operation ID
         /// </summary>
         [Key(0)]
         public Guid OperationId { get; set; }
+
+        /// <summary>
+        /// Error code
+        /// </summary>
+        [Key(1)]
+        public TransactionBuildingErrorCode ErrorCode { get; set; }
     }
 }
