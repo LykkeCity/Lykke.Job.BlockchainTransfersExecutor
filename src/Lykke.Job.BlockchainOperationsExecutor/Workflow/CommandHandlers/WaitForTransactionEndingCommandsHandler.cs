@@ -25,6 +25,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
         {
+            if(command.OperationId == new System.Guid("ca8d2152-43a8-4731-993d-e9fe8495d8d2"))
+            {
+                publisher.PublishEvent(new OperationExecutionFailedEvent
+                    {
+                        OperationId = command.OperationId,
+                        Error = "Aborted manually by kryazantsev. To workaround Bitshares API error due to too high tx expiration. We've faced with this issue on release"
+                    });
+
+                return CommandHandlingResult.Ok();
+            }
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
             // TODO: Cache it
