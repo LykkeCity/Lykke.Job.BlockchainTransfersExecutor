@@ -118,7 +118,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
                     .PublishingEvents(
                         typeof(TransactionBuiltEvent),
-                        typeof(TransactionBuildingRejectedEvent))
+                        typeof(TransactionBuildingRejectedEvent),
+                        typeof(TransactionBuildingFailedEvent),
+                        typeof(TransactionReBuildingIsRequestedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(SignTransactionCommand))
@@ -136,7 +138,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
+                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent), typeof(TransactionReBuildingIsRequestedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
@@ -144,7 +146,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .WithCommandsHandler<WaitForTransactionEndingCommandsHandler>()
                     .PublishingEvents(
                         typeof(OperationExecutionCompletedEvent),
-                        typeof(OperationExecutionFailedEvent))
+                        typeof(OperationExecutionFailedEvent),
+                        typeof(TransactionReBuildingIsRequestedEvent))
                     .With(defaultPipeline)
                     
                     .ListeningCommands(typeof(ForgetBroadcastedTransactionCommand))
@@ -156,7 +159,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
                 Register.Saga<OperationExecutionSaga>($"{Self}.saga")
-                    .ListeningEvents(typeof(OperationExecutionStartedEvent))
+                    .ListeningEvents(typeof(OperationExecutionStartedEvent), 
+                        typeof(TransactionReBuildingIsRequestedEvent))
                     .From(Self)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(BuildTransactionCommand))
@@ -179,6 +183,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
                     .ListeningEvents(
                         typeof(TransactionBroadcastedEvent),
+                        typeof(TransactionBroadcastingFailedEvent),
                         typeof(TransactionBuildingRejectedEvent),
                         typeof(TransactionBuildingFailedEvent))
                     .From(Self)
