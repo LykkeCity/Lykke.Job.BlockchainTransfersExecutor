@@ -81,7 +81,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                         "API said, that building should be repeated"
                     );
 
-                    publisher.PublishEvent(new TransactionReBuildingIsRequestedEvent
+                    publisher.PublishEvent(new TransactionReBuildingIsRequestedOnBroadcastingEvent
                     {
                         OperationId = command.OperationId
                     });

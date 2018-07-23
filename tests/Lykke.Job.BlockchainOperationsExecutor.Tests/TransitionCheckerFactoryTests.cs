@@ -179,6 +179,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
+        public void Can_Restat_Rebuild_On_Broadcast_Request_Rebuilding()
+        {
+            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+
+            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting, new TransactionReBuildingIsRequestedEvent());
+
+            Assert.True(transitionResult1.IsValid);
+            Assert.Equal(OperationExecutionState.Started, transitionResult1.NextState);
+        }
+
+
+
+        [Fact]
         public void Can_Restart_Transaction_Building_After_Success_Broadcast()
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
