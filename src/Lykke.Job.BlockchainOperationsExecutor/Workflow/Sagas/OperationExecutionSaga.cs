@@ -214,7 +214,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionBroadcastringFailed())
+                && aggregate.OnTransactionBroadcastingFailed())
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {

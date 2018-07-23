@@ -37,6 +37,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public string FromAddressContext { get; private set; }
         public long? TransactionBlock { get; private set; }
 
+        public bool WasBroadcasted { get; private set; }
+
         private OperationExecutionAggregate(
             Guid operationId, 
             string fromAddress, 
@@ -87,7 +89,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string transactionHash,
             decimal? fee,
             string transactionError,
-            long? transactionBlock)
+            long? transactionBlock,
+            bool wasBroadcasted)
         {
             Version = version;
             State = state;
@@ -114,6 +117,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             Fee = fee;
             TransactionError = transactionError;
             TransactionBlock = transactionBlock;
+            WasBroadcasted = wasBroadcasted;
         }
 
         public static OperationExecutionAggregate CreateNew(
@@ -162,7 +166,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             string transactionHash,
             decimal? fee,
             string transactionError,
-            long? transactionBlock)
+            long? transactionBlock,
+            bool wasBroadcasted)
         {
             return new OperationExecutionAggregate(
                 version,
@@ -189,7 +194,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
                 transactionHash,
                 fee,
                 transactionError,
-                transactionBlock);
+                transactionBlock,
+                wasBroadcasted);
         }
         
         public bool OnTransactionBuilt(string fromAddressContext, string transactionContext, string blockchainType, string blockchainAssetId)
@@ -218,7 +224,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             // to switch state since this is just redundant operation execution thread.
 
             // Lock should be released right after broadcasting
-            return State >= OperationExecutionState.TransactionIsBroadcasted;
+            return WasBroadcasted;
         }
 
         public bool OnTransactionReBuildingIsRequestedOnBroadcasting()
@@ -226,7 +232,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return true;
         }
 
-        public bool OnTransactionBroadcastringFailed()
+        public bool OnTransactionBroadcastingFailed()
         {
             return true;
         }
@@ -248,6 +254,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
         public bool OnTransactionBroadcasted()
         {
             TransactionBroadcastingMoment = DateTime.UtcNow;
+            WasBroadcasted = true;
 
             return true;
         }

@@ -36,6 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public decimal? Fee { get; set; }
         public string TransactionError { get; set; }
         public long? TransactionBlock { get; set; }
+        public bool WasBroadcasted { get; set; }
 
         // ReSharper restore MemberCanBePrivate.Global
 
@@ -90,7 +91,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 TransactionHash = aggregate.TransactionHash,
                 Fee = aggregate.Fee,
                 TransactionError = aggregate.TransactionError,
-                TransactionBlock = aggregate.TransactionBlock
+                TransactionBlock = aggregate.TransactionBlock,
+                WasBroadcasted = aggregate.WasBroadcasted
             };
         }
 
@@ -121,7 +123,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 TransactionHash,
                 Fee,
                 TransactionError,
-                TransactionBlock);
+                TransactionBlock,
+                WasBroadcasted);
         }
 
         #endregion
