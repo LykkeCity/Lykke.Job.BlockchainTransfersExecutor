@@ -21,19 +21,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                             .SwitchTo(OperationExecutionState.TransactionBuildingFailed);
                     });
 
-            register.From(OperationExecutionState.TransactionBuildingFailed)
-                .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
-
-                .In(OperationExecutionState.TransactionBuildingFailed)
-                .Ignore<TransactionBuildingFailedEvent>();
-
             register.From(OperationExecutionState.TransactionIsBuilt)
                 .On<TransactionSignedEvent>()
                 .SwitchTo(OperationExecutionState.TransactionIsSigned)
 
                 .In(OperationExecutionState.TransactionIsBuilt)
                 .Ignore<TransactionBuiltEvent>();
+
+            register.From(OperationExecutionState.TransactionBuildingFailed)
+                .On<SourceAddressLockReleasedEvent>()
+                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
+
+                .In(OperationExecutionState.TransactionBuildingFailed)
+                .Ignore<TransactionBuildingFailedEvent>();
 
             register.From(OperationExecutionState.TransactionIsSigned, outputs =>
                 {
@@ -47,14 +47,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                         .SwitchTo(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting);
                 })
                 .In(OperationExecutionState.TransactionIsSigned)
-                .Ignore<TransactionBuiltEvent>()
-                .Ignore<TransactionSignedEvent>();
-
-            register.From(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
-                .On<TransactionReBuildingIsRequestedEvent>()
-                .SwitchTo(OperationExecutionState.Started)
-                .In(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
-                .Ignore<TransactionReBuildingIsRequestedOnBroadcastingEvent>()
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>();
 
@@ -75,8 +67,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastingFailedEvent>();
-            
 
+            register.From(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
+                .On<TransactionReBuildingIsRequestedEvent>()
+                .SwitchTo(OperationExecutionState.Started)
+                .In(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
+                .Ignore<TransactionBuiltEvent>()
+                .Ignore<TransactionSignedEvent>()
+                .Ignore<TransactionReBuildingIsRequestedOnBroadcastingEvent>();
 
             register.From(OperationExecutionState.SourceAddresIsReleased, outputs =>
                 {
