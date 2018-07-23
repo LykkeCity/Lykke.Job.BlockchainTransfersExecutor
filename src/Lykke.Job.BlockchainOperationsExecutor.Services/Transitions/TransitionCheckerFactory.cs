@@ -43,10 +43,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                     outputs.On<TransactionBroadcastingFailedEvent>()
                         .SwitchTo(OperationExecutionState.TransactionBroadcastingFailed);
 
-                    outputs.On<TransactionReBuildingIsRequestedEvent>()
-                        .SwitchTo(OperationExecutionState.Started);
+                    outputs.On<TransactionReBuildingIsRequestedOnBroadcastingEvent>()
+                        .SwitchTo(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting);
                 })
                 .In(OperationExecutionState.TransactionIsSigned)
+                .Ignore<TransactionBuiltEvent>()
+                .Ignore<TransactionSignedEvent>();
+
+
+            register.From(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
+                .On<SourceAddressLockReleasedEvent>()
+                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
+                .In(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>();
 

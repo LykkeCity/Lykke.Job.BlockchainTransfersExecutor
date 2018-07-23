@@ -119,8 +119,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(
                         typeof(TransactionBuiltEvent),
                         typeof(TransactionBuildingRejectedEvent),
-                        typeof(TransactionBuildingFailedEvent),
-                        typeof(TransactionReBuildingIsRequestedEvent))
+                        typeof(TransactionBuildingFailedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(SignTransactionCommand))
@@ -132,13 +131,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(BroadcastTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<BroadcastTransactionCommandsHandler>()
-                    .PublishingEvents(typeof(TransactionBroadcastedEvent))
+                    .PublishingEvents(
+                        typeof(TransactionBroadcastedEvent), 
+                        typeof(TransactionBroadcastingFailedEvent),
+                        typeof(TransactionReBuildingIsRequestedOnBroadcastingEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent), typeof(TransactionReBuildingIsRequestedEvent))
+                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent), 
+                        typeof(TransactionReBuildingIsRequestedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
@@ -185,7 +188,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(TransactionBroadcastedEvent),
                         typeof(TransactionBroadcastingFailedEvent),
                         typeof(TransactionBuildingRejectedEvent),
-                        typeof(TransactionBuildingFailedEvent))
+                        typeof(TransactionBuildingFailedEvent),
+                        typeof(TransactionReBuildingIsRequestedOnBroadcastingEvent))
                     .From(Self)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))

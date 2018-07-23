@@ -221,6 +221,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             return State >= OperationExecutionState.TransactionIsBroadcasted;
         }
 
+        public bool OnTransactionReBuildingIsRequestedOnBroadcasting()
+        {
+            return true;
+        }
+
+        public bool OnTransactionBroadcastringFailed()
+        {
+            return true;
+        }
+
         public bool OnTransactionBuildingFailed()
         {
             return true;

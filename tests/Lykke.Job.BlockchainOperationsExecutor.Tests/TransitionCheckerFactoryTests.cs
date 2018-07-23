@@ -168,14 +168,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
-        public void Can_Restart_Transaction_Building_On_Broadcast()
+        public void Can_Release_Source_Address_Lock_On_Rebuild_Request_On_Broadcast()
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionReBuildingIsRequestedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionReBuildingIsRequestedOnBroadcastingEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.Started, transitionResult1.NextState);
+            Assert.Equal(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting, transitionResult1.NextState);
         }
 
         [Fact]

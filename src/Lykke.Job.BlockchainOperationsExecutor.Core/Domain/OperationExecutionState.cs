@@ -7,6 +7,7 @@
         TransactionBuildingFailed,
         TransactionBroadcastingFailed,
         TransactionIsSigned,
+        TransactionRebuildingRequestedOnBroadcasting,
         TransactionIsBroadcasted,
         SourceAddresIsReleased,
         TransactionIsFinished,
