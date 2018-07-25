@@ -200,7 +200,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 sender.SendCommand(new ForgetBroadcastedTransactionCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress,
+                        ToAddress = aggregate.ToAddress
                     },
                     Self);
 
@@ -220,7 +222,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 sender.SendCommand(new ForgetBroadcastedTransactionCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId
+                        OperationId = aggregate.OperationId,
+                        FromAddress = aggregate.FromAddress,
+                        ToAddress = aggregate.ToAddress
                     },
                     Self);
 

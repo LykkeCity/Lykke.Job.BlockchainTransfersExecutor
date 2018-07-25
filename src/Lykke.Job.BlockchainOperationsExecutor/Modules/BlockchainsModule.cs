@@ -38,6 +38,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterInstance(CreateBlockchainSignFacadeClient())
                 .As<IBlockchainSignFacadeClient>();
 
+            builder.RegisterType<CapabilitiesService>()
+                .As<ICapabilitiesService>()
+                .SingleInstance();
 
             foreach (var blockchain in _blockchainsIntegrationSettings.Blockchains.Where(b => !b.IsDisabled))
             {
@@ -46,7 +49,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
                 builder.RegisterType<BlockchainApiClient>()
                     .Named<IBlockchainApiClient>(blockchain.Type)
-                    .WithParameter(TypedParameter.From(blockchain.ApiUrl));
+                    .WithParameter(TypedParameter.From(blockchain.ApiUrl));                
             }
         }
 
