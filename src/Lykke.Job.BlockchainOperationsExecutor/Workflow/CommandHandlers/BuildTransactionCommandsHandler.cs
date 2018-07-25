@@ -24,6 +24,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         private readonly IAssetsServiceWithCache _assetsService;
         private readonly ISourceAddresLocksRepoistory _sourceAddresLocksRepoistory;
         private readonly IBlockchainSignFacadeClient _blockchainSignFacadeClient;
+        private readonly ICapabilitiesService _capabilitiesService;
 
         public BuildTransactionCommandsHandler(
             ILog log,
@@ -32,7 +33,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             IBlockchainApiClientProvider apiClientProvider,
             IAssetsServiceWithCache assetsService,
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
-            IBlockchainSignFacadeClient blockchainSignFacadeClient)
+            IBlockchainSignFacadeClient blockchainSignFacadeClient,
+            ICapabilitiesService capabilitiesService)
         {
             _log = log.CreateComponentScope(nameof(BuildTransactionCommandsHandler));
             _chaosKitty = chaosKitty;
@@ -41,6 +43,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             _assetsService = assetsService;
             _sourceAddresLocksRepoistory = sourceAddresLocksRepoistory;
             _blockchainSignFacadeClient = blockchainSignFacadeClient;
+            _capabilitiesService = capabilitiesService;
         }
 
         [UsedImplicitly]
@@ -66,14 +69,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 throw new InvalidOperationException("BlockchainIntegrationLayerAssetId of the asset is not configured");
             }
 
-            var isSourceAdressCaptured = await _sourceAddresLocksRepoistory.TryGetLockAsync(
+            var isFromAdressLocked = await _sourceAddresLocksRepoistory.TryGetLockAsync(
                 asset.BlockchainIntegrationLayerId,
                 command.FromAddress,
                 command.OperationId);
 
-            if (!isSourceAdressCaptured)
+            if (!isFromAdressLocked)
             {
                 return CommandHandlingResult.Fail(_retryDelayProvider.SourceAddressLockingRetryDelay);
+            }
+
+            var capabilities = await _capabilitiesService.GetAsync(asset.BlockchainIntegrationLayerId);
+            if (capabilities.IsExclusiveWithdrawalsRequired)
+            {
+                await _sourceAddresLocksRepoistory.TryGetLockAsync(
+                    asset.BlockchainIntegrationLayerId,
+                    command.ToAddress,
+                    command.OperationId);
             }
 
             var apiClient = _apiClientProvider.Get(asset.BlockchainIntegrationLayerId);
