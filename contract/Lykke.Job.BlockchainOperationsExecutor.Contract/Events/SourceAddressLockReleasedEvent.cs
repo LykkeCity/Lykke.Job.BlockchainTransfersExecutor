@@ -21,7 +21,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Error code
         /// </summary>
-        [Key(4)]
+        [Key(1)]
         public OperationExecutionErrorCode? OperationExecutionErrorCode { get; set; }
     }
 }
