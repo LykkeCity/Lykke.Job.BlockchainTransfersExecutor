@@ -7,7 +7,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 {
     public static class TransitionRegisterFacade
     {
-        public static ITransitionInitialStateRegister<TState> StartRegistrationFor<TState>() where TState : struct, Enum
+        public static ITransitionInitialStateRegister<TState> StartRegistrationFor<TState>() where TState : struct, IConvertible
         {
             return new TransitionRegister<TState>();
         }

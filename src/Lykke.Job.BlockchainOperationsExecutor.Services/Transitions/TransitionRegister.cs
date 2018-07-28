@@ -11,7 +11,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
         ITransitionEventRegister<TState>, 
         ITransitonSwitchStateRegister<TState>,
         ITransitionIgnoreRegister<TState>
-        where TState : struct, Enum
+        where TState : struct, IConvertible
     {
         private readonly IDictionary<TransitionRegistration<TState>, TState> _stateTransitionStorage;
         private readonly ISet<TransitionRegistration<TState>> _ignoredTransitionsStorage;
@@ -83,6 +83,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 
         public ITransitionChecker<TState> Build()
         {
+            if (!typeof(TState).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+
             return new TransitionChecker<TState>(_stateTransitionStorage, _ignoredTransitionsStorage);
         }
 

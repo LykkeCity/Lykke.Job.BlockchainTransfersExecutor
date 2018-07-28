@@ -2,7 +2,7 @@
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 {
-    internal class TransitionRegistration<TState> where TState:struct, Enum
+    internal class TransitionRegistration<TState> where TState: struct, IConvertible
     {
         public readonly TState InitialState;
         public readonly Type TransitionCommandType;

@@ -5,7 +5,7 @@ using System.Text;
 namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces.TransitionRegister
 {
     public interface ITransitionRegisterBase<TState>
-        where TState : struct, Enum
+        where TState : struct, IConvertible
     {
         ITransitionChecker<TState> Build();
     }

@@ -6,7 +6,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
 namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 {
     internal class TransitionChecker<TState>: ITransitionChecker<TState> 
-        where TState :struct ,Enum
+        where TState : struct, IConvertible
     {
         private readonly IReadOnlyDictionary<TransitionRegistration<TState>, TState> _validStateTransitions;
         private readonly ISet<TransitionRegistration<TState>> _ignoredTransitions;
