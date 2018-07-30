@@ -74,7 +74,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                     Log));
                 builder.RegisterModule(new CqrsModule(
                     appSettings.CurrentValue.BlockchainOperationsExecutorJob.Cqrs,
-                    Log));
+                    Log, "debug"));
                 
 
                 builder.Populate(services);

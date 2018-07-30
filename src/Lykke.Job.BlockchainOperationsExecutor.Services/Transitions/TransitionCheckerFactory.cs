@@ -19,6 +19,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                             .SwitchTo(OperationExecutionState.TransactionIsBuilt);
                         outputs.On<TransactionBuildingFailedEvent>()
                             .SwitchTo(OperationExecutionState.TransactionBuildingFailed);
+
+                        //release source address lock after build conflict
+                        outputs.On<SourceAddressLockReleasedEvent>()
+                            .SwitchTo(OperationExecutionState.SourceAddresIsReleased);
                     });
 
             register.From(OperationExecutionState.TransactionIsBuilt)

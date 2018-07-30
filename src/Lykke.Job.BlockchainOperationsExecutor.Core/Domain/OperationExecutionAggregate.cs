@@ -224,7 +224,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
             // to switch state since this is just redundant operation execution thread.
 
             // Lock should be released right after broadcasting
-            return WasBroadcasted;
+            return !WasBroadcasted;
         }
 
         public bool OnTransactionReBuildingIsRequestedOnBroadcasting()

@@ -201,5 +201,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             Assert.True(transitionResult1.IsValid);
             Assert.Equal(OperationExecutionState.Started, transitionResult1.NextState);
         }
+
+        [Fact]
+        public void Can_Release_Address_Lock_After_Build_Conflict()
+        {
+            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+
+            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.Started, new SourceAddressLockReleasedEvent());
+
+            Assert.True(transitionResult1.IsValid);
+            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult1.NextState);
+        }
     }
 }
