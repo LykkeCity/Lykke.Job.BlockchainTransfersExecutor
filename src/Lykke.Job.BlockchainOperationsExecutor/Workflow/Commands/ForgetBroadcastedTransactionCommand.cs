@@ -11,5 +11,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 
         [Key(1)]
         public Guid OperationId { get; set; }
+
+        [Key(2)]
+        public string FromAddress { get; set; }
+
+        [Key(3)]
+        public string ToAddress { get; set; }
     }
 }
