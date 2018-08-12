@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
 {
     /// <summary>
     /// Blockchain transaction building is rejected

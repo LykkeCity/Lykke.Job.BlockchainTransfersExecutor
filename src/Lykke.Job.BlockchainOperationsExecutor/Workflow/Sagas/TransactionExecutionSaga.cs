@@ -1,31 +1,29 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
-using Lykke.Job.BlockchainOperationsExecutor.Helpers;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
     [UsedImplicitly]
-    public class OperationExecutionSaga
+    public class TransactionExecutionSaga
     {
         private static string Self => BlockchainOperationsExecutorBoundedContext.Name;
 
         private readonly IChaosKitty _chaosKitty;
-        private readonly IOperationExecutionsRepository _repository;
-        private readonly ITransitionChecker<OperationExecutionState> _transitionChecker;
+        private readonly ITransactionExecutionsRepository _repository;
+        private readonly ITransitionChecker<TransactionExecutionState> _transitionChecker;
 
-        public OperationExecutionSaga(
+        public TransactionExecutionSaga(
             IChaosKitty chaosKitty,
-            IOperationExecutionsRepository repository,
-            ITransitionChecker<OperationExecutionState> transitionChecker)
+            ITransactionExecutionsRepository repository,
+            ITransitionChecker<TransactionExecutionState> transitionChecker)
         {
             _chaosKitty = chaosKitty;
             _repository = repository;
@@ -37,8 +35,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetOrAddAsync(
                 evt.OperationId,
-                () => OperationExecutionAggregate.CreateNew(
+                () => TransactionExecutionAggregate.CreateNew(
                     evt.OperationId,
+                    evt.TransactionId,
                     evt.FromAddress,
                     evt.ToAddress,
                     evt.BlockchainType,
@@ -49,18 +48,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             _chaosKitty.Meow(evt.OperationId);
 
-            if (aggregate.State == OperationExecutionState.Started)
+            if (aggregate.State == TransactionExecutionState.IsStarted)
             {
                 sender.SendCommand(new BuildTransactionCommand
                     {
-                        BlockchainType = aggregate.BlockchainType,
-                        BlockchainAssetId = aggregate.BlockchainAssetId,
-                        OperationId = aggregate.OperationId,
+                        TransactionId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,
                         AssetId = aggregate.AssetId,
                         Amount = aggregate.Amount,
-                        IncludeFee = aggregate.IncludeFee
+                        IncludeFee = aggregate.IncludeFee,
                     },
                     Self);
             }
@@ -72,14 +69,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
             
             if (HandleEventTransition(aggregate, evt) 
-                && aggregate.OnTransactionBuilt(evt.FromAddressContext, evt.TransactionContext, evt.BlockchainType, evt.BlockchainAssetId))
+                && aggregate.OnBuilt(evt.FromAddressContext, evt.TransactionContext))
             {
                 sender.SendCommand(new SignTransactionCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId,
                         SignerAddress = aggregate.FromAddress,
-                        TransactionContext = aggregate.TransactionContext
+                        TransactionContext = aggregate.Context
                     },
                     Self);
 
@@ -94,7 +91,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
-            if (aggregate.OnTransactionBuildingRejected())
+            if (aggregate.OnBuildingRejected())
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {
@@ -121,8 +118,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             {
                 sender.SendCommand(new BuildTransactionCommand
                     {
-                        BlockchainType = aggregate.BlockchainType,
-                        BlockchainAssetId = aggregate.BlockchainAssetId,
                         OperationId = aggregate.OperationId,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,
@@ -168,7 +163,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionSigned(evt.SignedTransaction))
+                && aggregate.OnSigned(evt.SignedTransaction))
             {
                 sender.SendCommand(new BroadcastTransactionCommand
                     {
@@ -190,7 +185,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionBroadcasted())
+                && aggregate.OnBroadcasted())
             {
                 sender.SendCommand(new ReleaseSourceAddressLockCommand
                     {
@@ -283,9 +278,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionCompleted(evt.TransactionHash, evt.Block, evt.Fee))
+                && aggregate.OnCompleted(evt.TransactionHash, evt.Block, evt.Fee))
             {
-                sender.SendCommand(new ForgetBroadcastedTransactionCommand
+                sender.SendCommand(new ClearTransactionCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId
@@ -304,9 +299,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionFailed(evt.Error))
+                && aggregate.OnFailed(evt.Error))
             {
-                sender.SendCommand(new ForgetBroadcastedTransactionCommand
+                sender.SendCommand(new ClearTransactionCommand
                     {
                         BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId
@@ -320,18 +315,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
-        private async Task Handle(BroadcastedTransactionForgottenEvent evt, ICommandSender sender)
+        private async Task Handle(TransactionClearedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 
             if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnBroadcastedTransactionForgotten())
+                && aggregate.OnCleared())
             {
                 await _repository.SaveAsync(aggregate);
             }
         }
 
-        private bool HandleEventTransition(OperationExecutionAggregate aggregate, object @event)
+        private bool HandleEventTransition(TransactionExecutionAggregate aggregate, object @event)
         {
             var checkTranstionResult = _transitionChecker.CheckTransition(aggregate.State, @event);
 

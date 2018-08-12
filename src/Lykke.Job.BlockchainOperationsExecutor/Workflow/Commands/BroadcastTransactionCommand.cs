@@ -3,6 +3,8 @@ using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
+
+
     [MessagePackObject]
     public class BroadcastTransactionCommand
     {
@@ -14,5 +16,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 
         [Key(2)]
         public string SignedTransaction { get; set; }
+
+        [Key(3)]
+        public Guid TransactionId { get; set; }
     }
 }

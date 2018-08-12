@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
 {    
     /// <summary>
     /// Blockchain transaction building repeats is requested on broadcasting
@@ -16,5 +16,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// </summary>
         [Key(0)]
         public Guid OperationId { get; set; }
+
+        /// <summary>
+        /// Transaction ID which should be rebuilt
+        /// </summary>
+        [Key(1)]
+        public Guid TransactionId { get; set; }
     }
 }

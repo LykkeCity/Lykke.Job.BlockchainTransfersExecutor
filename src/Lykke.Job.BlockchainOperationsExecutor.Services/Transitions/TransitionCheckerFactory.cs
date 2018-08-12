@@ -9,101 +9,101 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
 {
     public static class TransitionCheckerFactory
     {
-        public static ITransitionChecker<OperationExecutionState> BuildTransitionsForService()
+        public static ITransitionChecker<TransactionExecutionState> BuildTransitionsForService()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<OperationExecutionState>();
+            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
 
-            register.From(OperationExecutionState.Started, outputs =>
+            register.From(TransactionExecutionState.Started, outputs =>
                     {
                         outputs.On<TransactionBuiltEvent>()
-                            .SwitchTo(OperationExecutionState.TransactionIsBuilt);
+                            .SwitchTo(TransactionExecutionState.TransactionIsBuilt);
                         outputs.On<TransactionBuildingFailedEvent>()
-                            .SwitchTo(OperationExecutionState.TransactionBuildingFailed);
+                            .SwitchTo(TransactionExecutionState.TransactionBuildingFailed);
 
                         //release source address lock after build conflict
                         outputs.On<SourceAddressLockReleasedEvent>()
-                            .SwitchTo(OperationExecutionState.SourceAddresIsReleased);
+                            .SwitchTo(TransactionExecutionState.IsSourceAddressReleased);
                     });
 
-            register.From(OperationExecutionState.TransactionIsBuilt)
+            register.From(TransactionExecutionState.TransactionIsBuilt)
                 .On<TransactionSignedEvent>()
-                .SwitchTo(OperationExecutionState.TransactionIsSigned)
+                .SwitchTo(TransactionExecutionState.TransactionIsSigned)
 
-                .In(OperationExecutionState.TransactionIsBuilt)
+                .In(TransactionExecutionState.TransactionIsBuilt)
                 .Ignore<TransactionBuiltEvent>();
 
-            register.From(OperationExecutionState.TransactionBuildingFailed)
+            register.From(TransactionExecutionState.TransactionBuildingFailed)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
+                .SwitchTo(TransactionExecutionState.IsSourceAddressReleased)
 
-                .In(OperationExecutionState.TransactionBuildingFailed)
+                .In(TransactionExecutionState.TransactionBuildingFailed)
                 .Ignore<TransactionBuildingFailedEvent>();
 
-            register.From(OperationExecutionState.TransactionIsSigned, outputs =>
+            register.From(TransactionExecutionState.TransactionIsSigned, outputs =>
                 {
                     outputs.On<TransactionBroadcastedEvent>()
-                        .SwitchTo(OperationExecutionState.TransactionIsBroadcasted);
+                        .SwitchTo(TransactionExecutionState.TransactionIsBroadcasted);
 
                     outputs.On<TransactionBroadcastingFailedEvent>()
-                        .SwitchTo(OperationExecutionState.TransactionBroadcastingFailed);
+                        .SwitchTo(TransactionExecutionState.TransactionBroadcastingFailed);
 
                     outputs.On<TransactionReBuildingIsRequestedOnBroadcastingEvent>()
-                        .SwitchTo(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting);
+                        .SwitchTo(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting);
                 })
-                .In(OperationExecutionState.TransactionIsSigned)
+                .In(TransactionExecutionState.TransactionIsSigned)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>();
 
-            register.From(OperationExecutionState.TransactionIsBroadcasted)
+            register.From(TransactionExecutionState.TransactionIsBroadcasted)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
+                .SwitchTo(TransactionExecutionState.IsSourceAddressReleased)
 
-                .In(OperationExecutionState.TransactionIsBroadcasted)
+                .In(TransactionExecutionState.TransactionIsBroadcasted)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastedEvent>();
 
-            register.From(OperationExecutionState.TransactionBroadcastingFailed)
+            register.From(TransactionExecutionState.TransactionBroadcastingFailed)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(OperationExecutionState.SourceAddresIsReleased)
+                .SwitchTo(TransactionExecutionState.IsSourceAddressReleased)
 
-                .In(OperationExecutionState.TransactionBroadcastingFailed)
+                .In(TransactionExecutionState.TransactionBroadcastingFailed)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastingFailedEvent>();
 
-            register.From(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
+            register.From(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting)
                 .On<TransactionReBuildingIsRequestedEvent>()
-                .SwitchTo(OperationExecutionState.Started)
-                .In(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting)
+                .SwitchTo(TransactionExecutionState.Started)
+                .In(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionReBuildingIsRequestedOnBroadcastingEvent>();
 
-            register.From(OperationExecutionState.SourceAddresIsReleased, outputs =>
+            register.From(TransactionExecutionState.IsSourceAddressReleased, outputs =>
                 {
                     outputs.On<OperationExecutionCompletedEvent>()
-                        .SwitchTo(OperationExecutionState.TransactionIsFinished);
+                        .SwitchTo(TransactionExecutionState.TransactionIsFinished);
 
                     outputs.On<OperationExecutionFailedEvent>()
-                        .SwitchTo(OperationExecutionState.TransactionIsFinished);
+                        .SwitchTo(TransactionExecutionState.TransactionIsFinished);
 
                     outputs.On<TransactionReBuildingIsRequestedEvent>()
-                        .SwitchTo(OperationExecutionState.Started);
+                        .SwitchTo(TransactionExecutionState.Started);
                 })
 
-                .In(OperationExecutionState.SourceAddresIsReleased)
+                .In(TransactionExecutionState.IsSourceAddressReleased)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastedEvent>()
                 .Ignore<SourceAddressLockReleasedEvent>();
 
 
-            register.From(OperationExecutionState.TransactionIsFinished)
+            register.From(TransactionExecutionState.TransactionIsFinished)
                 .On<BroadcastedTransactionForgottenEvent>()
-                .SwitchTo(OperationExecutionState.BroadcastedTransactionIsForgotten)
+                .SwitchTo(TransactionExecutionState.BroadcastedTransactionIsForgotten)
 
-                .In(OperationExecutionState.TransactionIsFinished)
+                .In(TransactionExecutionState.TransactionIsFinished)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastedEvent>()
@@ -111,7 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Transitions
                 .Ignore<OperationExecutionCompletedEvent>()
                 .Ignore<OperationExecutionFailedEvent>();
 
-            register.In(OperationExecutionState.BroadcastedTransactionIsForgotten)
+            register.In(TransactionExecutionState.BroadcastedTransactionIsForgotten)
                 .Ignore<TransactionBuiltEvent>()
                 .Ignore<TransactionSignedEvent>()
                 .Ignore<TransactionBroadcastedEvent>()

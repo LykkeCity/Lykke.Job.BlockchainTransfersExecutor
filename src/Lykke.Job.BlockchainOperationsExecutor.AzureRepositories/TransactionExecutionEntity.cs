@@ -6,24 +6,25 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 {
-    internal class OperationExecutionEntity : AzureTableEntity
+    internal class TransactionExecutionEntity : AzureTableEntity
     {
         #region Fields
 
         // ReSharper disable MemberCanBePrivate.Global
 
-        public OperationExecutionState State { get; set; }
-        public OperationExecutionResult Result { get; set; }
+        public TransactionExecutionState State { get; set; }
+        public TransactionExecutionResult? Result { get; set; }
 
         public DateTime StartMoment { get; set; }
-        public DateTime? TransactionBuildingMoment { get; set; }
-        public DateTime? TransactionSigningMoment { get; set; }
-        public DateTime? TransactionBroadcastingMoment { get; set; }
-        public DateTime? TransactionFinishMoment { get; set; }
+        public DateTime? BuildingMoment { get; set; }
+        public DateTime? SigningMoment { get; set; }
+        public DateTime? BroadcastingMoment { get; set; }
+        public DateTime? FinishMoment { get; set; }
         public DateTime? SourceAddressReleaseMoment { get; set; }
-        public DateTime? BroadcastedTransactionForgetMoment { get; set; }
+        public DateTime? ClearedMoment { get; set; }
 
         public Guid OperationId { get; set; }
+        public Guid TransactionId { get; set; }
         public string BlockchainType { get; set; }
         public string FromAddress { get; set; }
         public string FromAddressContext { get; set; }
@@ -32,10 +33,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         public decimal Amount { get; set; }
         public bool IncludeFee { get; set; }
         public string BlockchainAssetId { get; set; }
-        public string TransactionHash { get; set; }
+        public string Hash { get; set; }
         public decimal? Fee { get; set; }
-        public string TransactionError { get; set; }
-        public long? TransactionBlock { get; set; }
+        public string Error { get; set; }
+        public long? Block { get; set; }
         public bool WasBroadcasted { get; set; }
 
         // ReSharper restore MemberCanBePrivate.Global
@@ -45,17 +46,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 
         #region Keys
 
-        public static string GetPartitionKey(Guid operationId)
+        public static string GetPartitionKey(Guid transactionId)
         {
             // Use hash to distribute all records to the different partitions
-            var hash = operationId.ToString().CalculateHexHash32(3);
+            var hash = transactionId.ToString().CalculateHexHash32(3);
 
             return $"{hash}";
         }
 
-        public static string GetRowKey(Guid operationId)
+        public static string GetRowKey(Guid transactionId)
         {
-            return $"{operationId:D}";
+            return $"{transactionId:D}";
         }
 
         #endregion
@@ -63,23 +64,24 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
         
         #region Conversion
 
-        public static OperationExecutionEntity FromDomain(OperationExecutionAggregate aggregate)
+        public static TransactionExecutionEntity FromDomain(TransactionExecutionAggregate aggregate)
         {
-            return new OperationExecutionEntity
+            return new TransactionExecutionEntity
             {
-                ETag = string.IsNullOrEmpty(aggregate.Version) ? "*" : aggregate.Version,
-                PartitionKey = GetPartitionKey(aggregate.OperationId),
-                RowKey = GetRowKey(aggregate.OperationId),
+                ETag = aggregate.Version,
+                PartitionKey = GetPartitionKey(aggregate.TransactionId),
+                RowKey = GetRowKey(aggregate.TransactionId),
                 State = aggregate.State,
                 Result = aggregate.Result,
                 StartMoment = aggregate.StartMoment,
-                TransactionBuildingMoment = aggregate.TransactionBuildingMoment,
-                TransactionSigningMoment = aggregate.TransactionSigningMoment,
-                TransactionBroadcastingMoment = aggregate.TransactionBroadcastingMoment,
-                TransactionFinishMoment = aggregate.TransactionFinishMoment,
-                SourceAddressReleaseMoment = aggregate.SourceAddressReleaseMoment,
-                BroadcastedTransactionForgetMoment = aggregate.BroadcastedTransactionForgetMoment,
+                BuildingMoment = aggregate.BuildingMoment,
+                SigningMoment = aggregate.SigningMoment,
+                BroadcastingMoment = aggregate.BroadcastingMoment,
+                FinishMoment = aggregate.FinishMoment,
+                SourceAddressReleaseMoment = aggregate.SourceAddressReleasingMoment,
+                ClearedMoment = aggregate.ClearingMoment,
                 OperationId = aggregate.OperationId,
+                TransactionId = aggregate.TransactionId,
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
                 FromAddressContext = aggregate.FromAddressContext,
@@ -88,28 +90,29 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 Amount = aggregate.Amount,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
-                TransactionHash = aggregate.TransactionHash,
+                Hash = aggregate.Hash,
                 Fee = aggregate.Fee,
-                TransactionError = aggregate.TransactionError,
-                TransactionBlock = aggregate.TransactionBlock,
+                Error = aggregate.Error,
+                Block = aggregate.Block,
                 WasBroadcasted = aggregate.WasBroadcasted
             };
         }
 
-        public OperationExecutionAggregate ToDomain([CanBeNull] OperationExecutionBlobEntity blobData)
+        public TransactionExecutionAggregate ToDomain([CanBeNull] TransactionExecutionBlobEntity blobData)
         {
-            return OperationExecutionAggregate.Restore(
+            return TransactionExecutionAggregate.Restore(
                 ETag,
                 State,
                 Result,
                 StartMoment,
-                TransactionBuildingMoment,
-                TransactionSigningMoment,
-                TransactionBroadcastingMoment,
-                TransactionFinishMoment,
+                BuildingMoment,
+                SigningMoment,
+                BroadcastingMoment,
+                FinishMoment,
                 SourceAddressReleaseMoment,
-                BroadcastedTransactionForgetMoment,
+                ClearedMoment,
                 OperationId,
+                TransactionId,
                 BlockchainType,
                 FromAddress,
                 FromAddressContext,
@@ -120,10 +123,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 blobData?.TransactionContext,
                 BlockchainAssetId,
                 blobData?.SignedTransaction,
-                TransactionHash,
+                Hash,
                 Fee,
-                TransactionError,
-                TransactionBlock,
+                Error,
+                Block,
                 WasBroadcasted);
         }
 

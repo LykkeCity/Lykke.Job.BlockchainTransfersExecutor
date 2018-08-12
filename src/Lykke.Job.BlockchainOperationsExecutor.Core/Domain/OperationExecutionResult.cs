@@ -2,8 +2,8 @@
 {
     public enum OperationExecutionResult
     {
-        Unknown,
-        Success,
-        Failure
+        Completed,
+        UnknownError,
+        AmountIsTooSmall
     }
 }

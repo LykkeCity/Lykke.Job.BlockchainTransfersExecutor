@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
 {    
     /// <summary>
     /// Blockchain transaction broadcastring failed event
@@ -23,5 +23,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// </summary>
         [Key(1)]
         public TransactionBroadcastingErrorCode ErrorCode { get; set; }
+
+        /// <summary>
+        /// Transaction ID, which is failed
+        /// </summary>
+        [Key(2)]
+        public Guid TransactionId { get; set; }
     }
 }

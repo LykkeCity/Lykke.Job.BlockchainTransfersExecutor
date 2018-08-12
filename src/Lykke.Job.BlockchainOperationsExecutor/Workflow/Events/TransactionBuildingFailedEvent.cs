@@ -3,15 +3,15 @@ using JetBrains.Annotations;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
-{
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
+{    
     /// <summary>
-    /// Operation source address lock is released event
+    /// Blockchain transaction building failed event
     /// </summary>
     [PublicAPI]
     [MessagePackObject]
-    public class SourceAddressLockReleasedEvent
-    {
+    public class TransactionBuildingFailedEvent
+    {        
         /// <summary>
         /// Lykke unique operation ID
         /// </summary>
@@ -22,6 +22,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Error code
         /// </summary>
         [Key(1)]
-        public OperationExecutionErrorCode? OperationExecutionErrorCode { get; set; }
+        public TransactionBuildingErrorCode ErrorCode { get; set; }
     }
 }

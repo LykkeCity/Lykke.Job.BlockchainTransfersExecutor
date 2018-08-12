@@ -13,24 +13,24 @@ using Newtonsoft.Json;
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 {
     [UsedImplicitly]
-    public class OperationExecutionsRepository : IOperationExecutionsRepository
+    public class TransactionExecutionsRepository : ITransactionExecutionsRepository
     {
-        private readonly INoSQLTableStorage<OperationExecutionEntity> _storage;
+        private readonly INoSQLTableStorage<TransactionExecutionEntity> _storage;
         private readonly IBlobStorage _blob;
         private readonly JsonSerializer _jsonSerializer;
 
-        public static IOperationExecutionsRepository Create(IReloadingManager<string> connectionString, ILog log)
+        public static ITransactionExecutionsRepository Create(IReloadingManager<string> connectionString, ILog log)
         {
-            var storage = AzureTableStorage<OperationExecutionEntity>.Create(
+            var storage = AzureTableStorage<TransactionExecutionEntity>.Create(
                 connectionString,
-                "OperationExecutions",
+                "TransactionExecutions",
                 log);
             var blob = AzureBlobStorage.Create(connectionString);
 
-            return new OperationExecutionsRepository(storage, blob);
+            return new TransactionExecutionsRepository(storage, blob);
         }
 
-        private OperationExecutionsRepository(INoSQLTableStorage<OperationExecutionEntity> storage, IBlobStorage blob)
+        private TransactionExecutionsRepository(INoSQLTableStorage<TransactionExecutionEntity> storage, IBlobStorage blob)
         {
             _storage = storage;
             _blob = blob;
@@ -38,10 +38,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             _jsonSerializer = new JsonSerializer();
         }
 
-        public async Task<OperationExecutionAggregate> GetOrAddAsync(Guid operationId, Func<OperationExecutionAggregate> newAggregateFactory)
+        public async Task<TransactionExecutionAggregate> GetOrAddAsync(Guid operationId, Func<TransactionExecutionAggregate> newAggregateFactory)
         {
-            var partitionKey = OperationExecutionEntity.GetPartitionKey(operationId);
-            var rowKey = OperationExecutionEntity.GetRowKey(operationId);
+            var partitionKey = TransactionExecutionEntity.GetPartitionKey(operationId);
+            var rowKey = TransactionExecutionEntity.GetRowKey(operationId);
 
             var startedEntity = await _storage.GetOrInsertAsync(
                 partitionKey,
@@ -50,7 +50,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
                 {
                     var newAggregate = newAggregateFactory();
 
-                    return OperationExecutionEntity.FromDomain(newAggregate);
+                    return TransactionExecutionEntity.FromDomain(newAggregate);
                 });
 
             var blobEntity = await TryGetBlobEntityAsync(operationId, startedEntity.BlockchainType);
@@ -58,7 +58,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             return startedEntity.ToDomain(blobEntity);
         }
 
-        public async Task<OperationExecutionAggregate> GetAsync(Guid operationId)
+        public async Task<TransactionExecutionAggregate> GetAsync(Guid operationId)
         {
             var aggregate = await TryGetAsync(operationId);
 
@@ -70,10 +70,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             return aggregate;
         }
 
-        public async Task<OperationExecutionAggregate> TryGetAsync(Guid operationId)
+        public async Task<TransactionExecutionAggregate> TryGetAsync(Guid operationId)
         {
-            var partitionKey = OperationExecutionEntity.GetPartitionKey(operationId);
-            var rowKey = OperationExecutionEntity.GetRowKey(operationId);
+            var partitionKey = TransactionExecutionEntity.GetPartitionKey(operationId);
+            var rowKey = TransactionExecutionEntity.GetRowKey(operationId);
 
             var entity = await _storage.GetDataAsync(partitionKey, rowKey);
             
@@ -87,10 +87,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             return null;
         }
 
-        public Task SaveAsync(OperationExecutionAggregate aggregate)
+        public Task SaveAsync(TransactionExecutionAggregate aggregate)
         {
-            var entity = OperationExecutionEntity.FromDomain(aggregate);
-            var blobEntity = OperationExecutionBlobEntity.FromDomain(aggregate);
+            var entity = TransactionExecutionEntity.FromDomain(aggregate);
+            var blobEntity = TransactionExecutionBlobEntity.FromDomain(aggregate);
 
             return Task.WhenAll
             (
@@ -99,18 +99,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             );
         }
 
-        private async Task<OperationExecutionBlobEntity> TryGetBlobEntityAsync(
+        private async Task<TransactionExecutionBlobEntity> TryGetBlobEntityAsync(
             Guid operationId,
             string blockchainType)
         {
-            // TODO: Could be removed, when obsolete field TransactionBuiltEvent.BlockchainType will be removed
-            if (blockchainType == null)
-            {
-                return null;
-            }
-
-            var containerName = OperationExecutionBlobEntity.GetContainerName(blockchainType);
-            var blobName = OperationExecutionBlobEntity.GetBlobName(operationId);
+            var containerName = TransactionExecutionBlobEntity.GetContainerName(blockchainType);
+            var blobName = TransactionExecutionBlobEntity.GetBlobName(operationId);
 
             if (!await _blob.HasBlobAsync(containerName, blobName))
             {
@@ -123,17 +117,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             {
                 stream.Position = 0;
 
-                return _jsonSerializer.Deserialize<OperationExecutionBlobEntity>(jsonReader);
+                return _jsonSerializer.Deserialize<TransactionExecutionBlobEntity>(jsonReader);
             }
         }
 
         private async Task SaveBlobEntityAsync(
             Guid operationId, 
             string blockchainType, 
-            OperationExecutionBlobEntity blobEntity)
+            TransactionExecutionBlobEntity blobEntity)
         {
-            var containerName = OperationExecutionBlobEntity.GetContainerName(blockchainType);
-            var blobName = OperationExecutionBlobEntity.GetBlobName(operationId);
+            var containerName = TransactionExecutionBlobEntity.GetContainerName(blockchainType);
+            var blobName = TransactionExecutionBlobEntity.GetBlobName(operationId);
 
             using(var stream = new MemoryStream())
             using(var textWriter = new StreamWriter(stream))

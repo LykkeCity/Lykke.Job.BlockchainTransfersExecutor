@@ -19,15 +19,21 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public Guid OperationId { get; set; }
 
         /// <summary>
-        /// Error description
+        /// Transaction ID
         /// </summary>
         [Key(1)]
+        public Guid TransactionId { get; set; }
+
+        /// <summary>
+        /// Error description
+        /// </summary>
+        [Key(2)]
         public string Error { get; set; }
 
         /// <summary>
         /// Error code
         /// </summary>
-        [Key(2)]
+        [Key(3)]
         public OperationExecutionErrorCode ErrorCode { get; set; }
     }
 }

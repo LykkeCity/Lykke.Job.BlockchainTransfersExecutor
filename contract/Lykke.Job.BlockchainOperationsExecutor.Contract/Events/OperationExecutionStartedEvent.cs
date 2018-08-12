@@ -18,46 +18,52 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public Guid OperationId { get; set; }
 
         /// <summary>
-        /// Source address in the blockchain
+        /// Lykke unique transaction ID
         /// </summary>
         [Key(1)]
+        public Guid TransactionId { get; set; }
+
+        /// <summary>
+        /// Source address in the blockchain
+        /// </summary>
+        [Key(2)]
         public string FromAddress { get; set; }
 
         /// <summary>
         /// Destination address in the blockchain
         /// </summary>
-        [Key(2)]
+        [Key(3)]
         public string ToAddress { get; set; }
 
         /// <summary>
         /// Lykke asset ID (not the blockchain one)
         /// </summary>
-        [Key(3)]
+        [Key(4)]
         public string AssetId { get; set; }
 
         /// <summary>
         /// Amount of funds to transfer
         /// </summary>
-        [Key(4)]
+        [Key(5)]
         public decimal Amount { get; set; }
 
         /// <summary>
         /// Flag, which indicates, that the fee should be included
         /// in the specified amount
         /// </summary>
-        [Key(5)]
+        [Key(6)]
         public bool IncludeFee { get; set; }
 
         /// <summary>
         /// Blockchain type
         /// </summary>
-        [Key(6)]
+        [Key(7)]
         public string BlockchainType { get; set; }
 
         /// <summary>
         /// Blockchain asset ID
         /// </summary>
-        [Key(7)]
+        [Key(8)]
         public string BlockchainAssetId { get; set; }
     }
 }

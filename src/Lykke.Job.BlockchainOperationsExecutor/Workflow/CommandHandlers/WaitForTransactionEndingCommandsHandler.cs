@@ -6,6 +6,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Helpers;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 

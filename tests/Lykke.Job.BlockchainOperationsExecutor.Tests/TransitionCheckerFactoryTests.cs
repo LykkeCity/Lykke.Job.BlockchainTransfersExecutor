@@ -1,6 +1,7 @@
 ﻿using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Xunit;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Tests
@@ -12,10 +13,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, transitionResult.NextState);
         }
 
         [Fact]
@@ -23,10 +24,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsSigned, transitionResult.NextState);
         }
 
         [Fact]
@@ -34,10 +35,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionBroadcastedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionBroadcastedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsBroadcasted, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBroadcasted, transitionResult.NextState);
         }
 
         [Fact]
@@ -45,10 +46,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBroadcasted, new SourceAddressLockReleasedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsBroadcasted, new SourceAddressLockReleasedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, transitionResult.NextState);
         }
 
         [Fact]
@@ -56,10 +57,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new OperationExecutionCompletedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new OperationExecutionCompletedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsFinished, transitionResult.NextState);
         }
 
         [Fact]
@@ -67,10 +68,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new OperationExecutionFailedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new OperationExecutionFailedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsFinished, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsFinished, transitionResult.NextState);
         }
 
         [Fact]
@@ -78,10 +79,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult = stateMachine.CheckTransition(OperationExecutionState.TransactionIsFinished, new BroadcastedTransactionForgottenEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsFinished, new TransactionClearedEvent());
 
             Assert.True(transitionResult.IsValid);
-            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, transitionResult.NextState);
+            Assert.Equal(TransactionExecutionState.BroadcastedTransactionIsForgotten, transitionResult.NextState);
         }
 
         [Fact]
@@ -89,15 +90,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, transitionResult1.NextState);
 
-            var transitionResult2 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
+            var transitionResult2 = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
 
             Assert.True(transitionResult2.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsSigned, transitionResult2.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsSigned, transitionResult2.NextState);
         }
 
         [Fact]
@@ -105,10 +106,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.BroadcastedTransactionIsForgotten, new TransactionBuiltEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.BroadcastedTransactionIsForgotten, new TransactionBuiltEvent());
 
             Assert.False(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.BroadcastedTransactionIsForgotten, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.BroadcastedTransactionIsForgotten, transitionResult1.NextState);
         }
 
         [Fact]
@@ -116,10 +117,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var checkTransition1 = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuildingFailedEvent());
+            var checkTransition1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuildingFailedEvent());
 
             Assert.True(checkTransition1.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionBuildingFailed, checkTransition1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionBuildingFailed, checkTransition1.NextState);
         }
 
         [Fact]
@@ -127,10 +128,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var checkTransition1 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionBroadcastingFailedEvent());
+            var checkTransition1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionBroadcastingFailedEvent());
 
             Assert.True(checkTransition1.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionBroadcastingFailed, checkTransition1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionBroadcastingFailed, checkTransition1.NextState);
         }
 
         [Fact]
@@ -138,10 +139,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionBuildingFailed, new SourceAddressLockReleasedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionBuildingFailed, new SourceAddressLockReleasedEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, transitionResult1.NextState);
         }
 
         [Fact]
@@ -149,10 +150,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionBroadcastingFailed, new SourceAddressLockReleasedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionBroadcastingFailed, new SourceAddressLockReleasedEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, transitionResult1.NextState);
         }
 
 
@@ -161,10 +162,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.Started, new TransactionBuiltEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionIsBuilt, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, transitionResult1.NextState);
         }
 
         [Fact]
@@ -172,10 +173,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionIsSigned, new TransactionReBuildingIsRequestedOnBroadcastingEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionReBuildingIsRequestedOnBroadcastingEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting, transitionResult1.NextState);
         }
 
         [Fact]
@@ -183,10 +184,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.TransactionRebuildingRequestedOnBroadcasting, new TransactionReBuildingIsRequestedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting, new TransactionReBuildingIsRequestedEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.Started, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.Started, transitionResult1.NextState);
         }
 
 
@@ -196,10 +197,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.SourceAddresIsReleased, new TransactionReBuildingIsRequestedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new TransactionReBuildingIsRequestedEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.Started, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.Started, transitionResult1.NextState);
         }
 
         [Fact]
@@ -207,10 +208,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         {
             var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
 
-            var transitionResult1 = stateMachine.CheckTransition(OperationExecutionState.Started, new SourceAddressLockReleasedEvent());
+            var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
 
             Assert.True(transitionResult1.IsValid);
-            Assert.Equal(OperationExecutionState.SourceAddresIsReleased, transitionResult1.NextState);
+            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, transitionResult1.NextState);
         }
     }
 }

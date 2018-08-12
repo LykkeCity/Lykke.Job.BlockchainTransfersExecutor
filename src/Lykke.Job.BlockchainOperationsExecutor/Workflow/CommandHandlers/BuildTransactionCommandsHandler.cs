@@ -4,11 +4,10 @@ using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Errors;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.BlockchainApi.Client;
 using Lykke.Service.BlockchainApi.Contract;
@@ -49,9 +48,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
-            // TODO: Should be remoed with next release
-            // blockchainType and assetId should be obtained from the command
-
             var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
 
             if (asset == null)
@@ -72,7 +68,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             var isSourceAdressCaptured = await _sourceAddresLocksRepoistory.TryGetLockAsync(
                 asset.BlockchainIntegrationLayerId,
                 command.FromAddress,
-                command.OperationId);
+                command.TransactionId);
 
             if (!isSourceAdressCaptured)
             {
@@ -86,7 +82,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             try
             {
                 var buildingResult = await apiClient.BuildSingleTransactionAsync(
-                    command.OperationId,
+                    command.TransactionId,
                     command.FromAddress,
                     wallet.AddressContext,
                     command.ToAddress,
@@ -99,8 +95,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
                 publisher.PublishEvent(new TransactionBuiltEvent
                 {
                     OperationId = command.OperationId,
-                    BlockchainType = asset.BlockchainIntegrationLayerId,
-                    BlockchainAssetId = blockchainAsset.AssetId,
                     TransactionContext = buildingResult.TransactionContext,
                     FromAddressContext = wallet.AddressContext
                 });

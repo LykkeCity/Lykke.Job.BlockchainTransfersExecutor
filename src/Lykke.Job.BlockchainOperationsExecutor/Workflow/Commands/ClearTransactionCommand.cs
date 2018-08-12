@@ -4,7 +4,7 @@ using MessagePack;
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
 {
     [MessagePackObject]
-    public class ForgetBroadcastedTransactionCommand
+    public class ClearTransactionCommand
     {
         [Key(0)]
         public string BlockchainType { get; set; }

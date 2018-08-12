@@ -4,7 +4,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 {
-    internal class OperationExecutionBlobEntity
+    internal class TransactionExecutionBlobEntity
     {
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string TransactionContext { get; set; }
@@ -14,7 +14,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 
         public static string GetContainerName(string blockchainType)
         {
-            return $"operation-executions-{blockchainType.ToLower()}";
+            return $"transaction-executions-{blockchainType.ToLower()}";
         }
 
         public static string GetBlobName(Guid operationId)
@@ -22,11 +22,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
             return operationId.ToString();
         }
 
-        public static OperationExecutionBlobEntity FromDomain(OperationExecutionAggregate aggregate)
+        public static TransactionExecutionBlobEntity FromDomain(TransactionExecutionAggregate aggregate)
         {
-            return new OperationExecutionBlobEntity
+            return new TransactionExecutionBlobEntity
             {
-                TransactionContext = aggregate.TransactionContext,
+                TransactionContext = aggregate.Context,
                 SignedTransaction = aggregate.SignedTransaction
             };
         }

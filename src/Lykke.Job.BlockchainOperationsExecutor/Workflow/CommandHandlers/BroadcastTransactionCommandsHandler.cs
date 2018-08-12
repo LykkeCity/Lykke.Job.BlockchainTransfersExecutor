@@ -7,6 +7,7 @@ using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Service.BlockchainApi.Client.Models;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
@@ -35,7 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
-            var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.OperationId, command.SignedTransaction);
+            var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.TransactionId, command.SignedTransaction);
 
             switch (broadcastingResult)
             {
@@ -60,7 +61,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
                     publisher.PublishEvent(new TransactionBroadcastingFailedEvent
                     {
-                        OperationId = command.OperationId
+                        OperationId = command.OperationId,
+                        TransactionId = command.TransactionId
                     });
 
                     return CommandHandlingResult.Ok();
@@ -83,7 +85,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
                     publisher.PublishEvent(new TransactionReBuildingIsRequestedOnBroadcastingEvent
                     {
-                        OperationId = command.OperationId
+                        OperationId = command.OperationId,
+                        TransactionId = command.TransactionId
                     });
 
                     return CommandHandlingResult.Ok();
@@ -99,7 +102,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
             
             publisher.PublishEvent(new TransactionBroadcastedEvent
             {
-                OperationId = command.OperationId
+                OperationId = command.OperationId,
+                TransactionId = command.TransactionId
             });
 
             return CommandHandlingResult.Ok();

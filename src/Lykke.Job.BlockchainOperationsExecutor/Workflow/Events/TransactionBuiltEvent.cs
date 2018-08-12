@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
 {
     /// <summary>
     /// Blockchain transaction is built event
@@ -24,23 +24,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public string TransactionContext { get; set; }
 
         /// <summary>
-        /// Blockchain asset ID
-        /// </summary>
-        [Key(2)]
-        [Obsolete("Will be removed with next release")]
-        public string BlockchainAssetId { get; set; }
-
-        /// <summary>
-        /// Blockchain type
-        /// </summary>
-        [Key(3)]
-        [Obsolete("Will be removed with next release")]
-        public string BlockchainType { get; set; }
-
-        /// <summary>
         /// Source address context
         /// </summary>
-        [Key(4)]
+        [Key(2)]
         public string FromAddressContext { get; set; }
     }
 }

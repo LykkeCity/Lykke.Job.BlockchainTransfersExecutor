@@ -18,15 +18,21 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public Guid OperationId { get; set; }
 
         /// <summary>
-        /// Hash of the blockchain transaction
+        /// Transaction ID
         /// </summary>
         [Key(1)]
+        public Guid TransactionId { get; set; }
+
+        /// <summary>
+        /// Hash of the blockchain transaction
+        /// </summary>
+        [Key(2)]
         public string TransactionHash { get; set; }
 
         /// <summary>
         /// Actual fee of the operation
         /// </summary>
-        [Key(2)]
+        [Key(3)]
         public decimal Fee { get; set; }
 
         /// <summary>
@@ -34,13 +40,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Single transaction can include multiple operations,
         /// so this value can include multiple operations amount
         /// </summary>
-        [Key(3)]
+        [Key(4)]
         public decimal TransactionAmount { get; set; }
 
         /// <summary>
         /// Number of the block, transaction was included to
         /// </summary>
-        [Key(4)]
+        [Key(5)]
         public long Block { get; set; }
     }
 }

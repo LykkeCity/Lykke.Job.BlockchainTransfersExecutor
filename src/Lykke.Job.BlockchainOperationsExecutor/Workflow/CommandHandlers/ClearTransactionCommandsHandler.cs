@@ -2,19 +2,19 @@
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 {
     [UsedImplicitly]
-    public class ForgetBroadcastedTransactionCommandsHandler
+    public class ClearTransactionCommandsHandler
     {
         private readonly IChaosKitty _chaosKitty;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
 
-        public ForgetBroadcastedTransactionCommandsHandler(
+        public ClearTransactionCommandsHandler(
             IChaosKitty chaosKitty,
             IBlockchainApiClientProvider apiClientProvider)
         {
@@ -23,7 +23,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
         }
 
         [UsedImplicitly]
-        public async Task<CommandHandlingResult> Handle(ForgetBroadcastedTransactionCommand command, IEventPublisher publisher)
+        public async Task<CommandHandlingResult> Handle(ClearTransactionCommand command, IEventPublisher publisher)
         {
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
 
@@ -31,7 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers
 
             _chaosKitty.Meow(command.OperationId);
 
-            publisher.PublishEvent(new BroadcastedTransactionForgottenEvent
+            publisher.PublishEvent(new TransactionClearedEvent
             {
                 OperationId = command.OperationId
             });

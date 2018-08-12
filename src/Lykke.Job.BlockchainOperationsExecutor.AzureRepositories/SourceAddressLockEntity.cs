@@ -6,7 +6,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories
 {
     public class SourceAddressLockEntity : AzureTableEntity
     {
-        public Guid OwnerOperationId { get; set; }
+        public Guid OwnerTransactionId { get; set; }
 
         public static string GetPartitionKey(string blockchainType, string address)
         {

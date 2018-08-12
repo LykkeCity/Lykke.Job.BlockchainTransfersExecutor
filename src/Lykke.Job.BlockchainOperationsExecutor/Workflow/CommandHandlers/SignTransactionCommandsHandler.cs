@@ -5,6 +5,7 @@ using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Service.BlockchainSignFacade.Client;
 using Lykke.Service.BlockchainSignFacade.Contract.Models;
 

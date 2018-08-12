@@ -22,8 +22,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.Register(c => OperationExecutionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
-                .As<IOperationExecutionsRepository>();
+            builder.Register(c => TransactionExecutionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
+                .As<ITransactionExecutionsRepository>();
 
             builder.Register(c => SourceAddressLocksRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
                 .As<ISourceAddresLocksRepoistory>();

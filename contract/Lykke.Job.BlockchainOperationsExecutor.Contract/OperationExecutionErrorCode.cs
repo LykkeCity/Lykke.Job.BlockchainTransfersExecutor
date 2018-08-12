@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Errors
+﻿namespace Lykke.Job.BlockchainOperationsExecutor.Contract
 {
     /// <summary>
     /// Provides information about reason of operation failure
