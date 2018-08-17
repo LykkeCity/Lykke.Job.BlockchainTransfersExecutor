@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
-using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
@@ -18,24 +18,24 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
         private readonly IChaosKitty _chaosKitty;
         private readonly ITransactionExecutionsRepository _repository;
-        private readonly ITransitionChecker<TransactionExecutionState> _transitionChecker;
+        private readonly IStateSwitcher<TransactionExecutionAggregate> _stateSwitcher;
 
         public TransactionExecutionSaga(
             IChaosKitty chaosKitty,
-            ITransactionExecutionsRepository repository,
-            ITransitionChecker<TransactionExecutionState> transitionChecker)
+            ITransactionExecutionsRepository repository, 
+            IStateSwitcher<TransactionExecutionAggregate> stateSwitcher)
         {
             _chaosKitty = chaosKitty;
             _repository = repository;
-            _transitionChecker = transitionChecker;
+            _stateSwitcher = stateSwitcher;
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationExecutionStartedEvent evt, ICommandSender sender)
+        private async Task Handle(TransactionExecutionStartedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetOrAddAsync(
-                evt.OperationId,
-                () => TransactionExecutionAggregate.CreateNew(
+                evt.TransactionId,
+                () => TransactionExecutionAggregate.Start(
                     evt.OperationId,
                     evt.TransactionId,
                     evt.FromAddress,
@@ -46,112 +46,72 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.Amount,
                     evt.IncludeFee));
 
-            _chaosKitty.Meow(evt.OperationId);
+            _chaosKitty.Meow(evt.TransactionId);
 
-            if (aggregate.State == TransactionExecutionState.IsStarted)
+            if (aggregate.State == TransactionExecutionState.Started)
             {
-                sender.SendCommand(new BuildTransactionCommand
+                sender.SendCommand
+                (
+                    new LockSourceAddressCommand
                     {
-                        TransactionId = aggregate.OperationId,
+                        TransactionId = aggregate.TransactionId,
+                        BlockchainType = aggregate.BlockchainType,
+                        FromAddress = aggregate.FromAddress
+                    },
+                    Self
+                );
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(SourceAddressLockedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
+            
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                sender.SendCommand
+                (
+                    new BuildTransactionCommand
+                    {
+                        OperationId = aggregate.OperationId,
+                        TransactionId = aggregate.TransactionId,
+                        BlockchainType = aggregate.BlockchainType,
+                        BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,
-                        AssetId = aggregate.AssetId,
                         Amount = aggregate.Amount,
-                        IncludeFee = aggregate.IncludeFee,
+                        IncludeFee = aggregate.IncludeFee
                     },
-                    Self);
+                    Self
+                );
+
+                _chaosKitty.Meow(evt.TransactionId);
+
+                await _repository.SaveAsync(aggregate);
             }
         }
 
         [UsedImplicitly]
         private async Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
             
-            if (HandleEventTransition(aggregate, evt) 
-                && aggregate.OnBuilt(evt.FromAddressContext, evt.TransactionContext))
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new SignTransactionCommand
+                sender.SendCommand
+                (
+                    new SignTransactionCommand
                     {
+                        TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId,
                         SignerAddress = aggregate.FromAddress,
                         TransactionContext = aggregate.Context
                     },
-                    Self);
+                    Self
+                );
 
-                _chaosKitty.Meow(evt.OperationId);
-
-                await _repository.SaveAsync(aggregate);
-            }
-        }
-
-        [UsedImplicitly]
-        private async Task Handle(TransactionBuildingRejectedEvent evt, ICommandSender sender)
-        {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (aggregate.OnBuildingRejected())
-            {
-                sender.SendCommand(new ReleaseSourceAddressLockCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress,
-                        BuildingRepeatsIsRequested = false
-                    },
-                    Self);
-
-                _chaosKitty.Meow(evt.OperationId);
-
-                await _repository.SaveAsync(aggregate);
-            }
-        }
-
-        [UsedImplicitly]
-        private async Task Handle(TransactionReBuildingIsRequestedEvent evt, ICommandSender sender)
-        {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionRebuildingRequested())
-            {
-                sender.SendCommand(new BuildTransactionCommand
-                    {
-                        OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress,
-                        ToAddress = aggregate.ToAddress,
-                        AssetId = aggregate.AssetId,
-                        Amount = aggregate.Amount,
-                        IncludeFee = aggregate.IncludeFee
-                    },
-                    Self);
-
-                _chaosKitty.Meow(evt.OperationId);
-
-                await _repository.SaveAsync(aggregate);
-            }
-        }
-
-        [UsedImplicitly]
-        private async Task Handle(TransactionBuildingFailedEvent evt, ICommandSender sender)
-        {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionBuildingFailed())
-            {
-                sender.SendCommand(new ReleaseSourceAddressLockCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress,
-                        BuildingRepeatsIsRequested = false,
-                        OperationExecutionErrorCode = evt.ErrorCode.MapToOperationExecutionErrorCode()
-                    },
-                    Self);
-
-                _chaosKitty.Meow(evt.OperationId);
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
@@ -160,20 +120,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionSignedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnSigned(evt.SignedTransaction))
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new BroadcastTransactionCommand
+                sender.SendCommand
+                (
+                    new BroadcastTransactionCommand
                     {
-                        BlockchainType = aggregate.BlockchainType,
                         OperationId = aggregate.OperationId,
+                        TransactionId = aggregate.TransactionId,
+                        BlockchainType = aggregate.BlockchainType,
                         SignedTransaction = aggregate.SignedTransaction
                     },
-                    Self);
+                    Self
+                );
 
-                _chaosKitty.Meow(evt.OperationId);
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
@@ -182,68 +145,22 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionBroadcastedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnBroadcasted())
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new ReleaseSourceAddressLockCommand
+                sender.SendCommand
+                (
+                    new ReleaseSourceAddressLockCommand
                     {
+                        TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType,
-                        FromAddress = aggregate.FromAddress,
-                        OperationId = aggregate.OperationId,
-                        BuildingRepeatsIsRequested = false
+                        FromAddress = aggregate.FromAddress
                     },
-                    Self);
+                    Self
+                );
 
-                _chaosKitty.Meow(evt.OperationId);
-
-                await _repository.SaveAsync(aggregate);
-            }
-        }
-
-        [UsedImplicitly]
-        private async Task Handle(TransactionBroadcastingFailedEvent evt, ICommandSender sender)
-        {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionBroadcastingFailed())
-            {
-                sender.SendCommand(new ReleaseSourceAddressLockCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress,
-                        BuildingRepeatsIsRequested = false,
-                        OperationExecutionErrorCode = evt.ErrorCode.MapToOperationExecutionErrorCode()
-                    },
-                    Self);
-
-                _chaosKitty.Meow(evt.OperationId);
-
-                await _repository.SaveAsync(aggregate);
-            }
-        }
-
-        [UsedImplicitly]
-        private async Task Handle(TransactionReBuildingIsRequestedOnBroadcastingEvent evt, ICommandSender sender)
-        {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
-
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnTransactionReBuildingIsRequestedOnBroadcasting())
-            {
-                sender.SendCommand(new ReleaseSourceAddressLockCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId,
-                        FromAddress = aggregate.FromAddress,
-                        BuildingRepeatsIsRequested = true
-                    },
-                    Self);
-
-                _chaosKitty.Meow(evt.OperationId);
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
@@ -252,90 +169,190 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(SourceAddressLockReleasedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnSourceAddressLockReleased())
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new WaitForTransactionEndingCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        BlockchainAssetId = aggregate.BlockchainAssetId,
-                        OperationId = aggregate.OperationId,
-                        ErrorCode = evt.OperationExecutionErrorCode
-                    },
-                    Self);
+                switch (aggregate.State)
+                {
+                    case TransactionExecutionState.WaitingForEnding:
+                        sender.SendCommand
+                        (
+                            new WaitForTransactionEndingCommand
+                            {
+                                OperationId = aggregate.OperationId,
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType,
+                                BlockchainAssetId = aggregate.BlockchainAssetId
+                            },
+                            Self
+                        );
+                        break;
 
-                _chaosKitty.Meow(evt.OperationId);
+                    case TransactionExecutionState.SourceAddressReleased:
+                        sender.SendCommand
+                        (
+                            new ClearBroadcastedTransactionCommand
+                            {
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType
+                            },
+                            Self
+                        );
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected aggregate state [{aggregate.State}]");
+                }
+                
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
+        private async Task Handle(TransactionExecutionCompletedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnCompleted(evt.TransactionHash, evt.Block, evt.Fee))
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new ClearTransactionCommand
+                sender.SendCommand
+                (
+                    new ClearBroadcastedTransactionCommand
                     {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId
+                        TransactionId = aggregate.TransactionId,
+                        BlockchainType = aggregate.BlockchainType
                     },
-                    Self);
+                    Self
+                );
 
-                _chaosKitty.Meow(evt.OperationId);
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
         }
 
         [UsedImplicitly]
-        private async Task Handle(OperationExecutionFailedEvent evt, ICommandSender sender)
+        private async Task Handle(BroadcastedTransactionClearedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnFailed(evt.Error))
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
-                sender.SendCommand(new ClearTransactionCommand
-                    {
-                        BlockchainType = aggregate.BlockchainType,
-                        OperationId = aggregate.OperationId
-                    },
-                    Self);
+                await _repository.SaveAsync(aggregate);
+            }
+        }
 
-                _chaosKitty.Meow(evt.OperationId);
+        [UsedImplicitly]
+        private async Task Handle(TransactionBuildingRejectedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
+
+            // This event could be triggered only if process was splitted on several threads and one thread is stuck in Build step while
+            // another go futher and passed Broadcast step. Since stuck thread has blocked source addres due to Build step retry,
+            // we need to unconditionally release source address.
+
+            sender.SendCommand
+            (
+                new ReleaseSourceAddressLockCommand
+                {
+                    TransactionId = aggregate.TransactionId,
+                    BlockchainType = aggregate.BlockchainType,
+                    FromAddress = aggregate.FromAddress,
+                },
+                Self
+            );
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(TransactionExecutionFailedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
+
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                switch (aggregate.State)
+                {
+                    case TransactionExecutionState.BuildingFailed:
+                    case TransactionExecutionState.BroadcastingFailed:
+                        sender.SendCommand
+                        (
+                            new ReleaseSourceAddressLockCommand
+                            {
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType,
+                                FromAddress = aggregate.FromAddress
+                            },
+                            Self
+                        );
+                        break;
+
+                    case TransactionExecutionState.WaitingForEndingFailed:
+                        sender.SendCommand
+                        (
+                            new ClearBroadcastedTransactionCommand
+                            {
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType
+                            },
+                            Self
+                        );
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected aggregate state [{aggregate.State}]");
+                }
+                
+                _chaosKitty.Meow(evt.TransactionId);
 
                 await _repository.SaveAsync(aggregate);
             }
         }
 
         [UsedImplicitly]
-        private async Task Handle(TransactionClearedEvent evt, ICommandSender sender)
+        private async Task Handle(TransactionExecutionRepeatRequestedEvent evt, ICommandSender sender)
         {
-            var aggregate = await _repository.GetAsync(evt.OperationId);
+            var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            if (HandleEventTransition(aggregate, evt)
-                && aggregate.OnCleared())
+            if (_stateSwitcher.Switch(aggregate, evt))
             {
+                switch (aggregate.State)
+                {
+                    case TransactionExecutionState.BroadcastingFailed:
+                        sender.SendCommand
+                        (
+                            new ReleaseSourceAddressLockCommand
+                            {
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType,
+                                FromAddress = aggregate.FromAddress
+                            },
+                            Self
+                        );
+                        break;
+
+                    case TransactionExecutionState.WaitingForEndingFailed:
+                        sender.SendCommand
+                        (
+                            new ClearBroadcastedTransactionCommand
+                            {
+                                TransactionId = aggregate.TransactionId,
+                                BlockchainType = aggregate.BlockchainType
+                            },
+                            Self
+                        );
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected aggregate state [{aggregate.State}]");
+                }
+                
+                _chaosKitty.Meow(evt.TransactionId);
+
                 await _repository.SaveAsync(aggregate);
             }
-        }
-
-        private bool HandleEventTransition(TransactionExecutionAggregate aggregate, object @event)
-        {
-            var checkTranstionResult = _transitionChecker.CheckTransition(aggregate.State, @event);
-
-            if (checkTranstionResult.IsValid)
-            {
-                aggregate.State = checkTranstionResult.NextState;
-            }
-
-            return checkTranstionResult.IsValid;
         }
     }
 }

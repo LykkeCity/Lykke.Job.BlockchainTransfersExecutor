@@ -1,8 +1,7 @@
-﻿using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
-using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
-using System;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+﻿using System;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Xunit;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Tests
@@ -12,112 +11,112 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Proceed_Valid_Transaction()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
 
             register
                 .From(TransactionExecutionState.Started)
                 .On<TransactionBuiltEvent>()
-                .SwitchTo(TransactionExecutionState.TransactionIsBuilt)
+                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
                 
                 .From(TransactionExecutionState.IsSourceAddressReleased)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(TransactionExecutionState.BroadcastedTransactionIsForgotten);
+                .HandleTransition(TransactionExecutionState.BroadcastedTransactionIsForgotten);
 
             register.In(TransactionExecutionState.Started)
                 .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<TransactionClearedEvent>();
+                .Ignore<BroadcastedTransactionClearedEvent>();
 
             var core = register.Build();
 
-            var checkResult1 = core.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
+            var checkResult1 = core.Switch(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(checkResult1.IsValid);
-            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.HandleTransition);
         }
 
         [Fact]
         public void Can_Proceed_Valid_Transaction_Multiple_Register()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
 
             register.From(TransactionExecutionState.Started, outputs =>
             {
                 outputs.On<TransactionBuiltEvent>()
-                    .SwitchTo(TransactionExecutionState.TransactionIsBuilt);
+                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
 
                 outputs.On<SourceAddressLockReleasedEvent>()
-                    .SwitchTo(TransactionExecutionState.IsSourceAddressReleased);
+                    .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
             });
 
             var core = register.Build();
 
-            var checkResult1 = core.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
+            var checkResult1 = core.Switch(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
             Assert.True(checkResult1.IsValid);
-            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.NextState);
+            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.HandleTransition);
 
 
-            var checkResult2 = core.CheckTransition(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
+            var checkResult2 = core.Switch(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
 
             Assert.True(checkResult2.IsValid);
-            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, checkResult2.NextState);
+            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, checkResult2.HandleTransition);
         }
 
         [Fact]
         public void Throws_Exception_On_Unregistered_Event()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
 
             register
                 .From(TransactionExecutionState.Started)
                 .On<TransactionBuiltEvent>()
-                .SwitchTo(TransactionExecutionState.TransactionIsBuilt)
+                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
 
                 .From(TransactionExecutionState.IsSourceAddressReleased)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(TransactionExecutionState.IsSourceAddressReleased);
+                .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
 
             register.In(TransactionExecutionState.Started)
                 .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<TransactionClearedEvent>();
+                .Ignore<BroadcastedTransactionClearedEvent>();
 
             var core = register.Build();
 
 
             Assert.Throws<ArgumentException>(() =>
             {
-                core.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new TransactionBuiltEvent());
+                core.Switch(TransactionExecutionState.IsSourceAddressReleased, new TransactionBuiltEvent());
             });
         }
 
         [Fact]
         public void Can_Ignore_Commands()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
 
             register
                 .From(TransactionExecutionState.Started)
                 .On<TransactionBuiltEvent>()
-                .SwitchTo(TransactionExecutionState.TransactionIsBuilt)
+                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
 
                 .From(TransactionExecutionState.IsSourceAddressReleased)
                 .On<SourceAddressLockReleasedEvent>()
-                .SwitchTo(TransactionExecutionState.IsSourceAddressReleased);
+                .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
 
 
             register.In(TransactionExecutionState.Started)
                 .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<TransactionClearedEvent>();
+                .Ignore<BroadcastedTransactionClearedEvent>();
 
 
             var core = register.Build();
 
-            var checkResult1 = core.CheckTransition(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
+            var checkResult1 = core.Switch(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
 
             Assert.False(checkResult1.IsValid);
 
 
-            var checkResult2 = core.CheckTransition(TransactionExecutionState.Started, new TransactionClearedEvent());
+            var checkResult2 = core.Switch(TransactionExecutionState.Started, new BroadcastedTransactionClearedEvent());
             
             Assert.False(checkResult2.IsValid);
         }
@@ -125,30 +124,30 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Thows_Exception_On_Transition_Duplication()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
             
             Assert.Throws<ArgumentException>(() =>
             {
                 register
                     .From(TransactionExecutionState.Started)
                     .On<TransactionBuiltEvent>()
-                    .SwitchTo(TransactionExecutionState.TransactionIsBuilt)
+                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
 
                     .From(TransactionExecutionState.Started)
                     .On<TransactionBuiltEvent>()
-                    .SwitchTo(TransactionExecutionState.TransactionIsBuilt);
+                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
             });
         }
 
         [Fact]
         public void Thows_Exception_On_Transition_Configuration_Conflict()
         {
-            var register = TransitionRegisterFacade.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
 
             register
                 .From(TransactionExecutionState.Started)
                 .On<TransactionBuiltEvent>()
-                .SwitchTo(TransactionExecutionState.TransactionIsBuilt);
+                .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
 
             Assert.Throws<ArgumentException>(() =>
             {

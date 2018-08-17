@@ -18,12 +18,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public Guid OperationId { get; set; }
 
         /// <summary>
-        /// Lykke unique transaction ID
-        /// </summary>
-        [Key(1)]
-        public Guid TransactionId { get; set; }
-
-        /// <summary>
         /// Source address in the blockchain
         /// </summary>
         [Key(2)]

@@ -1,7 +1,7 @@
 ﻿using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
-using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Xunit;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Tests
@@ -11,7 +11,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_TransactionBuiltEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
@@ -22,7 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_TransactionSignedEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsBuilt, new TransactionSignedEvent());
 
@@ -33,7 +33,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_TransactionBroadcastedEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionBroadcastedEvent());
 
@@ -44,7 +44,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_SourceAddressLockReleasedEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsBroadcasted, new SourceAddressLockReleasedEvent());
 
@@ -55,7 +55,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_OperationExecutionCompletedEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new OperationExecutionCompletedEvent());
 
@@ -66,7 +66,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_OperationExecutionFailedEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new OperationExecutionFailedEvent());
 
@@ -77,9 +77,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_BroadcastedTransactionForgottenEvent_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
-            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsFinished, new TransactionClearedEvent());
+            var transitionResult = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsFinished, new BroadcastedTransactionClearedEvent());
 
             Assert.True(transitionResult.IsValid);
             Assert.Equal(TransactionExecutionState.BroadcastedTransactionIsForgotten, transitionResult.NextState);
@@ -88,7 +88,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_Multiple_Evt()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
@@ -104,7 +104,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Ignore_Previous_Event()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.BroadcastedTransactionIsForgotten, new TransactionBuiltEvent());
 
@@ -115,7 +115,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_Transaction_Building_Fail()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var checkTransition1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuildingFailedEvent());
 
@@ -126,7 +126,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Handle_Transaction_Broadcasting_Fail()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var checkTransition1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionBroadcastingFailedEvent());
 
@@ -137,7 +137,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Release_Source_Address_On_Building_Fail()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionBuildingFailed, new SourceAddressLockReleasedEvent());
 
@@ -148,7 +148,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Release_Source_Address_On_Broadcasting_Fail()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionBroadcastingFailed, new SourceAddressLockReleasedEvent());
 
@@ -160,7 +160,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Restart_Transaction_Building()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new TransactionBuiltEvent());
 
@@ -171,7 +171,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Release_Source_Address_Lock_On_Rebuild_Request_On_Broadcast()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.TransactionIsSigned, new TransactionReBuildingIsRequestedOnBroadcastingEvent());
 
@@ -182,7 +182,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Restat_Rebuild_On_Broadcast_Request_Rebuilding()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.BuildingRepeatIsRequestedOnBroadcasting, new TransactionReBuildingIsRequestedEvent());
 
@@ -195,7 +195,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Restart_Transaction_Building_After_Success_Broadcast()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.IsSourceAddressReleased, new TransactionReBuildingIsRequestedEvent());
 
@@ -206,7 +206,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Release_Address_Lock_After_Build_Conflict()
         {
-            var stateMachine = TransitionCheckerFactory.BuildTransitionsForService();
+            var stateMachine = TransitionExecutionStateSwitcherBuilder.Build();
 
             var transitionResult1 = stateMachine.CheckTransition(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
 

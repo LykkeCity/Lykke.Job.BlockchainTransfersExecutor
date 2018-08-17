@@ -6,14 +6,15 @@ using Lykke.Cqrs.Configuration;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
-using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions;
-using Lykke.Job.BlockchainOperationsExecutor.Services.Transitions.Interfaces;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
+using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.OperationExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
@@ -66,20 +67,31 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     _settings.NotEnoughBalanceRetryDelay))
                 .AsSelf();
 
-            builder.RegisterInstance(TransitionCheckerFactory.BuildTransitionsForService())
-                .As<ITransitionChecker<TransactionExecutionState>>();
+            builder.RegisterInstance(TransitionExecutionStateSwitcherBuilder.Build())
+                .As<IStateSwitcher<TransactionExecutionAggregate>>();
+
+            builder.RegisterInstance(OperationExecutionStateSwitcherBuilder.Build())
+                .As<IStateSwitcher<OperationExecutionAggregate>>();
 
             // Sagas
             builder.RegisterType<TransactionExecutionSaga>();
+            builder.RegisterType<OperationExecutionSaga>();
 
             // Command handlers
+            // Operation execution
             builder.RegisterType<StartOperationExecutionCommandsHandler>();
+            builder.RegisterType<ClearActiveTransactionCommandsHandler>();
+            builder.RegisterType<NotifyOperationExecutionCompletedCommandsHandler>();
+            builder.RegisterType<NotifyOperationExecutionFailedCommandsHandler>();
+
+            // Transaction execution
+            builder.RegisterType<StartTransactionExecutionCommandHandler>();
             builder.RegisterType<BuildTransactionCommandsHandler>();
             builder.RegisterType<SignTransactionCommandsHandler>();
             builder.RegisterType<BroadcastTransactionCommandsHandler>();
-            builder.RegisterType<WaitForTransactionEndingCommandsHandler>();
             builder.RegisterType<ReleaseSourceAddressLockCommandsHandler>();
-            builder.RegisterType<ClearTransactionCommandsHandler>();
+            builder.RegisterType<WaitForTransactionEndingCommandsHandler>();
+            builder.RegisterType<ClearBroadcastedTransactionCommandsHandler>();
 
             builder.Register(ctx => CreateEngine(ctx, messagingEngine))
                 .As<ICqrsEngine>()
@@ -154,10 +166,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(TransactionReBuildingIsRequestedEvent))
                     .With(defaultPipeline)
                     
-                    .ListeningCommands(typeof(ClearTransactionCommand))
+                    .ListeningCommands(typeof(ClearBroadcastedTransactionCommand))
                     .On(defaultRoute)
-                    .WithCommandsHandler<ClearTransactionCommandsHandler>()
-                    .PublishingEvents(typeof(TransactionClearedEvent))
+                    .WithCommandsHandler<ClearBroadcastedTransactionCommandsHandler>()
+                    .PublishingEvents(typeof(BroadcastedTransactionClearedEvent))
                     .With(defaultPipeline)
 
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
@@ -209,11 +221,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(OperationExecutionFailedEvent))
                     .From(Self)
                     .On(defaultRoute)
-                    .PublishingCommands(typeof(ClearTransactionCommand))
+                    .PublishingCommands(typeof(ClearBroadcastedTransactionCommand))
                     .To(Self)
                     .With(defaultPipeline)
 
-                    .ListeningEvents(typeof(TransactionClearedEvent))
+                    .ListeningEvents(typeof(BroadcastedTransactionClearedEvent))
                     .From(Self)
                     .On(defaultRoute));
         }
