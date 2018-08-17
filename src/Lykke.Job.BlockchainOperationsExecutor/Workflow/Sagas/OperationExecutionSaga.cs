@@ -7,6 +7,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
+using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution;
@@ -97,7 +98,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         Amount = aggregate.Amount,
                         IncludeFee = aggregate.IncludeFee,
                     },
-                    Self
+                    CqrsModule.TransactionExecutor
                 );
 
                 _chaosKitty.Meow(aggregate.OperationId);

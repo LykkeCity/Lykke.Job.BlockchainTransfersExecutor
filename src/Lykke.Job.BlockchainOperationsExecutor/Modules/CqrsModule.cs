@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Autofac;
+using Autofac.Features.ResolveAnything;
 using Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
@@ -13,7 +14,11 @@ using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
@@ -24,7 +29,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 {
     public class CqrsModule : Module
     {
-        private static readonly string Self = BlockchainOperationsExecutorBoundedContext.Name;
+        private static readonly string OperationsExecutor = BlockchainOperationsExecutorBoundedContext.Name;
+        public static readonly string TransactionExecutor = "bcn-integration.transactions-executor";
 
         private readonly CqrsSettings _settings;
         private readonly ILog _log;
@@ -78,20 +84,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterType<OperationExecutionSaga>();
 
             // Command handlers
-            // Operation execution
-            builder.RegisterType<StartOperationExecutionCommandsHandler>();
-            builder.RegisterType<ClearActiveTransactionCommandsHandler>();
-            builder.RegisterType<NotifyOperationExecutionCompletedCommandsHandler>();
-            builder.RegisterType<NotifyOperationExecutionFailedCommandsHandler>();
-
-            // Transaction execution
-            builder.RegisterType<StartTransactionExecutionCommandHandler>();
-            builder.RegisterType<BuildTransactionCommandsHandler>();
-            builder.RegisterType<SignTransactionCommandsHandler>();
-            builder.RegisterType<BroadcastTransactionCommandsHandler>();
-            builder.RegisterType<ReleaseSourceAddressLockCommandsHandler>();
-            builder.RegisterType<WaitForTransactionEndingCommandsHandler>();
-            builder.RegisterType<ClearBroadcastedTransactionCommandsHandler>();
+            builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(t =>
+                t.Namespace == typeof(StartOperationExecutionCommandsHandler).Namespace ||
+                t.Namespace == typeof(StartTransactionExecutionCommandHandler).Namespace));
 
             builder.Register(ctx => CreateEngine(ctx, messagingEngine))
                 .As<ICqrsEngine>()
@@ -106,18 +101,24 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             const string defaultPipeline = "commands";
             const string defaultRoute = "self";
 
-            return new CqrsEngine(
+            return new CqrsEngine
+            (
                 _log,
                 ctx.Resolve<IDependencyResolver>(),
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
-                Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
-                    "RabbitMq",
-                    "messagepack",
-                    environment: "lykke")),
+                Register.DefaultEndpointResolver
+                (
+                    new RabbitMqConventionEndpointResolver
+                    (
+                        "RabbitMq",
+                        "messagepack",
+                        environment: "lykke"
+                    )
+                ),
 
-                Register.BoundedContext(Self)
+                Register.BoundedContext(OperationsExecutor)
                     .FailedCommandRetryDelay(defaultRetryDelay)
 
                     .ListeningCommands(typeof(StartOperationExecutionCommand))
@@ -126,13 +127,54 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(typeof(OperationExecutionStartedEvent))
                     .With(defaultPipeline)
 
+                    .ListeningCommands(typeof(GenerateActiveTransactionIdCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<GenerateActiveTransactionIdCommandsHandler>()
+                    .PublishingEvents(typeof(ActiveTransactionIdGeneratedEvent))
+                    .With(defaultPipeline)
+
+                    .ListeningCommands(typeof(ClearActiveTransactionCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<ClearActiveTransactionCommandsHandler>()
+                    .PublishingEvents(typeof(ActiveTransactionClearedEvent))
+                    .With(defaultPipeline)
+
+                    .ListeningCommands(typeof(NotifyOperationExecutionCompletedCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<NotifyOperationExecutionCompletedCommandsHandler>()
+                    .PublishingEvents(typeof(OperationExecutionCompletedEvent))
+                    .With(defaultRoute)
+
+                    .ListeningCommands(typeof(NotifyOperationExecutionFailedCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<NotifyOperationExecutionFailedCommandsHandler>()
+                    .PublishingEvents(typeof(OperationExecutionFailedEvent))
+                    .With(defaultRoute)
+
+                    .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
+
+                Register.BoundedContext(TransactionExecutor)
+                    .FailedCommandRetryDelay(defaultRetryDelay)
+
+                    .ListeningCommands(typeof(StartTransactionExecutionCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<StartTransactionExecutionCommandHandler>()
+                    .PublishingEvents(typeof(TransactionExecutionStartedEvent))
+                    .With(defaultRoute)
+
+                    .ListeningCommands(typeof(LockSourceAddressCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler<LockSourceAddressCommandsHandler>()
+                    .PublishingEvents(typeof(SourceAddressLockedEvent))
+                    .With(defaultRoute)
+
                     .ListeningCommands(typeof(BuildTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
                     .PublishingEvents(
                         typeof(TransactionBuiltEvent),
                         typeof(TransactionBuildingRejectedEvent),
-                        typeof(TransactionBuildingFailedEvent))
+                        typeof(TransactionExecutionFailedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(SignTransactionCommand))
@@ -145,27 +187,26 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .On(defaultRoute)
                     .WithCommandsHandler<BroadcastTransactionCommandsHandler>()
                     .PublishingEvents(
-                        typeof(TransactionBroadcastedEvent), 
-                        typeof(TransactionBroadcastingFailedEvent),
-                        typeof(TransactionReBuildingIsRequestedOnBroadcastingEvent))
+                        typeof(TransactionBroadcastedEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(ReleaseSourceAddressLockCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent), 
-                        typeof(TransactionReBuildingIsRequestedEvent))
+                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
                     .With(defaultPipeline)
 
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<WaitForTransactionEndingCommandsHandler>()
                     .PublishingEvents(
-                        typeof(OperationExecutionCompletedEvent),
-                        typeof(OperationExecutionFailedEvent),
-                        typeof(TransactionReBuildingIsRequestedEvent))
+                        typeof(TransactionExecutionCompletedEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent))
                     .With(defaultPipeline)
-                    
+
                     .ListeningCommands(typeof(ClearBroadcastedTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ClearBroadcastedTransactionCommandsHandler>()
@@ -174,60 +215,134 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
-                Register.Saga<TransactionExecutionSaga>($"{Self}.saga")
-                    .ListeningEvents(typeof(OperationExecutionStartedEvent), 
-                        typeof(TransactionReBuildingIsRequestedEvent))
-                    .From(Self)
+                Register.Saga<TransactionExecutionSaga>($"{OperationsExecutor}.saga")
+                    .ListeningEvents(typeof(OperationExecutionStartedEvent))
+                    .From(OperationsExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands(typeof(BuildTransactionCommand))
-                    .To(Self)
+                    .PublishingCommands(typeof(GenerateActiveTransactionIdCommand))
+                    .To(OperationsExecutor)
                     .With(defaultPipeline)
 
-                    .ListeningEvents(typeof(TransactionBuiltEvent))
-                    .From(Self)
+                    .ListeningEvents(typeof(ActiveTransactionIdGeneratedEvent))
+                    .From(OperationsExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands(typeof(SignTransactionCommand))
-                    .To(Self)
+                    .PublishingCommands(typeof(StartTransactionExecutionCommand))
+                    .To(TransactionExecutor)
+                    .With(defaultPipeline)
+
+                    .ListeningEvents(typeof(TransactionExecutionStartedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+
+                    .ListeningEvents
+                    (
+                        typeof(TransactionExecutionCompletedEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent)
+                    )
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands
+                    (
+                        typeof(NotifyOperationExecutionCompletedCommand),
+                        typeof(NotifyOperationExecutionFailedCommand),
+                        typeof(ClearActiveTransactionCommand)
+                    )
+                    .To(OperationsExecutor)
+                    .With(defaultRoute)
+
+                    .ListeningEvents(typeof(ActiveTransactionClearedEvent))
+                    .From(OperationsExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(GenerateActiveTransactionIdCommand))
+                    .To(OperationsExecutor)
+                    .With(defaultRoute)
+
+                    .ListeningEvents
+                    (
+                        typeof(OperationExecutionCompletedEvent),
+                        typeof(OperationExecutionFailedEvent)
+                    )
+                    .From(OperationsExecutor)
+                    .On(defaultRoute),
+
+                Register.Saga<TransactionExecutionSaga>($"{TransactionExecutor}.saga")
+                    .ListeningEvents(typeof(TransactionExecutionStartedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(LockSourceAddressCommand))
+                    .To(TransactionExecutor)
+                    .With(defaultRoute)
+
+                    .ListeningEvents(typeof(SourceAddressLockedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(BuildTransactionCommand))
+                    .To(TransactionExecutor)
+                    .With(defaultRoute)
+
+                    .ListeningEvents
+                    (
+                        typeof(TransactionBuiltEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionBuildingRejectedEvent)
+                    )
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands
+                    (
+                        typeof(SignTransactionCommand),
+                        typeof(ReleaseSourceAddressLockCommand)
+                    )
+                    .To(TransactionExecutor)
                     .With(defaultPipeline)
 
                     .ListeningEvents(typeof(TransactionSignedEvent))
-                    .From(Self)
+                    .From(TransactionExecutor)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(BroadcastTransactionCommand))
-                    .To(Self)
+                    .To(TransactionExecutor)
                     .With(defaultPipeline)
 
-                    .ListeningEvents(
+                    .ListeningEvents
+                    (
                         typeof(TransactionBroadcastedEvent),
-                        typeof(TransactionBroadcastingFailedEvent),
-                        typeof(TransactionBuildingRejectedEvent),
-                        typeof(TransactionBuildingFailedEvent),
-                        typeof(TransactionReBuildingIsRequestedOnBroadcastingEvent))
-                    .From(Self)
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent)
+                    )
+                    .From(TransactionExecutor)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
-                    .To(Self)
+                    .To(TransactionExecutor)
                     .With(defaultPipeline)
 
                     .ListeningEvents(typeof(SourceAddressLockReleasedEvent))
-                    .From(Self)
+                    .From(TransactionExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands(typeof(WaitForTransactionEndingCommand))
-                    .To(Self)
+                    .PublishingCommands
+                    (
+                        typeof(WaitForTransactionEndingCommand),
+                        typeof(ClearBroadcastedTransactionCommand)
+                    )
+                    .To(TransactionExecutor)
                     .With(defaultPipeline)
 
-                    .ListeningEvents(
-                        typeof(OperationExecutionCompletedEvent),
-                        typeof(OperationExecutionFailedEvent))
-                    .From(Self)
+                    .ListeningEvents
+                    (
+                        typeof(TransactionExecutionCompletedEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent)
+                    )
+                    .From(TransactionExecutor)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ClearBroadcastedTransactionCommand))
-                    .To(Self)
+                    .To(TransactionExecutor)
                     .With(defaultPipeline)
 
                     .ListeningEvents(typeof(BroadcastedTransactionClearedEvent))
-                    .From(Self)
-                    .On(defaultRoute));
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+            );
         }
     }
 }
