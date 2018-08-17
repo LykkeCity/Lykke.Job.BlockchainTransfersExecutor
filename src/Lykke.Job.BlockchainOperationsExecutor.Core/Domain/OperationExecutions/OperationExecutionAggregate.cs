@@ -157,7 +157,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
 
         public void OnTransactionExecutionRepeatRequested(
             Guid transactionExecutionId,
-            OperationExecutionResult errorCode,
             string error)
         {
             if (transactionExecutionId != ActiveTransactionId)
@@ -165,16 +164,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 return;
             }
 
-            if (errorCode == OperationExecutionResult.Completed)
-            {
-                throw new ArgumentException($"Error code should not be {OperationExecutionResult.Completed}", nameof(errorCode));
-            }
-
             State = OperationExecutionState.TransactionExecutionRepeatRequested;
 
             TransactionExecutionRepeatRequestMoment = DateTime.UtcNow;
 
-            Result = errorCode;
             Error = error;
         }
 

@@ -54,7 +54,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                     .HandleTransition((a, e) => a.OnWaitingForEndingFailed(e.ErrorCode, e.Error));
 
                 outputs.On<TransactionExecutionRepeatRequestedEvent>()
-                    .HandleTransition((a, e) => a.OnBroadcastingFailed(e.ErrorCode, e.Error));
+                    .HandleTransition((a, e) => a.OnWaitingForEndingFailed(e.ErrorCode, e.Error));
             });
 
             register.From(TransactionExecutionState.Completed)

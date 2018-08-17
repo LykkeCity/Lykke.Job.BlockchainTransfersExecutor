@@ -4,29 +4,28 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
 {
     internal class TransitionRegistration<TState> where TState: struct, IConvertible
     {
-        public readonly TState SourceState;
-
+        private readonly TState _sourceState;
         private readonly Type _eventType;
 
         public TransitionRegistration(TState sourceState, Type eventType)
         {
-            SourceState = sourceState;
+            _sourceState = sourceState;
             _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
         }
 
 
         #region  Equals
 
-        protected bool Equals(TransitionRegistration<TState> other)
+        private bool Equals(TransitionRegistration<TState> other)
         {
-            return Equals(SourceState, other.SourceState) && _eventType == other._eventType;
+            return Equals(_sourceState, other._sourceState) && _eventType == other._eventType;
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((TransitionRegistration<TState>)obj);
         }
 
@@ -34,10 +33,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
         {
             unchecked
             {
-                return (SourceState.GetHashCode() * 397) ^ (_eventType != null ? _eventType.GetHashCode() : 0);
+                return (_sourceState.GetHashCode() * 397) ^ (_eventType != null ? _eventType.GetHashCode() : 0);
             }
         }
 
         #endregion
+
+
+        public override string ToString()
+        {
+            return $"[From state {_sourceState} on event {_eventType.Name}]";
+        }
     }
 }

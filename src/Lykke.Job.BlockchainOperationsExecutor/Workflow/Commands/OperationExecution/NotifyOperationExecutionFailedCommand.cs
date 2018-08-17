@@ -2,7 +2,7 @@
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution
 {
     [MessagePackObject(keyAsPropertyName: true)]
     public class NotifyOperationExecutionFailedCommand

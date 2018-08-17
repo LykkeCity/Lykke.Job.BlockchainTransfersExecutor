@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.OperationExecution
 {

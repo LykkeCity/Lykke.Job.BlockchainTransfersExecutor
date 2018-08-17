@@ -2,7 +2,6 @@
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 
@@ -28,8 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             {
                 outputs.On<TransactionExecutionRepeatRequestedEvent>()
                     .HandleTransition((a, e) => a.OnTransactionExecutionRepeatRequested(
-                        e.TransactionId, 
-                        e.ErrorCode.MapToOperationExecutionResult(),
+                        e.TransactionId,
                         e.Error));
 
                 outputs.On<TransactionExecutionCompletedEvent>()
@@ -83,8 +81,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.TransactionExecutionRepeatRequested)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>()
-                .Ignore<TransactionExecutionStartedEvent>()
-                .Ignore<ActiveTransactionClearedEvent>();
+                .Ignore<TransactionExecutionStartedEvent>();
 
             register.In(OperationExecutionState.ActiveTransactionCleared)
                 .Ignore<OperationExecutionStartedEvent>()

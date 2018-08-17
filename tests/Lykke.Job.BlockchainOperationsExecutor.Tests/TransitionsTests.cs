@@ -11,148 +11,226 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         [Fact]
         public void Can_Proceed_Valid_Transaction()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
+            // Arrange
 
-            register
-                .From(TransactionExecutionState.Started)
-                .On<TransactionBuiltEvent>()
-                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
-                
-                .From(TransactionExecutionState.IsSourceAddressReleased)
-                .On<SourceAddressLockReleasedEvent>()
-                .HandleTransition(TransactionExecutionState.BroadcastedTransactionIsForgotten);
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
 
-            register.In(TransactionExecutionState.Started)
-                .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<BroadcastedTransactionClearedEvent>();
+            register.GetCurrentStateWith(a => a.State);
+
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             var core = register.Build();
 
-            var checkResult1 = core.Switch(TransactionExecutionState.Started, new TransactionBuiltEvent());
+            var aggregate = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
 
-            Assert.True(checkResult1.IsValid);
-            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.HandleTransition);
+            // Act
+
+            var result = core.Switch(aggregate, new SourceAddressLockedEvent());
+
+            // Assert
+
+            Assert.True(result);
+            Assert.Equal(TransactionExecutionState.SourceAddressLocked, aggregate.State);
         }
-
+        
         [Fact]
         public void Can_Proceed_Valid_Transaction_Multiple_Register()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
+            // Arrange
 
-            register.From(TransactionExecutionState.Started, outputs =>
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
+
+            register.GetCurrentStateWith(a => a.State);
+
+            register.From(TransactionExecutionState.SourceAddressLocked, outputs =>
             {
                 outputs.On<TransactionBuiltEvent>()
-                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
+                    .HandleTransition((a, e) => a.OnBuilt(e.FromAddressContext, e.TransactionContext));
 
-                outputs.On<SourceAddressLockReleasedEvent>()
-                    .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
+                outputs.On<TransactionExecutionFailedEvent>()
+                    .HandleTransition((a, e) => a.OnBuildingFailed(e.ErrorCode, e.Error));
             });
 
             var core = register.Build();
 
-            var checkResult1 = core.Switch(TransactionExecutionState.Started, new TransactionBuiltEvent());
+            var aggregate1 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
 
-            Assert.True(checkResult1.IsValid);
-            Assert.Equal(TransactionExecutionState.TransactionIsBuilt, checkResult1.HandleTransition);
+            aggregate1.OnSourceAddressLocked();
 
+            var aggregate2 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
 
-            var checkResult2 = core.Switch(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
+            aggregate2.OnSourceAddressLocked();
 
-            Assert.True(checkResult2.IsValid);
-            Assert.Equal(TransactionExecutionState.IsSourceAddressReleased, checkResult2.HandleTransition);
+            // Act
+
+            var result1 = core.Switch(aggregate1, new TransactionBuiltEvent());
+            var result2 = core.Switch(aggregate2, new TransactionExecutionFailedEvent
+            {
+                ErrorCode = TransactionExecutionResult.UnknownError
+            });
+
+            // Assert
+
+            Assert.True(result1);
+            Assert.Equal(TransactionExecutionState.Built, aggregate1.State);
+
+            Assert.True(result2);
+            Assert.Equal(TransactionExecutionState.BuildingFailed, aggregate2.State);
         }
 
         [Fact]
         public void Throws_Exception_On_Unregistered_Event()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
+            // Arrange
 
-            register
-                .From(TransactionExecutionState.Started)
-                .On<TransactionBuiltEvent>()
-                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
 
-                .From(TransactionExecutionState.IsSourceAddressReleased)
-                .On<SourceAddressLockReleasedEvent>()
-                .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
+            register.GetCurrentStateWith(a => a.State);
 
-            register.In(TransactionExecutionState.Started)
-                .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<BroadcastedTransactionClearedEvent>();
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             var core = register.Build();
 
+            var aggregate = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
 
-            Assert.Throws<ArgumentException>(() =>
+            // Act / Assert
+
+            Assert.Throws<InvalidOperationException>(() =>
             {
-                core.Switch(TransactionExecutionState.IsSourceAddressReleased, new TransactionBuiltEvent());
+                core.Switch(aggregate, new TransactionBuiltEvent());
             });
         }
 
         [Fact]
-        public void Can_Ignore_Commands()
+        public void Can_Ignore_Events()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
+            // Arrange
 
-            register
-                .From(TransactionExecutionState.Started)
-                .On<TransactionBuiltEvent>()
-                .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
 
-                .From(TransactionExecutionState.IsSourceAddressReleased)
-                .On<SourceAddressLockReleasedEvent>()
-                .HandleTransition(TransactionExecutionState.IsSourceAddressReleased);
+            register.GetCurrentStateWith(a => a.State);
 
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             register.In(TransactionExecutionState.Started)
-                .Ignore<SourceAddressLockReleasedEvent>()
-                .Ignore<BroadcastedTransactionClearedEvent>();
+                .Ignore<TransactionExecutionStartedEvent>();
 
+            register.In(TransactionExecutionState.SourceAddressLocked)
+                .Ignore<TransactionExecutionStartedEvent>()
+                .Ignore<SourceAddressLockedEvent>();
 
             var core = register.Build();
 
-            var checkResult1 = core.Switch(TransactionExecutionState.Started, new SourceAddressLockReleasedEvent());
+            var aggregate = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
 
-            Assert.False(checkResult1.IsValid);
+            // Act
 
-
-            var checkResult2 = core.Switch(TransactionExecutionState.Started, new BroadcastedTransactionClearedEvent());
+            var result1 = core.Switch(aggregate, new TransactionExecutionStartedEvent());
+            var result2 = core.Switch(aggregate, new SourceAddressLockedEvent());
+            var result3 = core.Switch(aggregate, new TransactionExecutionStartedEvent());
+            var result4 = core.Switch(aggregate, new SourceAddressLockedEvent());
             
-            Assert.False(checkResult2.IsValid);
+            // Assert
+
+            Assert.False(result1);
+            Assert.True(result2);
+            Assert.False(result3);
+            Assert.False(result4);
         }
 
         [Fact]
         public void Thows_Exception_On_Transition_Duplication()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
-            
+            // Arrange
+
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
+
             Assert.Throws<ArgumentException>(() =>
             {
-                register
-                    .From(TransactionExecutionState.Started)
-                    .On<TransactionBuiltEvent>()
-                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt)
+                register.From(TransactionExecutionState.Started)
+                    .On<SourceAddressLockedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
-                    .From(TransactionExecutionState.Started)
-                    .On<TransactionBuiltEvent>()
-                    .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
+                register.From(TransactionExecutionState.Started)
+                    .On<SourceAddressLockedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAddressLocked());
             });
         }
 
         [Fact]
         public void Thows_Exception_On_Transition_Configuration_Conflict()
         {
-            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionState>();
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
 
-            register
-                .From(TransactionExecutionState.Started)
-                .On<TransactionBuiltEvent>()
-                .HandleTransition(TransactionExecutionState.TransactionIsBuilt);
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             Assert.Throws<ArgumentException>(() =>
             {
                 register.In(TransactionExecutionState.Started)
-                    .Ignore<TransactionBuiltEvent>();
+                    .Ignore<SourceAddressLockedEvent>();
             });
         }
     }

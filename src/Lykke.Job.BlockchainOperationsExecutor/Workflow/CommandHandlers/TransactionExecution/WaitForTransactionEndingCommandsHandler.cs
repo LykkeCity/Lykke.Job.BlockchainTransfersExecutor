@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
@@ -64,14 +63,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 case BroadcastedTransactionState.Completed:
 
-                    publisher.PublishEvent(new OperationExecutionCompletedEvent
+                    publisher.PublishEvent(new TransactionExecutionCompletedEvent
                     {
                         OperationId = command.OperationId,
                         TransactionId = command.TransactionId,
                         TransactionHash = transaction.Hash,
                         TransactionAmount = transaction.Amount,
-                        Fee = transaction.Fee,
-                        Block = transaction.Block
+                        TransactionFee = transaction.Fee,
+                        TransactionBlock = transaction.Block
                     });
 
                     return CommandHandlingResult.Ok();

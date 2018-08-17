@@ -1,7 +1,7 @@
 ﻿using System;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution
 {
     [MessagePackObject(keyAsPropertyName: true)]
     public class ActiveTransactionClearedEvent

@@ -261,6 +261,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     TransactionId = aggregate.TransactionId,
                     BlockchainType = aggregate.BlockchainType,
                     FromAddress = aggregate.FromAddress,
+                    AbortWorkflow = true
                 },
                 Self
             );

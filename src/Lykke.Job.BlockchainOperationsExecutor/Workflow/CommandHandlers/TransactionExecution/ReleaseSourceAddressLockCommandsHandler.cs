@@ -29,10 +29,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             _chaosKitty.Meow(command.TransactionId);
 
-            publisher.PublishEvent(new SourceAddressLockReleasedEvent
+            if (!command.AbortWorkflow)
             {
-                TransactionId = command.TransactionId
-            });
+                publisher.PublishEvent(new SourceAddressLockReleasedEvent
+                {
+                    TransactionId = command.TransactionId
+                });
+            }
 
             return CommandHandlingResult.Ok();
         }

@@ -50,7 +50,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 return false;
             }
 
-            throw new ArgumentException($"Unexpected event {@event.GetType().Name} in state {currentState}");
+            throw new InvalidOperationException($"Unexpected event {@event.GetType().Name} in state {currentState}");
         }
     }
 }

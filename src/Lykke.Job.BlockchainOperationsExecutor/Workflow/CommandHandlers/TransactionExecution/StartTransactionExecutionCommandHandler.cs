@@ -15,7 +15,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             publisher.PublishEvent(new TransactionExecutionStartedEvent
             {
                 OperationId = command.OperationId,
-                TransactionId = command.TransactionId
+                TransactionId = command.TransactionId,
+                BlockchainType = command.BlockchainType,
+                BlockchainAssetId = command.BlockchainAssetId,
+                AssetId = command.AssetId,
+                FromAddress = command.FromAddress,
+                ToAddress = command.ToAddress,
+                Amount = command.Amount,
+                IncludeFee = command.IncludeFee
             });
 
             return Task.FromResult(CommandHandlingResult.Ok());

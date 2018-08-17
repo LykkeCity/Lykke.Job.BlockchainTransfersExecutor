@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
@@ -42,7 +41,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             publisher.PublishEvent(new SourceAddressLockedEvent
             {
-                TransactionId = command.TransactionId,
+                TransactionId = command.TransactionId
 
             });
 

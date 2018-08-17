@@ -81,14 +81,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
             AddTransition(_registrationChain.State.Value, _registrationChain.EventType, handleTransition);
         }
 
-        public ITransitionIgnoreRegister<TAggregate, TState> Ignore<TCommand>()
+        public ITransitionIgnoreRegister<TAggregate, TState> Ignore<TEvent>()
         {
             if (_registrationChain.State == null)
             {
-                throw new InvalidOperationException("Initial state not registered");
+                throw new InvalidOperationException("Initial state not is registered");
             }
 
-            AddIgnoredTransition(_registrationChain.State.Value, typeof(TCommand));
+            AddIgnoredTransition(_registrationChain.State.Value, typeof(TEvent));
 
             return this;
         }
@@ -131,7 +131,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
             if (_stateTransitionStorage.ContainsKey(transition) 
                 || _ignoredTransitionsStorage.Any(p => Equals(p, transition)))
             {
-                throw new ArgumentException($"Transition: {transition.SourceState} {transition.GetType().Name} already registered");
+                throw new ArgumentException($"Transition {transition} is already registered");
             }
         }
     }

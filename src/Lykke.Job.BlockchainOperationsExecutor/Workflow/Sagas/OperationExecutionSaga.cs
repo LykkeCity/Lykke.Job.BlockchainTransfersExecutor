@@ -9,10 +9,8 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
-using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 
@@ -92,11 +90,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.ActiveTransactionId.Value,
+                        BlockchainType = aggregate.BlockchainType,
+                        BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
                         ToAddress = aggregate.ToAddress,
                         AssetId = aggregate.AssetId,
                         Amount = aggregate.Amount,
-                        IncludeFee = aggregate.IncludeFee,
+                        IncludeFee = aggregate.IncludeFee
                     },
                     CqrsModule.TransactionExecutor
                 );
