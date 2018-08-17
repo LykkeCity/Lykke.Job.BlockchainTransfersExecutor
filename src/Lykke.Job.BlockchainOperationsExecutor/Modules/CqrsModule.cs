@@ -22,6 +22,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
 using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
+using Lykke.Messaging.Serialization;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 {
@@ -111,7 +112,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     new RabbitMqConventionEndpointResolver
                     (
                         "RabbitMq",
-                        "messagepack",
+                        SerializationFormat.MessagePack,
                         environment: "lykke"
                     )
                 ),
