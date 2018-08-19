@@ -18,8 +18,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
             register.From(OperationExecutionState.Started)
                 .On<ActiveTransactionIdGeneratedEvent>()
-                .WithPrecondition((a, e) => e.TransactionNumber != 1, (a, e) => "Transaction number should be 1")
-                .WithPrecondition((a, e) => a.ActiveTransactionNumber != 0, (a, e) => "Active transaction number should be 0")
+                .WithPrecondition((a, e) => e.TransactionNumber == 1, (a, e) => "Transaction number should be 1")
+                .WithPrecondition((a, e) => a.ActiveTransactionNumber == 0, (a, e) => "Active transaction number should be 0")
                 .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
                 .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber));
 
@@ -60,7 +60,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
             register.From(OperationExecutionState.ActiveTransactionCleared)
                 .On<ActiveTransactionIdGeneratedEvent>()
-                .WithPrecondition((a, e) => e.TransactionNumber != a.ActiveTransactionNumber + 1, (a, e) => $"Transaction number should be active transaction number [{a.ActiveTransactionNumber}] + 1")
+                .WithPrecondition((a, e) => e.TransactionNumber == a.ActiveTransactionNumber + 1, (a, e) => $"Transaction number should be active transaction number [{a.ActiveTransactionNumber}] + 1")
                 .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
                 .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber));
 

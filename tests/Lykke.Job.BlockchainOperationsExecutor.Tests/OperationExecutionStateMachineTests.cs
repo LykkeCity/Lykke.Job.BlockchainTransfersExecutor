@@ -34,13 +34,22 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             Assert.Equal(OperationExecutionState.Started, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
 
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionCompletedEvent()));
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionCompletedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.Completed, aggregate.State);
 
             Assert.True(switcher.Switch(aggregate, new OperationExecutionCompletedEvent()));
@@ -69,15 +78,22 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             Assert.Equal(OperationExecutionState.Started, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
 
             Assert.True(switcher.Switch(aggregate, new TransactionExecutionFailedEvent
             {
-                ErrorCode = TransactionExecutionResult.UnknownError
+                ErrorCode = TransactionExecutionResult.UnknownError,
+                TransactionNumber = 1
             }));
             Assert.Equal(OperationExecutionState.Failed, aggregate.State);
 
@@ -107,31 +123,50 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             Assert.Equal(OperationExecutionState.Started, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
-            
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
 
-            foreach (var _ in Enumerable.Range(0, 2))
+            foreach (var transactionNumber in Enumerable.Range(2, 2))
             {
                 Assert.True(switcher.Switch(aggregate, new TransactionExecutionRepeatRequestedEvent
                 {
-                    ErrorCode = TransactionExecutionResult.RebuildingIsRequired
+                    ErrorCode = TransactionExecutionResult.RebuildingIsRequired,
+                    TransactionNumber = transactionNumber - 1
                 }));
                 Assert.Equal(OperationExecutionState.TransactionExecutionRepeatRequested, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent()));
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent
+                {
+                    TransactionNumber = transactionNumber - 1
+                }));
                 Assert.Equal(OperationExecutionState.ActiveTransactionCleared, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
                 Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+                Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
                 Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);    
             }
             
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionCompletedEvent()));
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionCompletedEvent
+            {
+                TransactionNumber = 3
+            }));
             Assert.Equal(OperationExecutionState.Completed, aggregate.State);
 
             Assert.True(switcher.Switch(aggregate, new OperationExecutionCompletedEvent()));
@@ -160,33 +195,50 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             Assert.Equal(OperationExecutionState.Started, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
             
-            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
             Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
 
-            foreach (var _ in Enumerable.Range(0, 2))
+            foreach (var transactionNumber in Enumerable.Range(2, 2))
             {
                 Assert.True(switcher.Switch(aggregate, new TransactionExecutionRepeatRequestedEvent
                 {
-                    ErrorCode = TransactionExecutionResult.RebuildingIsRequired
+                    ErrorCode = TransactionExecutionResult.RebuildingIsRequired,
+                    TransactionNumber = transactionNumber - 1
                 }));
                 Assert.Equal(OperationExecutionState.TransactionExecutionRepeatRequested, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent()));
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent
+                {
+                    TransactionNumber = transactionNumber - 1
+                }));
                 Assert.Equal(OperationExecutionState.ActiveTransactionCleared, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent()));
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
                 Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
 
-                Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent()));
+                Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
                 Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);    
             }
             
             Assert.True(switcher.Switch(aggregate, new TransactionExecutionFailedEvent
             {
-                ErrorCode = TransactionExecutionResult.UnknownError
+                ErrorCode = TransactionExecutionResult.UnknownError,
+                TransactionNumber = 3
             }));
             Assert.Equal(OperationExecutionState.Failed, aggregate.State);
 
