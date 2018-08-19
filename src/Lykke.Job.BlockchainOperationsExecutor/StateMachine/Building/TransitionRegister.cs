@@ -1,26 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
 {
     internal class TransitionRegister<TAggregate, TState>:
         ITransitionInitialStateRegister<TAggregate, TState>, 
         ITransitionEventRegister<TAggregate, TState>, 
-        ITransitionIgnoreRegister<TAggregate, TState>
+        ITransitionIgnoringRegister<TAggregate, TState>
 
         where TState : struct, IConvertible
     {
-        private readonly IDictionary<TransitionRegistration<TState>, Delegate> _stateTransitionStorage;
-        private readonly ISet<TransitionRegistration<TState>> _ignoredTransitionsStorage;
+        private readonly IDictionary<StateTransition<TState>, TransitionRegistration> _stateTransitions;
+        private readonly IDictionary<StateTransition<TState>, TransitionIgnoringRegistration> _ignoredTransitions;
         private readonly TransitionRegistrationChain<TState> _registrationChain;
 
         private Func<TAggregate, TState> _currentStateGetter;
 
         public TransitionRegister()
         {
-            _ignoredTransitionsStorage = new HashSet<TransitionRegistration<TState>>();
-            _stateTransitionStorage = new Dictionary<TransitionRegistration<TState>, Delegate>();
+            _ignoredTransitions = new Dictionary<StateTransition<TState>, TransitionIgnoringRegistration>();
+            _stateTransitions = new Dictionary<StateTransition<TState>, TransitionRegistration>();
             _registrationChain = new TransitionRegistrationChain<TState>();
         }
 
@@ -47,7 +47,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
             return this;
         }
 
-        public ITransitionIgnoreRegister<TAggregate, TState> In(TState state)
+        public ITransitionIgnoringRegister<TAggregate, TState> In(TState state)
         {
             _registrationChain.State = state;
 
@@ -61,16 +61,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
             return new TransitonHandlingRegister<TAggregate, TState, TEvent>(this);
         }
 
-        internal void HandleTransition<TEvent>(Action<TAggregate, TEvent> handleTransition)
+        internal void HandleTransition(Delegate handleTransition, IReadOnlyCollection<(Delegate Precondition, Delegate FormatMessage)> preconditions)
         {
             if (_registrationChain.State == null)
             {
-                throw new InvalidOperationException("Initial state not registered");
+                throw new InvalidOperationException("Current state is not initialized");
             }
 
             if (_registrationChain.EventType == null)
             {
-                throw new InvalidOperationException("Initial state not registered");
+                throw new InvalidOperationException("Current state is not initialized");
             }
 
             if (handleTransition == null)
@@ -78,17 +78,29 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
                 throw new ArgumentNullException(nameof(handleTransition));
             }
 
-            AddTransition(_registrationChain.State.Value, _registrationChain.EventType, handleTransition);
+            AddTransition(_registrationChain.State.Value, _registrationChain.EventType, handleTransition, preconditions);
         }
 
-        public ITransitionIgnoreRegister<TAggregate, TState> Ignore<TEvent>()
+        public ITransitionIgnoringRegister<TAggregate, TState> Ignore<TEvent>()
         {
             if (_registrationChain.State == null)
             {
-                throw new InvalidOperationException("Initial state not is registered");
+                throw new InvalidOperationException("Current state is not initialized");
             }
 
-            AddIgnoredTransition(_registrationChain.State.Value, typeof(TEvent));
+            AddTransitionIgnoring(_registrationChain.State.Value, typeof(TEvent), additionalCondition: null);
+
+            return this;
+        }
+
+        public ITransitionIgnoringRegister<TAggregate, TState> Ignore<TEvent>(Func<TAggregate, TEvent, bool> additionalCondition)
+        {
+            if (_registrationChain.State == null)
+            {
+                throw new InvalidOperationException("Current state is not initialized");
+            }
+
+            AddTransitionIgnoring(_registrationChain.State.Value, typeof(TEvent), additionalCondition);
 
             return this;
         }
@@ -105,33 +117,67 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
                 throw new InvalidOperationException($"{nameof(TState)} must be an enumerated type");
             }
 
-            return new StateSwitcher<TAggregate, TState>(_stateTransitionStorage, _ignoredTransitionsStorage, _currentStateGetter);
+            return new StateSwitcher<TAggregate, TState>(
+                new ReadOnlyDictionary<StateTransition<TState>, TransitionRegistration>(_stateTransitions), 
+                new ReadOnlyDictionary<StateTransition<TState>, TransitionIgnoringRegistration>(_ignoredTransitions),
+                _currentStateGetter);
         }
 
-        private void AddTransition<TEvent>(TState initialState, Type eventType, Action<TAggregate, TEvent> handleTransition)
+        private void AddTransition(
+            TState sourceState, 
+            Type eventType, 
+            Delegate handleTransition, 
+            IReadOnlyCollection<(Delegate Precondition, Delegate FormatMessage)> preconditions)
         {
-            var transitionToAdd = new TransitionRegistration<TState>(initialState, eventType);
+            var transition = new StateTransition<TState>(sourceState, eventType);
+            var transitionRegistration = new TransitionRegistration(handleTransition, preconditions);
 
-            ValidateTransitionDuplication(transitionToAdd);
+            ValidateTransitionDuplication(transition);
 
-            _stateTransitionStorage.Add(transitionToAdd, handleTransition);
+            _stateTransitions.Add(transition, transitionRegistration);
         }
 
-        private void AddIgnoredTransition(TState initialState, Type eventType)
+        private void AddTransitionIgnoring(TState initialState, Type eventType, Delegate additionalCondition)
         {
-            var transitionToAdd = new TransitionRegistration<TState>(initialState, eventType);
+            var transition = new StateTransition<TState>(initialState, eventType);
+            var transitionRegistration = new TransitionIgnoringRegistration(additionalCondition);
 
-            ValidateTransitionDuplication(transitionToAdd);
+            ValidateTransitionDuplication(transition, transitionRegistration);
 
-            _ignoredTransitionsStorage.Add(transitionToAdd);
+            _ignoredTransitions.Add(transition, transitionRegistration);
         }
 
-        private void ValidateTransitionDuplication(TransitionRegistration<TState> transition)
+        private void ValidateTransitionDuplication(StateTransition<TState> stateTransition)
         {
-            if (_stateTransitionStorage.ContainsKey(transition) 
-                || _ignoredTransitionsStorage.Any(p => Equals(p, transition)))
+            if (_stateTransitions.ContainsKey(stateTransition))
             {
-                throw new ArgumentException($"Transition {transition} is already registered");
+                throw new ArgumentException($"Transition {stateTransition} is already registered");
+            }
+
+            if (!_ignoredTransitions.TryGetValue(stateTransition, out var ignoringRegistration))
+            {
+                return;
+            }
+
+            if (!ignoringRegistration.HasAdditionalCondition)
+            {
+                throw new ArgumentException($"Transition {stateTransition} ignoring without additional condition is already registered as transition");
+            }
+        }
+
+        private void ValidateTransitionDuplication(StateTransition<TState> stateTransition, TransitionIgnoringRegistration registration)
+        {
+            if (!registration.HasAdditionalCondition)
+            {
+                if (_stateTransitions.ContainsKey(stateTransition))
+                {
+                    throw new ArgumentException($"Transition {stateTransition} is already registered. Can't register transition ignoring without additional condition");
+                }
+            }
+
+            if (_ignoredTransitions.ContainsKey(stateTransition))
+            {
+                throw new ArgumentException($"Transition {stateTransition} is already registered as transition ignoring");
             }
         }
     }

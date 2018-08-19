@@ -27,7 +27,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             publisher.PublishEvent(new ActiveTransactionIdGeneratedEvent
             {
                 OperationId = command.OperationId,
-                TransactionId = activeTransactionId
+                TransactionId = activeTransactionId,
+                TransactionNumber = command.ActiveTransactioNumber + 1
             });
 
             return CommandHandlingResult.Ok();

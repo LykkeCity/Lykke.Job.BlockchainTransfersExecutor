@@ -18,6 +18,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -63,6 +64,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -111,6 +113,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -159,6 +162,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -204,6 +208,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -249,6 +254,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",

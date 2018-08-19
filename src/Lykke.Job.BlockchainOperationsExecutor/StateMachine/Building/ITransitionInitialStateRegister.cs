@@ -8,6 +8,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
         ITransitionInitialStateRegister<TAggregate, TState> GetCurrentStateWith(Func<TAggregate, TState> currentStateGetter);
         ITransitionInitialStateRegister<TAggregate, TState> From(TState state, Action<ITransitionEventRegister<TAggregate, TState>> registerTransition);
         ITransitionEventRegister<TAggregate, TState> From(TState state);
-        ITransitionIgnoreRegister<TAggregate, TState> In(TState state);
+        ITransitionIgnoringRegister<TAggregate, TState> In(TState state);
     }
 }

@@ -3,11 +3,19 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 {
     public class TransitionsTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public TransitionsTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void Can_Proceed_Valid_Transaction()
         {
@@ -27,6 +35,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -70,6 +79,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -85,6 +95,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -132,6 +143,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -175,6 +187,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 Guid.NewGuid(),
+                0,
                 "",
                 "",
                 "",
@@ -200,7 +213,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
-        public void Thows_Exception_On_Transition_Duplication()
+        public void Throws_Exception_On_Transition_Duplication()
         {
             // Arrange
 
@@ -219,7 +232,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
-        public void Thows_Exception_On_Transition_Configuration_Conflict()
+        public void Throws_Exception_On_Transition_Configuration_Conflict()
         {
             var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
 
@@ -232,6 +245,142 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 register.In(TransactionExecutionState.Started)
                     .Ignore<SourceAddressLockedEvent>();
             });
+        }
+
+        [Fact]
+        public void Can_Ignore_Already_Registered_Transition_With_Additional_Conditions()
+        {
+            // Arrange
+
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
+
+            register.GetCurrentStateWith(a => a.State);
+
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
+
+            register.In(TransactionExecutionState.Started)
+                .Ignore<SourceAddressLockedEvent>((a, e) => a.IncludeFee) 
+                .Ignore<TransactionExecutionStartedEvent>();
+
+            var core = register.Build();
+
+            var aggregate1 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                0,
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
+
+            var aggregate2 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                0,
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                true
+            );
+
+            // Act
+
+            var result11 = core.Switch(aggregate1, new TransactionExecutionStartedEvent());
+            var result12 = core.Switch(aggregate1, new SourceAddressLockedEvent());
+
+            var result21 = core.Switch(aggregate2, new TransactionExecutionStartedEvent());
+            var result22 = core.Switch(aggregate2, new SourceAddressLockedEvent());
+            
+            // Assert
+
+            Assert.False(result11);
+            Assert.True(result12);
+            Assert.Equal(TransactionExecutionState.SourceAddressLocked, aggregate1.State);
+
+            Assert.False(result21);
+            Assert.False(result22);
+            Assert.Equal(TransactionExecutionState.Started, aggregate2.State);
+        }
+
+        [Fact]
+        public void Check_Transition_Preconditions()
+        {
+            // Arrange
+
+            var register = TransitionRegisterFactory.StartRegistrationFor<TransactionExecutionAggregate, TransactionExecutionState>();
+
+            register.GetCurrentStateWith(a => a.State);
+
+            register.From(TransactionExecutionState.Started)
+                .On<SourceAddressLockedEvent>()
+                .WithPrecondition((a, e) => a.IncludeFee, (a, e) => "Include fee should be enabled")
+                .WithPrecondition((a, e) => a.Amount > 0, (a, e) => "Amount should be positive number")
+                .HandleTransition((a, e) => a.OnSourceAddressLocked());
+
+            var core = register.Build();
+
+            var aggregate1 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                0,
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                false
+            );
+
+            var aggregate2 = TransactionExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                0,
+                "",
+                "",
+                "",
+                "",
+                "",
+                1,
+                true
+            );
+
+            // Act
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                try
+                {
+                    core.Switch(aggregate1, new SourceAddressLockedEvent());
+                }
+                catch (Exception e)
+                {
+                    _output.WriteLine(e.ToString());
+                    throw;
+                }
+            });
+
+            var result21 = core.Switch(aggregate2, new SourceAddressLockedEvent());
+            
+            // Assert
+
+            Assert.Equal(TransactionExecutionState.Started, aggregate1.State);
+
+            Assert.True(result21);
+            Assert.Equal(TransactionExecutionState.SourceAddressLocked, aggregate2.State);
         }
     }
 }

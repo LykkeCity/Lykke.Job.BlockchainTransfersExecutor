@@ -28,6 +28,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         public string BlockchainAssetId { get; }
 
         public Guid? ActiveTransactionId { get; private set; }
+        public int ActiveTransactionNumber { get; private set; }
         public decimal TransactionAmount { get; private set; }
         public long TransactionBlock { get; private set; }
         public decimal TransactionFee { get; private set; }
@@ -104,6 +105,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             string blockchainType,
             string blockchainAssetId,
             Guid? activeTransactionId,
+            int activeTransactionNumber,
             decimal transactionAmount,
             long transactionBlock,
             decimal transactionFee,
@@ -131,6 +133,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 ActiveTransactionClearingMoment = activeTransactionClearingMoment,
                 FinishMoment = finishMoment,
                 ActiveTransactionId = activeTransactionId,
+                ActiveTransactionNumber = activeTransactionNumber,
                 TransactionAmount = transactionAmount,
                 TransactionBlock = transactionBlock,
                 TransactionFee = transactionFee,
@@ -139,13 +142,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             };
         }
 
-        public void OnActiveTransactionIdGenerated(Guid transactionId)
+        public void OnActiveTransactionIdGenerated(Guid transactionId, int transactionNumber)
         {
             State = OperationExecutionState.ActiveTransactionIdGenerated;
 
             ActiveTransactionIdGenerationMoment = DateTime.UtcNow;
 
             ActiveTransactionId = transactionId;
+            ActiveTransactionNumber = transactionNumber;
         }
 
         public void OnTransactionExecutionStarted()
@@ -155,15 +159,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             ActiveTransactionStartMoment = DateTime.UtcNow;
         }
 
-        public void OnTransactionExecutionRepeatRequested(
-            Guid transactionExecutionId,
-            string error)
+        public void OnTransactionExecutionRepeatRequested(string error)
         {
-            if (transactionExecutionId != ActiveTransactionId)
-            {
-                return;
-            }
-
             State = OperationExecutionState.TransactionExecutionRepeatRequested;
 
             TransactionExecutionRepeatRequestMoment = DateTime.UtcNow;
@@ -176,20 +173,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             State = OperationExecutionState.ActiveTransactionCleared;
 
             ActiveTransactionClearingMoment = DateTime.UtcNow;
+
+            ActiveTransactionId = null;
         }
 
         public void OnTransactionExecutionCompleted(
-            Guid transactionExecutionId, 
             decimal transactionAmount, 
             long transactionBlock, 
             decimal transactionFee, 
             string transactionHash)
         {
-            if (transactionExecutionId != ActiveTransactionId)
-            {
-                return;
-            }
-
             State = OperationExecutionState.Completed;
 
             TransactionFinishMoment = DateTime.UtcNow;
@@ -201,18 +194,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             TransactionHash = transactionHash;
         }
 
-        public void OnTransactionExecutionFailed(Guid transactionExecutionId, OperationExecutionResult errorCode, string error)
+        public void OnTransactionExecutionFailed(int transactionNumber, OperationExecutionResult errorCode, string error)
         {
-            if (transactionExecutionId != ActiveTransactionId)
-            {
-                return;
-            }
-
-            if (errorCode == OperationExecutionResult.Completed)
-            {
-                throw new ArgumentException($"Error code should not be {OperationExecutionResult.Completed}", nameof(errorCode));
-            }
-
             State = OperationExecutionState.Failed;
 
             TransactionFinishMoment = DateTime.UtcNow;

@@ -7,6 +7,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExec
     public class NotifyOperationExecutionCompletedCommand
     {
         public Guid OperationId { get; set; }
+        public Guid TransactionId { get; set; }
         public string TransactionHash { get; set; }
         public decimal TransactionAmount { get; set; }
         public decimal TransactionFee { get; set; }        

@@ -67,6 +67,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     {
                         OperationId = command.OperationId,
                         TransactionId = command.TransactionId,
+                        TransactionNumber = command.TransactionNumber,
                         TransactionHash = transaction.Hash,
                         TransactionAmount = transaction.Amount,
                         TransactionFee = transaction.Fee,
@@ -84,6 +85,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                         {
                             OperationId = command.OperationId,
                             TransactionId = command.TransactionId,
+                            TransactionNumber = command.TransactionNumber,
                             ErrorCode = transaction.ErrorCode.Value.MapToTransactionExecutionResult(),
                             Error = transaction.Error
                         });
@@ -94,6 +96,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                         {
                             OperationId = command.OperationId,
                             TransactionId = command.TransactionId,
+                            TransactionNumber = command.TransactionNumber,
                             ErrorCode = transaction.ErrorCode?.MapToTransactionExecutionResult() ?? TransactionExecutionResult.UnknownError,
                             Error = transaction.Error
                         });

@@ -41,8 +41,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             publisher.PublishEvent(new SourceAddressLockedEvent
             {
+                OperationId = command.OperationId,
                 TransactionId = command.TransactionId
-
             });
 
             return CommandHandlingResult.Ok();

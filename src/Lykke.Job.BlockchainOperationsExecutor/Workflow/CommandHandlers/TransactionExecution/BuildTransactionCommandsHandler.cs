@@ -63,6 +63,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 publisher.PublishEvent(new TransactionBuiltEvent
                 {
+                    OperationId = command.OperationId,
                     TransactionId = command.TransactionId,
                     TransactionContext = buildingResult.TransactionContext,
                     FromAddressContext = wallet.AddressContext
@@ -83,6 +84,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 {
                     OperationId = command.OperationId,
                     TransactionId = command.TransactionId,
+                    TransactionNumber = command.TransactionNumber,
                     ErrorCode = e.ErrorCode.MapToTransactionExecutionResult(),
                     Error = e.Error.GetSummaryMessage()
                 });
@@ -110,6 +112,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 publisher.PublishEvent(new TransactionBuildingRejectedEvent
                 {
+                    OperationId = command.OperationId,
                     TransactionId = command.TransactionId
                 });
 

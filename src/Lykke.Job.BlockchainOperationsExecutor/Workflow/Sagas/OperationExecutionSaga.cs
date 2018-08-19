@@ -65,7 +65,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new GenerateActiveTransactionIdCommand
                     {
-                        OperationId = aggregate.OperationId
+                        OperationId = aggregate.OperationId,
+                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber
                     },
                     Self
                 );
@@ -90,6 +91,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.ActiveTransactionId.Value,
+                        TransactionNumber = aggregate.ActiveTransactionNumber,
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
@@ -125,11 +127,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             if (_stateSwitcher.Switch(aggregate, evt))
             {
+                if (!aggregate.ActiveTransactionId.HasValue)
+                {
+                    throw new InvalidOperationException("Active transaction id should be not null here");
+                }
+
                 sender.SendCommand
                 (
                     new NotifyOperationExecutionCompletedCommand
                     {
                         OperationId = aggregate.OperationId,
+                        TransactionId = aggregate.ActiveTransactionId.Value,
                         TransactionAmount = aggregate.TransactionAmount,
                         TransactionBlock = aggregate.TransactionBlock,
                         TransactionFee = aggregate.TransactionFee,
@@ -195,7 +203,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     new ClearActiveTransactionCommand
                     {
                         OperationId = aggregate.OperationId,
-                        TransactionId = aggregate.ActiveTransactionId.Value
+                        TransactionId = aggregate.ActiveTransactionId.Value,
+                        TransactionNumber = aggregate.ActiveTransactionNumber
                     },
                     Self
                 );
@@ -217,7 +226,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new GenerateActiveTransactionIdCommand
                     {
-                        OperationId = aggregate.OperationId
+                        OperationId = aggregate.OperationId,
+                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber
                     },
                     Self
                 );

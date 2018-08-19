@@ -33,6 +33,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             {
                 publisher.PublishEvent(new SourceAddressLockReleasedEvent
                 {
+                    OperationId = command.OperationId,
                     TransactionId = command.TransactionId
                 });
             }

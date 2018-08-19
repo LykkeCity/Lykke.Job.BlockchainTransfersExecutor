@@ -15,6 +15,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             publisher.PublishEvent(new OperationExecutionCompletedEvent
             {
                 OperationId = command.OperationId,
+                TransactionId = command.TransactionId,
                 TransactionHash = command.TransactionHash,
                 TransactionAmount = command.TransactionAmount,
                 Fee = command.TransactionFee,

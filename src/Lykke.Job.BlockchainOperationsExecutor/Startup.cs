@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Lykke.Job.BlockchainOperationsExecutor
 {
@@ -53,6 +54,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                 services.AddSwaggerGen(options =>
                 {
                     options.DefaultLykkeConfiguration("v1", "BlockchainOperationsExecutor API");
+
                 });
 
                 var builder = new ContainerBuilder();

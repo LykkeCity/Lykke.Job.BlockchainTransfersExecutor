@@ -16,6 +16,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             {
                 OperationId = command.OperationId,
                 TransactionId = command.TransactionId,
+                TransactionNumber = command.TransactionNumber,
                 BlockchainType = command.BlockchainType,
                 BlockchainAssetId = command.BlockchainAssetId,
                 AssetId = command.AssetId,

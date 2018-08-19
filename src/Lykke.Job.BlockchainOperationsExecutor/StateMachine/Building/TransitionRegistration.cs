@@ -1,48 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building
 {
-    internal class TransitionRegistration<TState> where TState: struct, IConvertible
+    internal class TransitionRegistration
     {
-        private readonly TState _sourceState;
-        private readonly Type _eventType;
+        private readonly Delegate _handleTransition;
+        private readonly IReadOnlyCollection<(Delegate Precondition, Delegate FormatMessage)> _preconditions;
 
-        public TransitionRegistration(TState sourceState, Type eventType)
+        public TransitionRegistration(
+            Delegate handleTransition,
+            IReadOnlyCollection<(Delegate Precondition, Delegate FormatMessage)> preconditions)
         {
-            _sourceState = sourceState;
-            _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
+            _handleTransition = handleTransition;
+            _preconditions = preconditions;
         }
 
-
-        #region  Equals
-
-        private bool Equals(TransitionRegistration<TState> other)
+        public IReadOnlyCollection<string> GetPreconditionErrors<TAggregate, TEvent>(TAggregate aggregate, TEvent @event)
         {
-            return Equals(_sourceState, other._sourceState) && _eventType == other._eventType;
+            return _preconditions
+                .Where(p => !(bool) p.Precondition.DynamicInvoke(aggregate, @event))
+                .Select(p => (string) p.FormatMessage.DynamicInvoke(aggregate, @event))
+                .ToArray();
         }
 
-        public override bool Equals(object obj)
+        public void Switch<TAggregate, TEvent>(TAggregate aggregate, TEvent @event)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((TransitionRegistration<TState>)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (_sourceState.GetHashCode() * 397) ^ (_eventType != null ? _eventType.GetHashCode() : 0);
-            }
-        }
-
-        #endregion
-
-
-        public override string ToString()
-        {
-            return $"[From state {_sourceState} on event {_eventType.Name}]";
+            _handleTransition.DynamicInvoke(aggregate, @event);
         }
     }
 }

@@ -9,16 +9,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
     internal class StateSwitcher<TAggregate, TState>: IStateSwitcher<TAggregate> 
         where TState : struct, IConvertible
     {
-        private readonly IReadOnlyDictionary<TransitionRegistration<TState>, Delegate> _validStateTransitions;
-        private readonly ISet<TransitionRegistration<TState>> _ignoredTransitions;
+        private readonly IReadOnlyDictionary<StateTransition<TState>, TransitionRegistration> _transitions;
+        private readonly IReadOnlyDictionary<StateTransition<TState>, TransitionIgnoringRegistration> _ignoredTransitions;
         private readonly Func<TAggregate, TState> _currentStateGetter;
 
         public StateSwitcher(
-            IDictionary<TransitionRegistration<TState>, Delegate> validStateTransitions, 
-            ISet<TransitionRegistration<TState>> ignoredTransitions,
+            IReadOnlyDictionary<StateTransition<TState>, TransitionRegistration> transitions, 
+            IReadOnlyDictionary<StateTransition<TState>, TransitionIgnoringRegistration> ignoredTransitions,
             Func<TAggregate, TState> currentStateGetter)
         {
-            _validStateTransitions = new ReadOnlyDictionary<TransitionRegistration<TState>, Delegate>(validStateTransitions);
+            _transitions = transitions;
             _ignoredTransitions = ignoredTransitions;
             _currentStateGetter = currentStateGetter;
         }
@@ -36,18 +36,31 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             }
 
             var currentState = _currentStateGetter.Invoke(aggregate);
-            var transitionState = new TransitionRegistration<TState>(currentState, @event.GetType());
-
-            if (_validStateTransitions.TryGetValue(transitionState, out var transitionHandler))
+            var transitionToProcess = new StateTransition<TState>(currentState, @event.GetType());
+            
+            if(_ignoredTransitions.TryGetValue(transitionToProcess, out var ignoredTransition))
             {
-                transitionHandler.DynamicInvoke(aggregate, @event);
+                if (ignoredTransition.IsAdditionalConditionsSatisfied(aggregate, @event))
+                {
+                    return false;
+                }
+            }
+
+            if (_transitions.TryGetValue(transitionToProcess, out var transition))
+            {
+                var preconditionErrors = transition.GetPreconditionErrors(aggregate, @event);
+
+                if (preconditionErrors.Any())
+                {
+                    var errorMessage = string.Join("\r\n\t- ", preconditionErrors);
+
+                    throw new InvalidOperationException(
+                        $"Can't process event {@event.GetType().Name} in state {currentState} due to next preconditions:\r\n\t- {errorMessage}");
+                }
+
+                transition.Switch(aggregate, @event);
 
                 return true;
-            }
-            
-            if (_ignoredTransitions.Any(p => Equals(p, transitionState)))
-            {
-                return false;
             }
 
             throw new InvalidOperationException($"Unexpected event {@event.GetType().Name} in state {currentState}");

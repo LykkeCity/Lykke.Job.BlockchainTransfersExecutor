@@ -29,6 +29,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
         public Guid OperationId { get; set; }
         public Guid TransactionId { get; set; }
+        public int TransactionNumber {get; set; }
         public string BlockchainType { get; set; }
         public string FromAddress { get; set; }
         public string FromAddressContext { get; set; }
@@ -73,6 +74,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 ClearedMoment = aggregate.ClearingMoment,
                 OperationId = aggregate.OperationId,
                 TransactionId = aggregate.TransactionId,
+                TransactionNumber = aggregate.TransactionNumber,
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
                 FromAddressContext = aggregate.FromAddressContext,
@@ -109,6 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 WaitingForEndingFailureMoment,
                 OperationId,
                 TransactionId,
+                TransactionNumber,
                 BlockchainType,
                 FromAddress,
                 FromAddressContext,

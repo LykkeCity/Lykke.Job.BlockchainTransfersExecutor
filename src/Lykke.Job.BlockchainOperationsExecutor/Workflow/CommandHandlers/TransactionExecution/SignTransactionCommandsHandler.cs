@@ -46,6 +46,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             publisher.PublishEvent(new TransactionSignedEvent
             {
+                OperationId = command.OperationId,
                 TransactionId = command.TransactionId,
                 SignedTransaction = transactionSigningResult.SignedTransaction
             });

@@ -24,6 +24,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public Guid OperationId { get; }
         public Guid TransactionId { get; }
+        public int TransactionNumber { get; }
         public string FromAddress { get; }
         public string ToAddress { get; }
         public string AssetId { get; }
@@ -46,6 +47,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string version,
             Guid operationId, 
             Guid transactionId,
+            int transactionNumber,
             string fromAddress, 
             string toAddress, 
             string blockchainType,
@@ -59,6 +61,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Version = version;
             OperationId = operationId;
             TransactionId = transactionId;
+            TransactionNumber = transactionNumber;
             FromAddress = fromAddress;
             ToAddress = toAddress;
             BlockchainType = blockchainType;
@@ -73,6 +76,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public static TransactionExecutionAggregate Start(
             Guid operationId,
             Guid transactionId,
+            int transactionNumber,
             string fromAddress,
             string toAddress,
             string blockchainType,
@@ -85,6 +89,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 "*",
                 operationId,
                 transactionId,
+                transactionNumber,
                 fromAddress,
                 toAddress,
                 blockchainType,
@@ -114,6 +119,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             DateTime? waitingForEndingFailureMoment,
             Guid operationId,
             Guid transactionId,
+            int transactionNumber,
             string blockchainType,
             string fromAddress,
             string fromAddressContext,
@@ -134,6 +140,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 version,
                 operationId,
                 transactionId,
+                transactionNumber,
                 fromAddress,
                 toAddress,
                 blockchainType,

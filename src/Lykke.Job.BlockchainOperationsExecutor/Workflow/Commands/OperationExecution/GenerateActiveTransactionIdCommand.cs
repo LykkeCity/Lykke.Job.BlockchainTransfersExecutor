@@ -7,6 +7,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExec
     public class GenerateActiveTransactionIdCommand
     {
         public Guid OperationId { get; set; }
-
+        public int ActiveTransactioNumber { get; set; }
     }
 }

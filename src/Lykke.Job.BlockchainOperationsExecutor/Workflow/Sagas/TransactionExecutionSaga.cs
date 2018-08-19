@@ -38,6 +38,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 () => TransactionExecutionAggregate.Start(
                     evt.OperationId,
                     evt.TransactionId,
+                    evt.TransactionNumber,
                     evt.FromAddress,
                     evt.ToAddress,
                     evt.BlockchainType,
@@ -54,6 +55,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new LockSourceAddressCommand
                     {
+                        OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType,
                         FromAddress = aggregate.FromAddress
@@ -76,6 +78,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
+                        TransactionNumber = aggregate.TransactionNumber,
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
@@ -103,6 +106,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new SignTransactionCommand
                     {
+                        OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType,
                         SignerAddress = aggregate.FromAddress,
@@ -130,6 +134,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
+                        TransactionNumber = aggregate.TransactionNumber,
                         BlockchainType = aggregate.BlockchainType,
                         SignedTransaction = aggregate.SignedTransaction
                     },
@@ -153,6 +158,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new ReleaseSourceAddressLockCommand
                     {
+                        OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType,
                         FromAddress = aggregate.FromAddress
@@ -182,6 +188,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                             {
                                 OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
+                                TransactionNumber = aggregate.TransactionNumber,
                                 BlockchainType = aggregate.BlockchainType,
                                 BlockchainAssetId = aggregate.BlockchainAssetId
                             },
@@ -194,6 +201,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         (
                             new ClearBroadcastedTransactionCommand
                             {
+                                OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
                                 BlockchainType = aggregate.BlockchainType
                             },
@@ -222,6 +230,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     new ClearBroadcastedTransactionCommand
                     {
+                        OperationId = aggregate.OperationId,
                         TransactionId = aggregate.TransactionId,
                         BlockchainType = aggregate.BlockchainType
                     },
@@ -258,6 +267,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             (
                 new ReleaseSourceAddressLockCommand
                 {
+                    OperationId = aggregate.OperationId,
                     TransactionId = aggregate.TransactionId,
                     BlockchainType = aggregate.BlockchainType,
                     FromAddress = aggregate.FromAddress,
@@ -282,6 +292,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         (
                             new ReleaseSourceAddressLockCommand
                             {
+                                OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
                                 BlockchainType = aggregate.BlockchainType,
                                 FromAddress = aggregate.FromAddress
@@ -295,6 +306,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         (
                             new ClearBroadcastedTransactionCommand
                             {
+                                OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
                                 BlockchainType = aggregate.BlockchainType
                             },
@@ -326,6 +338,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         (
                             new ReleaseSourceAddressLockCommand
                             {
+                                OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
                                 BlockchainType = aggregate.BlockchainType,
                                 FromAddress = aggregate.FromAddress
@@ -339,6 +352,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         (
                             new ClearBroadcastedTransactionCommand
                             {
+                                OperationId = aggregate.OperationId,
                                 TransactionId = aggregate.TransactionId,
                                 BlockchainType = aggregate.BlockchainType
                             },

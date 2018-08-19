@@ -46,6 +46,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     
                     publisher.PublishEvent(new TransactionBroadcastedEvent
                     {
+                        OperationId = command.OperationId,
                         TransactionId = command.TransactionId
                     });
 
@@ -62,6 +63,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                     publisher.PublishEvent(new TransactionBroadcastedEvent
                     {
+                        OperationId = command.OperationId,
                         TransactionId = command.TransactionId
                     });
                     
@@ -80,6 +82,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     {
                         OperationId = command.OperationId,
                         TransactionId = command.TransactionId,
+                        TransactionNumber = command.TransactionNumber,
                         ErrorCode = TransactionExecutionResult.AmountIsTooSmall,
                         Error = "Amount is to small"
                     });
@@ -110,6 +113,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     {
                         OperationId = command.OperationId,
                         TransactionId = command.TransactionId,
+                        TransactionNumber = command.TransactionNumber,
                         ErrorCode = TransactionExecutionResult.RebuildingIsRequired,
                         Error = "Transaction building should be repeated"
                     });

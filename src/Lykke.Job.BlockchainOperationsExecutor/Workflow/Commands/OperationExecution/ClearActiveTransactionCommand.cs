@@ -8,5 +8,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExec
     {
         public Guid OperationId { get; set; }
         public Guid TransactionId { get; set; }
+        public int TransactionNumber { get; set; }
     }
 }
