@@ -15,6 +15,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             publisher.PublishEvent(new OperationExecutionFailedEvent
             {
                 OperationId = command.OperationId,
+                TransactionId = command.TransactionId,
                 Error = command.Error,
                 ErrorCode = command.ErrorCode
             });
