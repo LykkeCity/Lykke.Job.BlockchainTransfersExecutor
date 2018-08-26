@@ -1,7 +1,9 @@
 ﻿using Autofac;
 using Common.Log;
-using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
+using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
 using Lykke.SettingsReader;
 
@@ -23,10 +25,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder.Register(c => OperationExecutionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
-                .As<IOperationExecutionsRepository>();
+                .As<IOperationExecutionsRepository>()
+                .SingleInstance();
+
+            builder.Register(c => ActiveTransactionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
+                .As<IActiveTransactionsRepository>()
+                .SingleInstance();
+
+            builder.Register(c => TransactionExecutionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
+                .As<ITransactionExecutionsRepository>()
+                .SingleInstance();
 
             builder.Register(c => SourceAddressLocksRepository.Create(_dbSettings.Nested(x => x.DataConnString), _log))
-                .As<ISourceAddresLocksRepoistory>();
+                .As<ISourceAddresLocksRepoistory>()
+                .SingleInstance();
         }
     }
 }

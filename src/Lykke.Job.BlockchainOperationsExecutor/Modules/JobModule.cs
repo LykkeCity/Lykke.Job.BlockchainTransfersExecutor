@@ -45,12 +45,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterType<ShutdownManager>()
                 .As<IShutdownManager>();
 
-            _services.RegisterAssetsClient(new AssetServiceSettings
-            {
-                BaseUri = new Uri(_assetsSettings.ServiceUrl),
-                AssetsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod,
-                AssetPairsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod
-            });
+            _services.RegisterAssetsClient
+            (
+                new AssetServiceSettings
+                {
+                    BaseUri = new Uri(_assetsSettings.ServiceUrl),
+                    AssetsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod,
+                    AssetPairsCacheExpirationPeriod = _assetsSettings.CacheExpirationPeriod
+                },
+                _log
+            );
 
             builder.RegisterChaosKitty(_chaosSettings);
 

@@ -8,11 +8,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow
     {
         public TimeSpan SourceAddressLockingRetryDelay { get; }
         public TimeSpan WaitForTransactionRetryDelay { get; }
+        public TimeSpan NotEnoughBalanceRetryDelay { get; }
 
-        public RetryDelayProvider(TimeSpan sourceAddressLockingRetryDelay, TimeSpan waitForTransactionRetryDelay)
+        public RetryDelayProvider(TimeSpan sourceAddressLockingRetryDelay, 
+            TimeSpan waitForTransactionRetryDelay, 
+            TimeSpan notEnoughBalanceRetryDelay)
         {
             SourceAddressLockingRetryDelay = sourceAddressLockingRetryDelay;
             WaitForTransactionRetryDelay = waitForTransactionRetryDelay;
+            NotEnoughBalanceRetryDelay = notEnoughBalanceRetryDelay;
         }
     }
 }

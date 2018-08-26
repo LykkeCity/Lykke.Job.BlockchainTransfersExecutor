@@ -19,5 +19,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings
 
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public TimeSpan WaitForTransactionRetryDelay { get; set; }
+
+        [UsedImplicitly(ImplicitUseKindFlags.Assign)]
+        public TimeSpan NotEnoughBalanceRetryDelay { get; set; }
     }
 }
