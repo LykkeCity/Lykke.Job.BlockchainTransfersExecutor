@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
-using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Service.Assets.Client;
@@ -10,30 +9,30 @@ using Lykke.Service.Assets.Client;
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.OperationExecution
 {
     [UsedImplicitly]
-    public class StartOperationExecutionCommandsHandler
+    public class StartOneToManyOperationExecutionCommandsHandler
     {
         private readonly IAssetsServiceWithCache _assetsService;
 
-        public StartOperationExecutionCommandsHandler(IAssetsServiceWithCache assetsService)
+        public StartOneToManyOperationExecutionCommandsHandler(IAssetsServiceWithCache assetsService)
         {
             _assetsService = assetsService;
         }
 
         [UsedImplicitly]
-        public async Task<CommandHandlingResult> Handle(StartOperationExecutionCommand command, IEventPublisher publisher)
-        {
+        public async Task<CommandHandlingResult> Handle(StartOneToManyOutputsExecutionCommand command, IEventPublisher publisher)
+        {           
             var asset = await _assetsService.TryGetAssetAsync(command.AssetId);
-
+            
             if (asset == null)
             {
                 throw new InvalidOperationException("Asset not found");
             }
-
+            
             if (string.IsNullOrWhiteSpace(asset.BlockchainIntegrationLayerId))
             {
                 throw new InvalidOperationException("BlockchainIntegrationLayerId of the asset is not configured");
             }
-
+            
             if (string.IsNullOrWhiteSpace(asset.BlockchainIntegrationLayerAssetId))
             {
                 throw new InvalidOperationException("BlockchainIntegrationLayerAssetId of the asset is not configured");
@@ -43,14 +42,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             {
                 OperationId = command.OperationId,
                 FromAddress = command.FromAddress,
-                ToEndpoints = new[]
-                {
-                    new OperationEndpoint
-                    {
-                        Address = command.ToAddress,
-                        Amount = command.Amount
-                    }
-                },
+                ToEndpoints = command.ToEndpoints,
                 BlockchainType = asset.BlockchainIntegrationLayerId,
                 BlockchainAssetId = asset.BlockchainIntegrationLayerAssetId,
                 AssetId = command.AssetId,

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
+using Lykke.AzureStorage.Tables.Entity.Annotation;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecutions
@@ -33,7 +35,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         public string BlockchainType { get; set; }
         public string FromAddress { get; set; }
         public string FromAddressContext { get; set; }
-        public string ToAddress { get; set; }
+        [JsonValueSerializer]
+        public TransactionEndpointEntity[] ToEndpoints { get; set; }
         public string AssetId { get; set; }
         public decimal Amount { get; set; }
         public bool IncludeFee { get; set; }
@@ -78,7 +81,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
                 FromAddressContext = aggregate.FromAddressContext,
-                ToAddress = aggregate.ToAddress,
+                ToEndpoints = aggregate.ToEndpoints
+                    .Select(TransactionEndpointEntity.FromDomain)
+                    .ToArray(),
                 AssetId = aggregate.AssetId,
                 Amount = aggregate.Amount,
                 IncludeFee = aggregate.IncludeFee,
@@ -115,7 +120,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 BlockchainType,
                 FromAddress,
                 FromAddressContext,
-                ToAddress,
+                ToEndpoints
+                    .Select(x => x.ToDomain())
+                    .ToArray(),
                 AssetId,
                 Amount,
                 IncludeFee,
