@@ -40,7 +40,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.TransactionId,
                     evt.TransactionNumber,
                     evt.FromAddress,
-                    evt.ToAddress,
+                    evt.ToEndpoints
+                        .Select(p => p.FromContract())
+                        .ToArray(),
                     evt.BlockchainType,
                     evt.BlockchainAssetId,
                     evt.AssetId,
@@ -82,8 +84,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
-                        ToAddress = aggregate.ToAddress,
-                        Amount = aggregate.Amount,
+                        ToEndpoints = evt.ToEndpoints,
                         IncludeFee = aggregate.IncludeFee
                     },
                     Self

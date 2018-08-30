@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions
 {
@@ -26,7 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public Guid TransactionId { get; }
         public int TransactionNumber { get; }
         public string FromAddress { get; }
-        public string ToAddress { get; }
+        public IReadOnlyCollection<TransactionEndpointValueType> ToEndpoints { get; }
         public string AssetId { get; }
         public decimal Amount { get; }
         public bool IncludeFee { get; }
@@ -50,7 +51,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress, 
-            string toAddress, 
+            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
             string blockchainType,
             string blockchainAssetId,
             string assetId, 
@@ -64,7 +65,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             TransactionId = transactionId;
             TransactionNumber = transactionNumber;
             FromAddress = fromAddress;
-            ToAddress = toAddress;
+            ToEndpoints = toEndpoints;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
             AssetId = assetId;
@@ -79,7 +80,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress,
-            string toAddress,
+            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
             string blockchainType,
             string blockchainAssetId,
             string assetId,
@@ -92,7 +93,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toAddress,
+                toEndpoints,
                 blockchainType,
                 blockchainAssetId,
                 assetId,
@@ -124,7 +125,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string blockchainType,
             string fromAddress,
             string fromAddressContext,
-            string toAddress,
+            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
             string assetId,
             decimal amount,
             bool includeFee,
@@ -143,7 +144,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toAddress,
+                toEndpoints,
                 blockchainType,
                 blockchainAssetId,
                 assetId,
