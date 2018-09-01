@@ -14,7 +14,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionEx
         public string BlockchainAssetId { get; set; }
         public string AssetId { get; set; }
         public string FromAddress { get; set; }
-        public OperationEndpoint[] ToEndpoints { get; set; }
+        public OperationOutput[] Outputs { get; set; }
         public bool IncludeFee { get; set; }
     }
 }

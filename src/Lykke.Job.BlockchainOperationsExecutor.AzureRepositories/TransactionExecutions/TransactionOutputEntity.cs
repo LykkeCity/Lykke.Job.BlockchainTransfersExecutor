@@ -4,21 +4,23 @@ using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecutions
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    internal class TransactionEndpointEntity
+    internal class TransactionOutputEntity
     {
         public string Address { get; set; }
         public decimal Amount { get; set; }
-        public TransactionEndpointValueType ToDomain()
+        
+        public static TransactionOutputEntity FromDomain(TransactionOutputValueType source)
         {
-            return new TransactionEndpointValueType(Address, Amount);
-        }
-        public static TransactionEndpointEntity FromDomain(TransactionEndpointValueType source)
-        {
-            return new TransactionEndpointEntity
+            return new TransactionOutputEntity
             {
                 Amount = source.Amount,
                 Address = source.Address
             };
+        }
+
+        public TransactionOutputValueType ToDomain()
+        {
+            return new TransactionOutputValueType(Address, Amount);
         }
     }
 }

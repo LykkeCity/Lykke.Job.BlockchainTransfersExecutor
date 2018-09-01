@@ -42,7 +42,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             {
                 OperationId = command.OperationId,
                 FromAddress = command.FromAddress,
-                ToEndpoints = command.ToEndpoints,
+                Outputs = command.Outputs,
                 BlockchainType = asset.BlockchainIntegrationLayerId,
                 BlockchainAssetId = asset.BlockchainIntegrationLayerAssetId,
                 AssetId = command.AssetId,
