@@ -20,11 +20,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -66,11 +65,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -115,11 +113,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -164,11 +161,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -210,11 +206,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -256,11 +251,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionEndpointValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 

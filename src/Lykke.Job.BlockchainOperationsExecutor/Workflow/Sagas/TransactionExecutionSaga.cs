@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
@@ -41,12 +43,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.TransactionNumber,
                     evt.FromAddress,
                     evt.ToEndpoints
-                        .Select(p => p.FromContract())
+                        .Select(e => e.FromContract())
                         .ToArray(),
                     evt.BlockchainType,
                     evt.BlockchainAssetId,
                     evt.AssetId,
-                    evt.Amount,
                     evt.IncludeFee));
 
             _chaosKitty.Meow(evt.TransactionId);
@@ -84,7 +85,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
-                        ToEndpoints = evt.ToEndpoints,
+                        ToEndpoints = aggregate.ToEndpoints
+                            .Select(e => e.ToContract())
+                            .ToArray(),
                         IncludeFee = aggregate.IncludeFee
                     },
                     Self
