@@ -5,7 +5,7 @@ using MessagePack;
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Commands
 {
     /// <summary>
-    /// Command to start new blockchain operation execution
+    /// Command to start new blockchain operation execution (from one source to one destination address)
     /// </summary>
     [PublicAPI]
     [MessagePackObject(keyAsPropertyName: true)]

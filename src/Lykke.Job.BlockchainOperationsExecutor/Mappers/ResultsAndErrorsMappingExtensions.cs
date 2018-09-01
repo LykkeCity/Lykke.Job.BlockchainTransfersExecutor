@@ -6,7 +6,7 @@ using Lykke.Service.BlockchainApi.Contract;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Mappers
 {
-    public static class MappingExtensions
+    public static class ResultsAndErrorsMappingExtensions
     {
         public static TransactionExecutionResult MapToTransactionExecutionResult(
             this BlockchainErrorCode source)

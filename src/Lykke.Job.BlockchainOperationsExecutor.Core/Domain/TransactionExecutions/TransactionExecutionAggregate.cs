@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions
 {
@@ -26,9 +27,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public Guid TransactionId { get; }
         public int TransactionNumber { get; }
         public string FromAddress { get; }
-        public string ToAddress { get; }
+        public IReadOnlyCollection<TransactionOutputValueType> Outputs { get; }
         public string AssetId { get; }
-        public decimal Amount { get; }
         public bool IncludeFee { get; }
 
         public string BlockchainType { get; }
@@ -49,11 +49,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress, 
-            string toAddress, 
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string blockchainType,
             string blockchainAssetId,
             string assetId, 
-            decimal amount, 
             bool includeFee,
             TransactionExecutionState state,
             DateTime startMoment)
@@ -63,11 +62,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             TransactionId = transactionId;
             TransactionNumber = transactionNumber;
             FromAddress = fromAddress;
-            ToAddress = toAddress;
+            Outputs = outputs;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
             AssetId = assetId;
-            Amount = amount;
             IncludeFee = includeFee;
             State = state;
             StartMoment = startMoment;
@@ -78,11 +76,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress,
-            string toAddress,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string blockchainType,
             string blockchainAssetId,
             string assetId,
-            decimal amount,
             bool includeFee)
         {
             return new TransactionExecutionAggregate(
@@ -91,11 +88,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toAddress,
+                outputs,
                 blockchainType,
                 blockchainAssetId,
                 assetId,
-                amount,
                 includeFee,
                 TransactionExecutionState.Started,
                 DateTime.UtcNow);
@@ -123,9 +119,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string blockchainType,
             string fromAddress,
             string fromAddressContext,
-            string toAddress,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
-            decimal amount,
             bool includeFee,
             string context,
             string blockchainAssetId,
@@ -142,11 +137,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toAddress,
+                outputs,
                 blockchainType,
                 blockchainAssetId,
                 assetId,
-                amount,
                 includeFee,
                 state,
                 startMoment)

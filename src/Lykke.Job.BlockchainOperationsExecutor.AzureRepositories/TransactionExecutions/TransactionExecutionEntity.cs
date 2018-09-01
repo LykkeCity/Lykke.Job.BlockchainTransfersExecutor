@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using JetBrains.Annotations;
 using Lykke.AzureStorage.Tables;
+using Lykke.AzureStorage.Tables.Entity.Annotation;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecutions
@@ -33,9 +35,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         public string BlockchainType { get; set; }
         public string FromAddress { get; set; }
         public string FromAddressContext { get; set; }
-        public string ToAddress { get; set; }
+        [JsonValueSerializer]
+        public TransactionOutputEntity[] Outputs { get; set; }
         public string AssetId { get; set; }
-        public decimal Amount { get; set; }
         public bool IncludeFee { get; set; }
         public string BlockchainAssetId { get; set; }
         public decimal? TransactionAmount { get; set; }
@@ -78,9 +80,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 BlockchainType = aggregate.BlockchainType,
                 FromAddress = aggregate.FromAddress,
                 FromAddressContext = aggregate.FromAddressContext,
-                ToAddress = aggregate.ToAddress,
+                Outputs = aggregate.Outputs
+                    .Select(TransactionOutputEntity.FromDomain)
+                    .ToArray(),
                 AssetId = aggregate.AssetId,
-                Amount = aggregate.Amount,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
                 TransactionAmount = aggregate.TransactionAmount,
@@ -115,9 +118,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 BlockchainType,
                 FromAddress,
                 FromAddressContext,
-                ToAddress,
+                Outputs
+                    .Select(x => x.ToDomain())
+                    .ToArray(),
                 AssetId,
-                Amount,
                 IncludeFee,
                 blobData?.TransactionContext,
                 BlockchainAssetId,
