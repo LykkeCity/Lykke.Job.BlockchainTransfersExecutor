@@ -29,7 +29,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public string FromAddress { get; }
         public IReadOnlyCollection<TransactionEndpointValueType> ToEndpoints { get; }
         public string AssetId { get; }
-        public decimal Amount { get; }
         public bool IncludeFee { get; }
 
         public string BlockchainType { get; }
@@ -55,7 +54,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string blockchainType,
             string blockchainAssetId,
             string assetId, 
-            decimal amount, 
             bool includeFee,
             TransactionExecutionState state,
             DateTime startMoment)
@@ -69,7 +67,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
             AssetId = assetId;
-            Amount = amount;
             IncludeFee = includeFee;
             State = state;
             StartMoment = startMoment;
@@ -84,7 +81,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string blockchainType,
             string blockchainAssetId,
             string assetId,
-            decimal amount,
             bool includeFee)
         {
             return new TransactionExecutionAggregate(
@@ -97,7 +93,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 blockchainType,
                 blockchainAssetId,
                 assetId,
-                amount,
                 includeFee,
                 TransactionExecutionState.Started,
                 DateTime.UtcNow);
@@ -127,7 +122,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string fromAddressContext,
             IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
             string assetId,
-            decimal amount,
             bool includeFee,
             string context,
             string blockchainAssetId,
@@ -148,7 +142,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 blockchainType,
                 blockchainAssetId,
                 assetId,
-                amount,
                 includeFee,
                 state,
                 startMoment)

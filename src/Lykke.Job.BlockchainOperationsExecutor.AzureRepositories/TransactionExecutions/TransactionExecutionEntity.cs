@@ -38,7 +38,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         [JsonValueSerializer]
         public TransactionEndpointEntity[] ToEndpoints { get; set; }
         public string AssetId { get; set; }
-        public decimal Amount { get; set; }
         public bool IncludeFee { get; set; }
         public string BlockchainAssetId { get; set; }
         public decimal? TransactionAmount { get; set; }
@@ -85,7 +84,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                     .Select(TransactionEndpointEntity.FromDomain)
                     .ToArray(),
                 AssetId = aggregate.AssetId,
-                Amount = aggregate.Amount,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
                 TransactionAmount = aggregate.TransactionAmount,
@@ -124,7 +122,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                     .Select(x => x.ToDomain())
                     .ToArray(),
                 AssetId,
-                Amount,
                 IncludeFee,
                 blobData?.TransactionContext,
                 BlockchainAssetId,

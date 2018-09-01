@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -46,9 +47,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     evt.OperationId,
                     evt.FromAddress,
-                    evt.ToAddress,
+                    evt.ToEndpoints
+                        .Select(e => e.FromContract())
+                        .ToArray(),
                     evt.AssetId,
-                    evt.Amount,
                     evt.IncludeFee,
                     evt.BlockchainType,
                     evt.BlockchainAssetId
@@ -95,9 +97,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
-                        ToAddress = aggregate.ToAddress,
+                        ToEndpoints = aggregate.ToEndpoints
+                            .Select(e => e.ToContract())
+                            .ToArray(),
                         AssetId = aggregate.AssetId,
-                        Amount = aggregate.Amount,
                         IncludeFee = aggregate.IncludeFee
                     },
                     CqrsModule.TransactionExecutor
