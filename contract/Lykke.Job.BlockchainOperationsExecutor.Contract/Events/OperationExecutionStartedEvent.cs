@@ -24,7 +24,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Destination
         /// </summary>
-        public OperationEndpoint[] ToEndpoints { get; set; }
+        public OperationOutput[] Outputs { get; set; }
 
         /// <summary>
         /// Lykke asset ID (not the blockchain one)

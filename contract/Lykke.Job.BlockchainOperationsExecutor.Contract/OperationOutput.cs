@@ -5,7 +5,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract
 {
     [PublicAPI]
     [MessagePackObject(keyAsPropertyName: true)]
-    public class OperationEndpoint
+    public class OperationOutput
     {
         public string Address { get; set; }
 

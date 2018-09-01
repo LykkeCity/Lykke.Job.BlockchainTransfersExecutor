@@ -56,20 +56,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             {
                 TransactionBuildingResult buildingResult;
 
-                if (command.ToEndpoints.Length > 1)
+                if (command.Outputs.Length > 1)
                 {
                     buildingResult = await apiClient.BuildTransactionWithManyOutputsAsync
                     (
                         command.TransactionId,
                         command.FromAddress,
                         wallet.AddressContext,
-                        command.ToEndpoints.Select(p => new BuildingTransactionOutput(p.Address, p.Amount)),
+                        command.Outputs.Select(p => new BuildingTransactionOutput(p.Address, p.Amount)),
                         blockchainAsset
                     );
                 }
-                else if(command.ToEndpoints.Length == 1)
+                else if(command.Outputs.Length == 1)
                 {
-                    var destination = command.ToEndpoints.Single();
+                    var destination = command.Outputs.Single();
 
                     buildingResult = await apiClient.BuildSingleTransactionAsync
                     (
@@ -84,7 +84,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 }
                 else
                 {
-                    throw new InvalidOperationException("There should be at least one destination endpoint");
+                    throw new InvalidOperationException("There should be at least one output");
                 }
 
                 _chaosKitty.Meow(command.TransactionId);

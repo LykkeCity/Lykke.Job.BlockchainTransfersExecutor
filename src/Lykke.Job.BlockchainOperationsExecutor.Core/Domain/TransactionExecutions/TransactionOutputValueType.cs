@@ -1,12 +1,12 @@
 ﻿namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions
 {
-    public class TransactionEndpointValueType
+    public class TransactionOutputValueType
     {
         public string Address { get; }
             
         public decimal Amount { get; }
 
-        public TransactionEndpointValueType(string address, decimal amount)
+        public TransactionOutputValueType(string address, decimal amount)
         {
             Address = address;
             Amount = amount;

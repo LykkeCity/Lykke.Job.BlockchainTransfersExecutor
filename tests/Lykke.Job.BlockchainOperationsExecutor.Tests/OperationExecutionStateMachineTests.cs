@@ -22,7 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 "",
-                new []{new TransactionEndpointValueType("", 0)},
+                new []{new TransactionOutputValueType("", 0)},
                 "",
                 false,
                 "",
@@ -65,7 +65,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 "",
-                new []{new TransactionEndpointValueType("", 0)},
+                new []{new TransactionOutputValueType("", 0)},
                 "",
                 false,
                 "",
@@ -109,7 +109,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 "",
-                new []{new TransactionEndpointValueType("", 0)},
+                new []{new TransactionOutputValueType("", 0)},
                 "",
                 false,
                 "",
@@ -180,7 +180,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             (
                 Guid.NewGuid(),
                 "",
-                new []{new TransactionEndpointValueType("", 0)},
+                new []{new TransactionOutputValueType("", 0)},
                 "",
                 false,
                 "",

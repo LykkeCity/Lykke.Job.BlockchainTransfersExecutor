@@ -22,9 +22,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Commands
         public string FromAddress { get; set; }
         
         /// <summary>
-        /// Destination endpoints
+        /// Outputs
         /// </summary>
-        public OperationEndpoint[] ToEndpoints { get; set; }
+        public OperationOutput[] Outputs { get; set; }
         
         /// <summary>
         /// Lykke asset ID (not the blockchain one)

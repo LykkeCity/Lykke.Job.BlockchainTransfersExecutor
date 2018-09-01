@@ -5,17 +5,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Mappers
 {
     public static class OperationOutputMappingExtensions
     {
-        public static OperationEndpoint ToContract(this TransactionEndpointValueType source)
+        public static OperationOutput ToContract(this TransactionOutputValueType source)
         {
-            return new OperationEndpoint
+            return new OperationOutput
             {
                 Address = source.Address,
                 Amount = source.Amount
             };
         }
-        public static TransactionEndpointValueType FromContract(this OperationEndpoint source)
+        public static TransactionOutputValueType FromContract(this OperationOutput source)
         {
-            return new TransactionEndpointValueType(source.Address, source.Amount);
+            return new TransactionOutputValueType(source.Address, source.Amount);
         }
     }
 }

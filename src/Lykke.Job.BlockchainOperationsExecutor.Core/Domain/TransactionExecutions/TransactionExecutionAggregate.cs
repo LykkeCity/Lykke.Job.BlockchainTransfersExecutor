@@ -27,7 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public Guid TransactionId { get; }
         public int TransactionNumber { get; }
         public string FromAddress { get; }
-        public IReadOnlyCollection<TransactionEndpointValueType> ToEndpoints { get; }
+        public IReadOnlyCollection<TransactionOutputValueType> Outputs { get; }
         public string AssetId { get; }
         public bool IncludeFee { get; }
 
@@ -50,7 +50,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress, 
-            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string blockchainType,
             string blockchainAssetId,
             string assetId, 
@@ -63,7 +63,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             TransactionId = transactionId;
             TransactionNumber = transactionNumber;
             FromAddress = fromAddress;
-            ToEndpoints = toEndpoints;
+            Outputs = outputs;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
             AssetId = assetId;
@@ -77,7 +77,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             Guid transactionId,
             int transactionNumber,
             string fromAddress,
-            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string blockchainType,
             string blockchainAssetId,
             string assetId,
@@ -89,7 +89,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toEndpoints,
+                outputs,
                 blockchainType,
                 blockchainAssetId,
                 assetId,
@@ -120,7 +120,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string blockchainType,
             string fromAddress,
             string fromAddressContext,
-            IReadOnlyCollection<TransactionEndpointValueType> toEndpoints,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
             bool includeFee,
             string context,
@@ -138,7 +138,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 transactionId,
                 transactionNumber,
                 fromAddress,
-                toEndpoints,
+                outputs,
                 blockchainType,
                 blockchainAssetId,
                 assetId,

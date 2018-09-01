@@ -43,9 +43,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             {
                 OperationId = command.OperationId,
                 FromAddress = command.FromAddress,
-                ToEndpoints = new[]
+                Outputs = new[]
                 {
-                    new OperationEndpoint
+                    new OperationOutput
                     {
                         Address = command.ToAddress,
                         Amount = command.Amount
