@@ -22,6 +22,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
+using OperationExecutionStartedEvent = Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution.OperationExecutionStartedEvent;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 {

@@ -13,7 +13,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Mappers
                 Amount = source.Amount
             };
         }
-        public static TransactionOutputValueType FromContract(this OperationOutput source)
+        public static TransactionOutputValueType ToDomain(this OperationOutput source)
         {
             return new TransactionOutputValueType(source.Address, source.Amount);
         }

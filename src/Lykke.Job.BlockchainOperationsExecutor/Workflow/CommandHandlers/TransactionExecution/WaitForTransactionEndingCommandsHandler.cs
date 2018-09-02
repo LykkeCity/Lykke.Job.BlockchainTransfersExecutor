@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
+using Lykke.Service.BlockchainApi.Client.Models;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainApi.Contract.Transactions;
 
@@ -28,8 +31,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         {
             _log = logFactory.CreateLog(this);
             _delayProvider = delayProvider;
-            _apiClientProvider = apiClientProvider;
-        }
+            _apiClientProvider = apiClientProvider;}
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(WaitForTransactionEndingCommand command, IEventPublisher publisher)
@@ -39,7 +41,48 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             // TODO: Cache it
 
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
-            var transaction = await apiClient.TryGetBroadcastedSingleTransactionAsync(command.TransactionId, blockchainAsset);
+            BaseBroadcastedTransaction transaction;
+            OperationOutput[] transactionOutputs;
+
+            if (command.Outputs.Length > 1)
+            {
+                var manyOutputsTransaction = await apiClient.TryGetBroadcastedTransactionWithManyOutputsAsync
+                (
+                    command.TransactionId,
+                    blockchainAsset
+                );
+
+                transaction = manyOutputsTransaction;
+                transactionOutputs = manyOutputsTransaction.Outputs
+                    .Select(o => new OperationOutput
+                    {
+                        Address = o.ToAddress,
+                        Amount = o.Amount
+                    })
+                    .ToArray();
+            }
+            else if(command.Outputs.Length == 1)
+            {
+                var singleTransaction = await apiClient.TryGetBroadcastedSingleTransactionAsync
+                (
+                    command.TransactionId, 
+                    blockchainAsset
+                );
+
+                transaction = singleTransaction;
+                transactionOutputs = new[]
+                {
+                    new OperationOutput
+                    {
+                        Address = command.Outputs.Single().Address,
+                        Amount = singleTransaction.Amount
+                    }
+                };
+            }
+            else
+            {
+                throw new InvalidOperationException("There should be at least one output");
+            }
 
             if (transaction == null)
             {
@@ -65,7 +108,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                         TransactionId = command.TransactionId,
                         TransactionNumber = command.TransactionNumber,
                         TransactionHash = transaction.Hash,
-                        TransactionAmount = transaction.Amount,
+                        TransactionOutputs = transactionOutputs,
                         TransactionFee = transaction.Fee,
                         TransactionBlock = transaction.Block
                     });

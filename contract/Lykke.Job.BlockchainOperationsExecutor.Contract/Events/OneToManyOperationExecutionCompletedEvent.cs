@@ -5,11 +5,11 @@ using MessagePack;
 namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
 {
     /// <summary>
-    /// Operation execution is completed
+    /// Execution of the operation with multiple outputs is completed
     /// </summary>
     [PublicAPI]
     [MessagePackObject(keyAsPropertyName: true)]
-    public class OperationExecutionCompletedEvent
+    public class OneToManyOperationExecutionCompletedEvent
     {
         /// <summary>
         /// Lykke unique operation ID
@@ -32,9 +32,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public decimal Fee { get; set; }
 
         /// <summary>
-        /// Actual underlying transaction amount.
+        /// Actual underlying transaction outputs.
         /// </summary>
-        public decimal TransactionAmount { get; set; }
+        public OperationOutput[] TransactionOutputs { get; set; }
 
         /// <summary>
         /// Number of the block, transaction was included to
