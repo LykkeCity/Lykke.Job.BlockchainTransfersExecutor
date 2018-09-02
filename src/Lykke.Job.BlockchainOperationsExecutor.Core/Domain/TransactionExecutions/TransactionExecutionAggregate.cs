@@ -36,7 +36,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public string Context { get; private set; }
         public string SignedTransaction { get; private set; }
-        public decimal? TransactionAmount { get; private set; }
+        public IReadOnlyCollection<TransactionOutputValueType> TransactionOutputs { get; set; }
         public long? Block { get; private set; }
         public decimal? Fee { get; private set; }
         public string Hash { get; private set; }
@@ -125,7 +125,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             string context,
             string blockchainAssetId,
             string signedTransaction,
-            decimal? transactionAmount,
+            IReadOnlyCollection<TransactionOutputValueType> transactionOutputs,
             long? block,
             decimal? fee,
             string hash,
@@ -160,7 +160,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
                 FromAddressContext = fromAddressContext,
                 Context = context,
                 SignedTransaction = signedTransaction,
-                TransactionAmount = transactionAmount,
+                TransactionOutputs = transactionOutputs,
                 Block = block,
                 Fee = fee,
                 Hash = hash,
@@ -208,19 +208,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             SourceAddressReleasingMoment = DateTime.UtcNow;
         }
 
-        public void OnCompleted(decimal amount, long block, decimal fee, string hash)
+        public void OnCompleted(IReadOnlyCollection<TransactionOutputValueType> outputs, long block, decimal fee, string hash)
         {
             State = TransactionExecutionState.Completed;
 
             FinishMoment = DateTime.UtcNow;
 
             Result = TransactionExecutionResult.Completed;
-            TransactionAmount = amount;
+            TransactionOutputs = outputs;
             Block = block;
             Fee = fee;
             Hash = hash;
         }
-        
+
         public void OnCleared()
         {
             ClearingMoment = DateTime.UtcNow;

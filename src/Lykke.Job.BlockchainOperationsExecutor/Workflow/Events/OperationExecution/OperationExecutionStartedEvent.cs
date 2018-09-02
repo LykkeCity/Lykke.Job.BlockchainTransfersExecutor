@@ -1,8 +1,9 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution
 {
     /// <summary>
     /// Operation execution is started

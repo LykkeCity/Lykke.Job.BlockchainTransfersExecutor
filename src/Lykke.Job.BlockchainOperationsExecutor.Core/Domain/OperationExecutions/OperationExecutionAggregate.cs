@@ -30,7 +30,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
 
         public Guid? ActiveTransactionId { get; private set; }
         public int ActiveTransactionNumber { get; private set; }
-        public decimal TransactionAmount { get; private set; }
+        public IReadOnlyCollection<TransactionOutputValueType> TransactionOutputs { get; private set; }
         public long TransactionBlock { get; private set; }
         public decimal TransactionFee { get; private set; }
         public string TransactionHash { get; private set; }
@@ -102,7 +102,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             string blockchainAssetId,
             Guid? activeTransactionId,
             int activeTransactionNumber,
-            decimal transactionAmount,
+            IReadOnlyCollection<TransactionOutputValueType> transactionOutputs,
             long transactionBlock,
             decimal transactionFee,
             string transactionHash,
@@ -129,7 +129,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 FinishMoment = finishMoment,
                 ActiveTransactionId = activeTransactionId,
                 ActiveTransactionNumber = activeTransactionNumber,
-                TransactionAmount = transactionAmount,
+                TransactionOutputs = transactionOutputs,
                 TransactionBlock = transactionBlock,
                 TransactionFee = transactionFee,
                 TransactionHash = transactionHash,
@@ -173,7 +173,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         }
 
         public void OnTransactionExecutionCompleted(
-            decimal transactionAmount, 
+            IReadOnlyCollection<TransactionOutputValueType> transactionOutputs, 
             long transactionBlock, 
             decimal transactionFee, 
             string transactionHash)
@@ -183,7 +183,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             TransactionFinishMoment = DateTime.UtcNow;
 
             Result = OperationExecutionResult.Completed;
-            TransactionAmount = transactionAmount;
+            TransactionOutputs = transactionOutputs;
             TransactionBlock = transactionBlock;
             TransactionFee = transactionFee;
             TransactionHash = transactionHash;
