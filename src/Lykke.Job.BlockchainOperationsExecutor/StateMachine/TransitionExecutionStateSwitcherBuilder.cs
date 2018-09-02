@@ -1,4 +1,6 @@
-﻿using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+﻿using System.Linq;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 
@@ -48,7 +50,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.From(TransactionExecutionState.WaitingForEnding, outputs =>
             {
                 outputs.On<TransactionExecutionCompletedEvent>()
-                    .HandleTransition((a, e) => a.OnCompleted(e.TransactionAmount, e.TransactionBlock, e.TransactionFee, e.TransactionHash));
+                    .HandleTransition((a, e) => a.OnCompleted(
+                        e.TransactionOutputs
+                            .Select(o => o.ToDomain())
+                            .ToArray(),
+                        e.TransactionBlock,
+                        e.TransactionFee,
+                        e.TransactionHash));
 
                 outputs.On<TransactionExecutionFailedEvent>()
                     .HandleTransition((a, e) => a.OnWaitingForEndingFailed(e.ErrorCode, e.Error));

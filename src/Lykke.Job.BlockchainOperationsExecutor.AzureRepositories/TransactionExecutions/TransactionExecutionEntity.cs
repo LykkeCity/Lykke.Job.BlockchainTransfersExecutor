@@ -40,7 +40,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         public string AssetId { get; set; }
         public bool IncludeFee { get; set; }
         public string BlockchainAssetId { get; set; }
-        public decimal? TransactionAmount { get; set; }
+        [JsonValueSerializer]
+        public TransactionOutputEntity[] TransactionOutputs { get; set; }
         public string Hash { get; set; }
         public decimal? Fee { get; set; }
         public string Error { get; set; }
@@ -86,7 +87,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 AssetId = aggregate.AssetId,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
-                TransactionAmount = aggregate.TransactionAmount,
+                TransactionOutputs = aggregate.TransactionOutputs
+                    .Select(TransactionOutputEntity.FromDomain)
+                    .ToArray(),
                 Hash = aggregate.Hash,
                 Fee = aggregate.Fee,
                 Error = aggregate.Error,
@@ -126,7 +129,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 blobData?.TransactionContext,
                 BlockchainAssetId,
                 blobData?.SignedTransaction,
-                TransactionAmount,
+                TransactionOutputs
+                    .Select(o => o.ToDomain())
+                    .ToArray(),
                 Block,
                 Fee,
                 Hash,

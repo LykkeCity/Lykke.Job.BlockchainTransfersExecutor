@@ -14,6 +14,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecutio
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
+using OperationExecutionStartedEvent = Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution.OperationExecutionStartedEvent;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
@@ -48,7 +49,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.OperationId,
                     evt.FromAddress,
                     evt.Outputs
-                        .Select(e => e.FromContract())
+                        .Select(e => e.ToDomain())
                         .ToArray(),
                     evt.AssetId,
                     evt.IncludeFee,
@@ -141,7 +142,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.ActiveTransactionId.Value,
-                        TransactionAmount = aggregate.TransactionAmount,
+                        TransactionOutputs = aggregate.TransactionOutputs
+                            .Select(x => x.ToContract())
+                            .ToArray(),
                         TransactionBlock = aggregate.TransactionBlock,
                         TransactionFee = aggregate.TransactionFee,
                         TransactionHash = aggregate.TransactionHash

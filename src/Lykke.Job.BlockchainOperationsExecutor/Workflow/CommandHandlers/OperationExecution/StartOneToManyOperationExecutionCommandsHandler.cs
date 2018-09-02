@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
-using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Service.Assets.Client;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.OperationExecution
@@ -37,17 +37,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
             {
                 throw new InvalidOperationException("BlockchainIntegrationLayerAssetId of the asset is not configured");
             }
-            
-            publisher.PublishEvent(new OperationExecutionStartedEvent
-            {
-                OperationId = command.OperationId,
-                FromAddress = command.FromAddress,
-                Outputs = command.Outputs,
-                BlockchainType = asset.BlockchainIntegrationLayerId,
-                BlockchainAssetId = asset.BlockchainIntegrationLayerAssetId,
-                AssetId = command.AssetId,
-                IncludeFee = command.IncludeFee
-            });
+
+            publisher.PublishEvent
+            (
+                new OperationExecutionStartedEvent
+                {
+                    OperationId = command.OperationId,
+                    FromAddress = command.FromAddress,
+                    Outputs = command.Outputs,
+                    BlockchainType = asset.BlockchainIntegrationLayerId,
+                    BlockchainAssetId = asset.BlockchainIntegrationLayerAssetId,
+                    AssetId = command.AssetId,
+                    IncludeFee = command.IncludeFee
+                }
+            );
 
             return CommandHandlingResult.Ok();
         }
