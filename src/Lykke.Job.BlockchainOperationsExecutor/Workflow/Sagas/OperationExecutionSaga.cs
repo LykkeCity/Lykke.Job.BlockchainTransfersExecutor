@@ -136,6 +136,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     throw new InvalidOperationException("Active transaction id should be not null here");
                 }
 
+                if (aggregate.TransactionOutputs == null)
+                {
+                    throw new InvalidOperationException("Transaction outputs should be not null here");
+                }
+
                 sender.SendCommand
                 (
                     new NotifyOperationExecutionCompletedCommand

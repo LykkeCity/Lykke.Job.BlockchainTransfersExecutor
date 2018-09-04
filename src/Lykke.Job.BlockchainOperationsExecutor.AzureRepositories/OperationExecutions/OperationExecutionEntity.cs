@@ -77,7 +77,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 BlockchainAssetId = aggregate.BlockchainAssetId,
                 ActiveTransactionId = aggregate.ActiveTransactionId,
                 ActiveTransactionNumber = aggregate.ActiveTransactionNumber,
-                TransactionOutputs = aggregate.TransactionOutputs
+                TransactionOutputs = aggregate.TransactionOutputs?
                     .Select(TransactionOutputEntity.FromDomain)
                     .ToArray(),
                 TransactionBlock = aggregate.TransactionBlock,
@@ -111,7 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 BlockchainAssetId,
                 ActiveTransactionId,
                 ActiveTransactionNumber,
-                TransactionOutputs
+                TransactionOutputs?
                     .Select(o => o.ToDomain())
                     .ToArray(),
                 TransactionBlock,

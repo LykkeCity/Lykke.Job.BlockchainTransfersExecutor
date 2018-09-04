@@ -87,7 +87,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 AssetId = aggregate.AssetId,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
-                TransactionOutputs = aggregate.TransactionOutputs
+                TransactionOutputs = aggregate.TransactionOutputs?
                     .Select(TransactionOutputEntity.FromDomain)
                     .ToArray(),
                 Hash = aggregate.Hash,
@@ -129,7 +129,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 blobData?.TransactionContext,
                 BlockchainAssetId,
                 blobData?.SignedTransaction,
-                TransactionOutputs
+                TransactionOutputs?
                     .Select(o => o.ToDomain())
                     .ToArray(),
                 Block,
