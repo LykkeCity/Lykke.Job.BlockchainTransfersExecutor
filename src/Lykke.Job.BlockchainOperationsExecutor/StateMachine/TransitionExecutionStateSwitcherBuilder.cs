@@ -51,7 +51,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             {
                 outputs.On<TransactionExecutionCompletedEvent>()
                     .HandleTransition((a, e) => a.OnCompleted(
-                        e.TransactionOutputs
+                        e.TransactionOutputs?
                             .Select(o => o.ToDomain())
                             .ToArray(),
                         e.TransactionBlock,

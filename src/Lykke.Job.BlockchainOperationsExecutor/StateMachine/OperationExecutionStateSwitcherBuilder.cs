@@ -39,7 +39,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 outputs.On<TransactionExecutionCompletedEvent>()
                     .WithPrecondition((a, e) => a.ActiveTransactionNumber == e.TransactionNumber, (a, e) => $"Unexpected transaction number. Active transaction number is [{a.ActiveTransactionNumber}]")
                     .HandleTransition((a, e) => a.OnTransactionExecutionCompleted(
-                        e.TransactionOutputs
+                        e.TransactionOutputs?
                             .Select(o => o.ToDomain())
                             .ToArray(),
                         e.TransactionBlock,
