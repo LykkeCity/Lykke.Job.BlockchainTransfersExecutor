@@ -42,7 +42,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
             BaseBroadcastedTransaction transaction;
-            OperationOutput[] transactionOutputs;
+            OperationOutput[] transactionOutputs = null;
 
             if (command.Outputs.Length > 1)
             {
@@ -53,13 +53,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 );
 
                 transaction = manyOutputsTransaction;
-                transactionOutputs = manyOutputsTransaction.Outputs
-                    .Select(o => new OperationOutput
-                    {
-                        Address = o.ToAddress,
-                        Amount = o.Amount
-                    })
-                    .ToArray();
+
+                if (manyOutputsTransaction != null)
+                {
+                    transactionOutputs = manyOutputsTransaction.Outputs
+                        .Select(o => new OperationOutput
+                        {
+                            Address = o.ToAddress,
+                            Amount = o.Amount
+                        })
+                        .ToArray();
+                }
             }
             else if(command.Outputs.Length == 1)
             {
@@ -70,14 +74,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 );
 
                 transaction = singleTransaction;
-                transactionOutputs = new[]
+
+                if (singleTransaction != null)
                 {
-                    new OperationOutput
+                    transactionOutputs = new[]
                     {
-                        Address = command.Outputs.Single().Address,
-                        Amount = singleTransaction.Amount
-                    }
-                };
+                        new OperationOutput
+                        {
+                            Address = command.Outputs.Single().Address,
+                            Amount = singleTransaction.Amount
+                        }
+                    };
+                }
             }
             else
             {
@@ -92,6 +100,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 // that process has been went further and no events should be generated here.
 
                 return CommandHandlingResult.Ok();
+            }
+
+            if (transactionOutputs == null)
+            {
+                throw new InvalidOperationException("Transaction outputs should be not null here");
             }
             
             switch (transaction.State)
