@@ -42,7 +42,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public string Hash { get; private set; }
         public string Error { get; private set; }
         public string FromAddressContext { get; private set; }
-        
+        public bool WasLocked => SourceAddressLockingMoment.HasValue;
+
         private TransactionExecutionAggregate(
             string version,
             Guid operationId, 
