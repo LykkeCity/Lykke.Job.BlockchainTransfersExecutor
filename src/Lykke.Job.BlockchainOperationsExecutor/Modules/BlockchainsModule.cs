@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Autofac;
 using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain;
@@ -16,18 +17,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         private readonly BlockchainOperationsExecutorSettings _blockchainOperationsExecutorSettings;
         private readonly BlockchainsIntegrationSettings _blockchainsIntegrationSettings;
         private readonly BlockchainSignFacadeClientSettings _blockchainSignFacadeClientSettings;
-        private readonly ILog _log;
 
         public BlockchainsModule(
             BlockchainOperationsExecutorSettings blockchainOperationsExecutorSettings,
             BlockchainsIntegrationSettings blockchainsIntegrationSettings,
-            BlockchainSignFacadeClientSettings blockchainSignFacadeClientSettings,
-            ILog log)
+            BlockchainSignFacadeClientSettings blockchainSignFacadeClientSettings)
         {
             _blockchainOperationsExecutorSettings = blockchainOperationsExecutorSettings;
             _blockchainsIntegrationSettings = blockchainsIntegrationSettings;
             _blockchainSignFacadeClientSettings = blockchainSignFacadeClientSettings;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -35,28 +33,30 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterType<BlockchainApiClientProvider>()
                 .As<IBlockchainApiClientProvider>();
 
-            builder.RegisterInstance(CreateBlockchainSignFacadeClient())
+            builder.Register(ctx => CreateBlockchainSignFacadeClient(ctx.Resolve<ILogFactory>().CreateLog(this)))
                 .As<IBlockchainSignFacadeClient>();
-
 
             foreach (var blockchain in _blockchainsIntegrationSettings.Blockchains.Where(b => !b.IsDisabled))
             {
-                _log.WriteInfo("Blockchains registration", "",
-                    $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
-
-                builder.RegisterType<BlockchainApiClient>()
-                    .Named<IBlockchainApiClient>(blockchain.Type)
-                    .WithParameter(TypedParameter.From(blockchain.ApiUrl));
+                builder.Register(ctx =>
+                    {
+                        var logFactory = ctx.Resolve<ILogFactory>();
+                        logFactory.CreateLog(this).Info(
+                            "Blockchains registration",
+                            $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
+                        return new BlockchainApiClient(logFactory, blockchain.ApiUrl);
+                    })
+                    .Named<IBlockchainApiClient>(blockchain.Type);
             }
         }
 
-        private IBlockchainSignFacadeClient CreateBlockchainSignFacadeClient()
+        private IBlockchainSignFacadeClient CreateBlockchainSignFacadeClient(ILog log)
         {
             return new BlockchainSignFacadeClient
             (
                 hostUrl: _blockchainSignFacadeClientSettings.ServiceUrl,
                 apiKey: _blockchainOperationsExecutorSettings.SignFacadeApiKey,
-                log: _log
+                log: log
             );
         }
     }

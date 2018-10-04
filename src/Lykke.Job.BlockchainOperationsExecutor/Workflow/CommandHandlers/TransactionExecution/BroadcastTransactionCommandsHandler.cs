@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
@@ -22,12 +23,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
         public BroadcastTransactionCommandsHandler(
             IChaosKitty chaosKitty,
-            ILog log,
+            ILogFactory logFactory,
             IBlockchainApiClientProvider apiClientProvider, 
             RetryDelayProvider retryDelayProvider)
         {
             _chaosKitty = chaosKitty;
-            _log = log.CreateComponentScope(nameof(BroadcastTransactionCommandsHandler));
+            _log = logFactory.CreateLog(this);
             _apiClientProvider = apiClientProvider;
             _retryDelayProvider = retryDelayProvider;
         }
@@ -53,13 +54,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     return CommandHandlingResult.Ok();
                 
                 case TransactionBroadcastingResult.AlreadyBroadcasted:
-                    
-                    _log.WriteInfo
-                    (
-                        nameof(BroadcastTransactionCommand),
-                        command,
-                        "API said that the transaction already was broadcasted"
-                    );
+
+                    _log.Info("API said that the transaction already was broadcasted", command);
 
                     publisher.PublishEvent(new TransactionBroadcastedEvent
                     {
@@ -71,12 +67,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 case TransactionBroadcastingResult.AmountIsTooSmall:
                     
-                    _log.WriteWarning
-                    (
-                        nameof(BroadcastTransactionCommand),
-                        command,
-                        "API said, that amount is too small"
-                    );
+                    _log.Warning("API said, that amount is too small", context: command);
 
                     publisher.PublishEvent(new TransactionExecutionFailedEvent
                     {
@@ -91,23 +82,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 case TransactionBroadcastingResult.NotEnoughBalance:
 
-                    _log.WriteInfo
-                    (
-                        nameof(BroadcastTransactionCommand),
-                        command,
-                        "API said, that balance is not enough to proceed the transaction"
-                    );
+                    _log.Info("API said, that balance is not enough to proceed the transaction", command);
 
                     return CommandHandlingResult.Fail(_retryDelayProvider.NotEnoughBalanceRetryDelay);
 
                 case TransactionBroadcastingResult.BuildingShouldBeRepeated:
 
-                    _log.WriteInfo
-                    (
-                        nameof(BroadcastTransactionCommand),
-                        command,
-                        "API said, that building should be repeated"
-                    );
+                    _log.Info("API said, that building should be repeated", command);
 
                     publisher.PublishEvent(new TransactionExecutionRepeatRequestedEvent
                     {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
@@ -21,11 +22,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         private readonly IBlockchainApiClientProvider _apiClientProvider;
 
         public WaitForTransactionEndingCommandsHandler(
-            ILog log,
+            ILogFactory logFactory,
             RetryDelayProvider delayProvider,
             IBlockchainApiClientProvider apiClientProvider)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _delayProvider = delayProvider;
             _apiClientProvider = apiClientProvider;
         }
@@ -42,12 +43,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             if (transaction == null)
             {
-                _log.WriteInfo
-                (
-                    nameof(WaitForTransactionEndingCommand),
-                    command,
-                    "Blockchain API returned no transaction. Assuming, that it's already was cleared"
-                    );
+                _log.Info("Blockchain API returned no transaction. Assuming, that it's already was cleared", command);
 
                 // Transaction already has been forgotten, this means, 
                 // that process has been went further and no events should be generated here.
