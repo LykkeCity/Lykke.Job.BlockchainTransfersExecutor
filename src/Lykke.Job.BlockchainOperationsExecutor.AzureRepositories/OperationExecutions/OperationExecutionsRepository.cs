@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables;
-using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.SettingsReader;
 
@@ -14,14 +14,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
     {
         private readonly AggregateRepository<OperationExecutionAggregate, OperationExecutionEntity> _aggregateRepository;
         
-        public static IOperationExecutionsRepository Create(
-            IReloadingManager<string> connectionString, 
-            ILog log)
+        public static IOperationExecutionsRepository Create(IReloadingManager<string> connectionString, ILogFactory logFactory)
         {
             var storage = AzureTableStorage<OperationExecutionEntity>.Create(
                 connectionString,
                 "OperationExecutions",
-                log);
+                logFactory);
 
             return new OperationExecutionsRepository(storage);
         }

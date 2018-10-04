@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Autofac;
 using Autofac.Features.ResolveAnything;
-using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
@@ -20,7 +20,6 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
-using Lykke.Messaging.Contract;
 using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
 using OperationExecutionStartedEvent = Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution.OperationExecutionStartedEvent;
@@ -33,39 +32,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         public static readonly string TransactionExecutor = "bcn-integration.transactions-executor";
 
         private readonly CqrsSettings _settings;
-        private readonly ILog _log;
         private readonly string _rabbitMqVirtualHost;
 
-        public CqrsModule(CqrsSettings settings, ILog log, string rabbitMqVirtualHost = null)
+        public CqrsModule(CqrsSettings settings, string rabbitMqVirtualHost = null)
         {
             _settings = settings;
-            _log = log;
             _rabbitMqVirtualHost = rabbitMqVirtualHost;
         }
 
         protected override void Load(ContainerBuilder builder)
         {
             builder.Register(context => new AutofacDependencyResolver(context)).As<IDependencyResolver>().SingleInstance();
-
-            var rabbitMqSettings = new RabbitMQ.Client.ConnectionFactory
-            {
-                Uri = _settings.RabbitConnectionString
-            };
-
-            var rabbitMqEndpoint = _rabbitMqVirtualHost == null
-                ? rabbitMqSettings.Endpoint.ToString()
-                : $"{rabbitMqSettings.Endpoint}/{_rabbitMqVirtualHost}";
-
-            var messagingEngine = new MessagingEngine(_log,
-                new TransportResolver(new Dictionary<string, TransportInfo>
-                {
-                    {
-                        "RabbitMq",
-                        new TransportInfo(rabbitMqEndpoint, rabbitMqSettings.UserName,
-                            rabbitMqSettings.Password, "None", "RabbitMq")
-                    }
-                }),                
-                new RabbitMqTransportFactory());
 
             builder.Register(c => new RetryDelayProvider(
                     _settings.SourceAddressLockingRetryDelay,
@@ -88,14 +65,37 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 t.Namespace == typeof(StartOperationExecutionCommandsHandler).Namespace ||
                 t.Namespace == typeof(StartTransactionExecutionCommandHandler).Namespace));
 
-            builder.Register(ctx => CreateEngine(ctx, messagingEngine))
+            builder.Register(CreateEngine)
                 .As<ICqrsEngine>()
                 .SingleInstance()
                 .AutoActivate();
         }
 
-        private CqrsEngine CreateEngine(IComponentContext ctx, IMessagingEngine messagingEngine)
+        private CqrsEngine CreateEngine(IComponentContext ctx)
         {
+            var rabbitMqSettings = new RabbitMQ.Client.ConnectionFactory
+            {
+                Uri = _settings.RabbitConnectionString
+            };
+
+            var rabbitMqEndpoint = _rabbitMqVirtualHost == null
+                ? rabbitMqSettings.Endpoint.ToString()
+                : $"{rabbitMqSettings.Endpoint}/{_rabbitMqVirtualHost}";
+
+            var logFactory = ctx.Resolve<ILogFactory>();
+
+            var messagingEngine = new MessagingEngine(
+                logFactory,
+                new TransportResolver(new Dictionary<string, TransportInfo>
+                {
+                    {
+                        "RabbitMq",
+                        new TransportInfo(rabbitMqEndpoint, rabbitMqSettings.UserName,
+                            rabbitMqSettings.Password, "None", "RabbitMq")
+                    }
+                }),
+                new RabbitMqTransportFactory(logFactory));
+
             var defaultRetryDelay = (long)_settings.RetryDelay.TotalMilliseconds;
 
             const string commandsPipeline = "commands";
@@ -103,7 +103,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
             return new CqrsEngine
             (
-                _log,
+                logFactory,
                 ctx.Resolve<IDependencyResolver>(),
                 messagingEngine,
                 new DefaultEndpointProvider(),

@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables;
-using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.SettingsReader;
 
@@ -14,12 +14,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
     {
         private readonly INoSQLTableStorage<SourceAddressLockEntity> _storage;
 
-        public static ISourceAddresLocksRepoistory Create(IReloadingManager<string> connectionString, ILog log)
+        public static ISourceAddresLocksRepoistory Create(IReloadingManager<string> connectionString, ILogFactory logFactory)
         {
             var storage = AzureTableStorage<SourceAddressLockEntity>.Create(
                 connectionString,
                 "SourceAddressLocks",
-                log);
+                logFactory);
 
             return new SourceAddressLocksRepository(storage);
         }

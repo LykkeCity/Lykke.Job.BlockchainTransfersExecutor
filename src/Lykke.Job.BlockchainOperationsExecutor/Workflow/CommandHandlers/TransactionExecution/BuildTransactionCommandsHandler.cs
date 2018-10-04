@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
@@ -29,7 +30,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         private readonly IBlockchainSignFacadeClient _blockchainSignFacadeClient;
 
         public BuildTransactionCommandsHandler(
-            ILog log,
+            ILogFactory logFactory,
             IChaosKitty chaosKitty,
             RetryDelayProvider retryDelayProvider,
             IBlockchainApiClientProvider apiClientProvider,
@@ -37,7 +38,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
             IBlockchainSignFacadeClient blockchainSignFacadeClient)
         {
-            _log = log.CreateComponentScope(nameof(BuildTransactionCommandsHandler));
+            _log = logFactory.CreateLog(this);
             _chaosKitty = chaosKitty;
             _retryDelayProvider = retryDelayProvider;
             _apiClientProvider = apiClientProvider;
@@ -100,12 +101,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             }
             catch (ErrorResponseException e) when(e.ErrorCode == BlockchainErrorCode.AmountIsTooSmall)
             {
-                _log.WriteWarning
-                (
-                    nameof(BuildTransactionCommand),
-                    command,
-                    "API said, that amount is too small"
-                );
+                _log.Warning("API said, that amount is too small", context: command);
 
                 publisher.PublishEvent(new TransactionExecutionFailedEvent
                 {
@@ -120,22 +116,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             }
             catch (ErrorResponseException e) when (e.ErrorCode == BlockchainErrorCode.NotEnoughBalance)
             {
-                _log.WriteInfo
-                (
-                    nameof(BuildTransactionCommand),
-                    command,
-                    "API said, that balance is not enough to proceed the transaction"
-                );
+                _log.Info("API said, that balance is not enough to proceed the transaction", command);
                 return CommandHandlingResult.Fail(_retryDelayProvider.NotEnoughBalanceRetryDelay);
             }
             catch (TransactionAlreadyBroadcastedException)
             {
-                _log.WriteInfo
-                (
-                    nameof(BuildTransactionCommand),
-                    command,
-                    "API said, that transaction already was broadcasted"
-                );
+                _log.Info("API said, that transaction already was broadcasted", command);
 
                 publisher.PublishEvent(new TransactionBuildingRejectedEvent
                 {
