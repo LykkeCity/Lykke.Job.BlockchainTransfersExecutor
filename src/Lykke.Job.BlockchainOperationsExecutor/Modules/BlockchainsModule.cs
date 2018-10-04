@@ -43,7 +43,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         var logFactory = ctx.Resolve<ILogFactory>();
                         logFactory.CreateLog(this).Info(
                             "Blockchains registration",
-                            "",
                             $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
                         return new BlockchainApiClient(logFactory, blockchain.ApiUrl);
                     })

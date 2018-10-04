@@ -9,6 +9,7 @@ using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
+using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Settings;
@@ -67,7 +68,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                     });
                 var settings = appSettings.CurrentValue;
 
-                //Log = CreateLogWithSlack(services, appSettings);
                 services.AddLykkeLogging(
                     appSettings.ConnectionString(s => s.BlockchainOperationsExecutorJob.Db.LogsConnString),
                     "BlockchainOperationsExecutorLog",
@@ -158,6 +158,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                 // NOTE: Job not yet recieve and process IsAlive requests here
 
                 await ApplicationContainer.Resolve<IStartupManager>().StartAsync();
+                ApplicationContainer.Resolve<ICqrsEngine>().Start();
                 _healthNotifier?.Notify("Started", Program.EnvInfo);
             }
             catch (Exception ex)
