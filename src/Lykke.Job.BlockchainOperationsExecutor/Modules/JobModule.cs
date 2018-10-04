@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Lykke.Common.Chaos;
+using Lykke.Job.BlockchainOperationsExecutor.AppServices;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.Assets;
