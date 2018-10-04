@@ -2,6 +2,7 @@
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
@@ -18,13 +19,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         private readonly RetryDelayProvider _retryDelayProvider;
 
         public LockSourceAddressCommandsHandler(
-            ILog log, 
-            IChaosKitty chaosKitty, 
+            ILogFactory logFactory,
+            IChaosKitty chaosKitty,
             ITransactionExecutionsRepository transactionExecutionsRepository,
             ISourceAddresLocksRepoistory sourceAddresLocksRepoistory, 
             RetryDelayProvider retryDelayProvider)
         {
-            _log = log.CreateComponentScope(nameof(LockSourceAddressCommandsHandler));
+            _log = logFactory.CreateLog(this);
             _chaosKitty = chaosKitty;
             _transactionExecutionsRepository = transactionExecutionsRepository;
             _sourceAddresLocksRepoistory = sourceAddresLocksRepoistory;
@@ -38,7 +39,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             if (transactionExecution.WasLocked)
             {
-                _log.WriteInfo(nameof(LockSourceAddressCommand), command, "Source address lock command has been skipped, since lock already was performed earlier");
+                _log.Info("Source address lock command has been skipped, since lock already was performed earlier", command);
 
                 return CommandHandlingResult.Ok();
             }

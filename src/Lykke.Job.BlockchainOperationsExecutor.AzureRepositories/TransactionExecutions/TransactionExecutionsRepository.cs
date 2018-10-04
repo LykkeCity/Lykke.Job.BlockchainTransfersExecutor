@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
-using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.SettingsReader;
 using Newtonsoft.Json;
@@ -19,14 +19,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         private readonly IBlobStorage _blob;
         private readonly JsonSerializer _blobJsonSerializer;
         
-        public static ITransactionExecutionsRepository Create(
-            IReloadingManager<string> connectionString, 
-            ILog log)
+        public static ITransactionExecutionsRepository Create(IReloadingManager<string> connectionString, ILogFactory logFactory)
         {
             var storage = AzureTableStorage<TransactionExecutionEntity>.Create(
                 connectionString,
                 "TransactionExecutions",
-                log);
+                logFactory);
             var blob = AzureBlobStorage.Create(connectionString);
 
             return new TransactionExecutionsRepository(storage, blob);
