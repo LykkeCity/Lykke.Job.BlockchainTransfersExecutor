@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Common.Log;
 using JetBrains.Annotations;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
+using Lykke.Cqrs;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Services
+namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
 {
     // NOTE: Sometimes, startup process which is expressed explicitly is not just better, 
     // but the only way. If this is your case, use this class to manage startup.
@@ -13,8 +14,23 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services
     [UsedImplicitly]
     public class StartupManager : IStartupManager
     {
+        private readonly ILog _log;
+        private readonly ICqrsEngine _cqrsEngine;
+
+        public StartupManager(
+            ILog log, 
+            ICqrsEngine cqrsEngine)
+        {
+            _log = log;
+            _cqrsEngine = cqrsEngine;
+        }
+
         public async Task StartAsync()
         {
+            _log.WriteInfo(nameof(StartAsync), null, "Starting Cqrs engine...");
+
+            _cqrsEngine.Start();
+
             await Task.CompletedTask;
         }
     }
