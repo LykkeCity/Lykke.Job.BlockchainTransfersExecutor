@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Services
+namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
 {
     // NOTE: Sometimes, shutdown process should be expressed explicitly. 
     // If this is your case, use this class to manage shutdown.

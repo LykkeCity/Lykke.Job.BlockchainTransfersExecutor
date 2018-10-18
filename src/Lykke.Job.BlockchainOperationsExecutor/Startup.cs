@@ -9,7 +9,7 @@ using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
+using Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Settings;
 using Lykke.Logs;

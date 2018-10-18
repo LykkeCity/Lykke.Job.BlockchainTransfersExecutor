@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
+using Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AppServices
 {
