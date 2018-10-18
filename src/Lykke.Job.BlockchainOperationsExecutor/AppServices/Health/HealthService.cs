@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.Health;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Services
+namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Health
 {
     // NOTE: See https://lykkex.atlassian.net/wiki/spaces/LKEWALLET/pages/35755585/Add+your+app+to+Monitoring
     [UsedImplicitly]
