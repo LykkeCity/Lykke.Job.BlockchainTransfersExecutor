@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
@@ -18,10 +19,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
         private readonly ICqrsEngine _cqrsEngine;
 
         public StartupManager(
-            ILog log, 
+            ILogFactory logFactory, 
             ICqrsEngine cqrsEngine)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _cqrsEngine = cqrsEngine;
         }
 
