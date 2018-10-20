@@ -56,6 +56,53 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
+        public void Test_One_To_Many_Execution_To_Completion()
+        {
+            // Arrange
+
+            var switcher = OperationExecutionStateSwitcherBuilder.Build();
+            var aggregate = OperationExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                "",
+                new []
+                {
+                    new TransactionOutputValueType("1", 1.0m),
+                    new TransactionOutputValueType("2", 2.0m), 
+                },
+                "",
+                false,
+                "",
+                ""
+            );
+
+            // Act / Assert
+
+            Assert.Equal(OperationExecutionState.Started, aggregate.State);
+            
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
+            
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionCompletedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.Completed, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new OneToManyOperationExecutionCompletedEvent()));
+            Assert.Equal(OperationExecutionState.NotifiedAboutEnding, aggregate.State);
+        }
+
+        [Fact]
         public void Test_Simple_Execution_To_Failure()
         {
             // Arrange
@@ -66,6 +113,54 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 "",
                 new []{new TransactionOutputValueType("", 0)},
+                "",
+                false,
+                "",
+                ""
+            );
+
+            // Act / Assert
+
+            Assert.Equal(OperationExecutionState.Started, aggregate.State);
+            
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
+            
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionFailedEvent
+            {
+                ErrorCode = TransactionExecutionResult.UnknownError,
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.Failed, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new OperationExecutionFailedEvent()));
+            Assert.Equal(OperationExecutionState.NotifiedAboutEnding, aggregate.State);
+        }
+
+        [Fact]
+        public void Test_One_To_Many_Execution_To_Failure()
+        {
+            // Arrange
+
+            var switcher = OperationExecutionStateSwitcherBuilder.Build();
+            var aggregate = OperationExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                "",
+                new []
+                {
+                    new TransactionOutputValueType("1", 1.0m),
+                    new TransactionOutputValueType("2", 2.0m), 
+                },
                 "",
                 false,
                 "",

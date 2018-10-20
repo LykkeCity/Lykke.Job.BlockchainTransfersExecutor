@@ -267,6 +267,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
 
         [UsedImplicitly]
+        private async Task Handle(OneToManyOperationExecutionCompletedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
         private async Task Handle(OperationExecutionFailedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
