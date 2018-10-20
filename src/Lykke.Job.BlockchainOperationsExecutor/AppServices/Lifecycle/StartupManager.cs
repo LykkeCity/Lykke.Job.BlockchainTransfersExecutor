@@ -19,10 +19,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
         private readonly ICqrsEngine _cqrsEngine;
 
         public StartupManager(
-            ILog log, 
+            ILogFactory logFactory, 
             ICqrsEngine cqrsEngine)
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _cqrsEngine = cqrsEngine;
         }
 
