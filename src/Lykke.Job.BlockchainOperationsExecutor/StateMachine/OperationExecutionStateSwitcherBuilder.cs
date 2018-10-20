@@ -70,6 +70,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .On<OperationExecutionCompletedEvent>()
                 .HandleTransition((a, e) => a.OnNotifiedAboutEnding());
 
+            register.From(OperationExecutionState.Completed)
+                .On<OneToManyOperationExecutionCompletedEvent>()
+                .HandleTransition((a, e) => a.OnNotifiedAboutEnding());
+
             register.From(OperationExecutionState.Failed)
                 .On<OperationExecutionFailedEvent>()
                 .HandleTransition((a, e) => a.OnNotifiedAboutEnding());
@@ -132,7 +136,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .Ignore<TransactionExecutionCompletedEvent>()
                 .Ignore<TransactionExecutionFailedEvent>()
                 .Ignore<OperationExecutionCompletedEvent>()
-                .Ignore<OperationExecutionFailedEvent>();
+                .Ignore<OperationExecutionFailedEvent>()
+                .Ignore<OneToManyOperationExecutionCompletedEvent>();
 
             return register.Build();
         }

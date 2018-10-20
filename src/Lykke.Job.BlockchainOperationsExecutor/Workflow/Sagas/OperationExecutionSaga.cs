@@ -14,7 +14,6 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecutio
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
-using OperationExecutionStartedEvent = Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution.OperationExecutionStartedEvent;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 {
@@ -257,6 +256,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
         [UsedImplicitly]
         private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(OneToManyOperationExecutionCompletedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 

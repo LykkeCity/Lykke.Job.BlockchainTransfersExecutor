@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
@@ -27,7 +28,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
 
         public async Task StartAsync()
         {
-            _log.WriteInfo(nameof(StartAsync), null, "Starting Cqrs engine...");
+            _log.Info("Starting Cqrs engine...");
 
             _cqrsEngine.Start();
 

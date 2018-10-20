@@ -127,6 +127,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(typeof(OperationExecutionStartedEvent))
                     .With(commandsPipeline)
 
+                    .ListeningCommands(typeof(StartOneToManyOutputsExecutionCommand))
+                    .On(defaultRoute)
+                    .WithCommandsHandler(typeof(StartOneToManyOperationExecutionCommandsHandler))
+                    .PublishingEvents(typeof(OperationExecutionStartedEvent))
+                    .With(commandsPipeline)
+
                     .ListeningCommands(typeof(GenerateActiveTransactionIdCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<GenerateActiveTransactionIdCommandsHandler>()
@@ -142,7 +148,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(NotifyOperationExecutionCompletedCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<NotifyOperationExecutionCompletedCommandsHandler>()
-                    .PublishingEvents(typeof(OperationExecutionCompletedEvent))
+                    .PublishingEvents(
+                        typeof(OperationExecutionCompletedEvent),
+                        typeof(OneToManyOperationExecutionCompletedEvent))
                     .With(commandsPipeline)
 
                     .ListeningCommands(typeof(NotifyOperationExecutionFailedCommand))
@@ -261,6 +269,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningEvents
                     (
                         typeof(OperationExecutionCompletedEvent),
+                        typeof(OneToManyOperationExecutionCompletedEvent),
                         typeof(OperationExecutionFailedEvent)
                     )
                     .From(OperationsExecutor)
