@@ -31,10 +31,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<BlockchainApiClientProvider>()
-                .As<IBlockchainApiClientProvider>();
+                .As<IBlockchainApiClientProvider>()
+                .SingleInstance();
 
             builder.Register(ctx => CreateBlockchainSignFacadeClient(ctx.Resolve<ILogFactory>().CreateLog(this)))
-                .As<IBlockchainSignFacadeClient>();
+                .As<IBlockchainSignFacadeClient>()
+                .SingleInstance();
 
             foreach (var blockchain in _blockchainsIntegrationSettings.Blockchains.Where(b => !b.IsDisabled))
             {
@@ -46,7 +48,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                             $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
                         return new BlockchainApiClient(logFactory, blockchain.ApiUrl);
                     })
-                    .Named<IBlockchainApiClient>(blockchain.Type);
+                    .Named<IBlockchainApiClient>(blockchain.Type)
+                    .SingleInstance();
             }
         }
 
