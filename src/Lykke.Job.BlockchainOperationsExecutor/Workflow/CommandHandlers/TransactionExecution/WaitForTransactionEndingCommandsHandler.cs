@@ -131,7 +131,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 case BroadcastedTransactionState.Failed:
 
                     if (transaction.ErrorCode == BlockchainErrorCode.NotEnoughBalance ||
-                        transaction.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated)
+                        transaction.ErrorCode == BlockchainErrorCode.BuildingShouldBeRepeated ||
+                        transaction.ErrorCode == BlockchainErrorCode.Unknown)
                     {
                         publisher.PublishEvent(new TransactionExecutionRepeatRequestedEvent
                         {
