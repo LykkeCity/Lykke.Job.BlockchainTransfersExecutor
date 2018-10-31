@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Service.Assets.Client;
 
@@ -48,7 +49,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
                     BlockchainType = asset.BlockchainIntegrationLayerId,
                     BlockchainAssetId = asset.BlockchainIntegrationLayerAssetId,
                     AssetId = command.AssetId,
-                    IncludeFee = command.IncludeFee
+                    IncludeFee = command.IncludeFee,
+                    EndpointsConfiguration = OperationExecutionEndpointsConfiguration.OneToMany
                 }
             );
 

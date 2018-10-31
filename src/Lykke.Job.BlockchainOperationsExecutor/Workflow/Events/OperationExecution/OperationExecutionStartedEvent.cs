@@ -1,6 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution
@@ -47,5 +48,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecut
         /// Blockchain asset ID
         /// </summary>
         public string BlockchainAssetId { get; set; }
+
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; set; }
     }
 }

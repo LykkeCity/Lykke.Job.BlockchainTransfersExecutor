@@ -1,5 +1,6 @@
 ﻿using System;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecution
@@ -13,5 +14,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExec
         public OperationOutput[] TransactionOutputs { get; set; }
         public decimal TransactionFee { get; set; }        
         public long TransactionBlock { get; set; }
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; set; }
     }
 }
