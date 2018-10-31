@@ -27,6 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         public bool IncludeFee { get; }
         public string BlockchainType { get; }
         public string BlockchainAssetId { get; }
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; }
 
         public Guid? ActiveTransactionId { get; private set; }
         public int ActiveTransactionNumber { get; private set; }
@@ -36,8 +37,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         public string TransactionHash { get; private set; }
         public string Error { get; private set; }
 
-        private OperationExecutionAggregate(
-            string version,
+        private OperationExecutionAggregate(string version,
             DateTime startMoment,
             Guid operationId,
             string fromAddress,
@@ -45,7 +45,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             string assetId,
             bool includeFee,
             string blockchainType,
-            string blockchainAssetId)
+            string blockchainAssetId, 
+            OperationExecutionEndpointsConfiguration endpointsConfiguration)
         {
             Version = version;
             StartMoment = startMoment;
@@ -56,16 +57,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             IncludeFee = includeFee;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
+            EndpointsConfiguration = endpointsConfiguration;
         }
 
-        public static OperationExecutionAggregate Start(
-            Guid operationId,
+        public static OperationExecutionAggregate Start(Guid operationId,
             string fromAddress,
             IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
             bool includeFee,
             string blockchainType,
-            string blockchainAssetId)
+            string blockchainAssetId, 
+            OperationExecutionEndpointsConfiguration endpointsConfiguration)
         {
             return new OperationExecutionAggregate(
                 "*",
@@ -76,7 +78,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 assetId,
                 includeFee,
                 blockchainType,
-                blockchainAssetId)
+                blockchainAssetId,
+                endpointsConfiguration)
             {
                 State = OperationExecutionState.Started
             };
@@ -100,6 +103,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             bool includeFee,
             string blockchainType,
             string blockchainAssetId,
+            OperationExecutionEndpointsConfiguration endpointsConfiguration,
             Guid? activeTransactionId,
             int activeTransactionNumber,
             IReadOnlyCollection<TransactionOutputValueType> transactionOutputs,
@@ -117,7 +121,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 assetId,
                 includeFee,
                 blockchainType,
-                blockchainAssetId)
+                blockchainAssetId,
+                endpointsConfiguration)
             {
                 State = state,
                 Result = result,

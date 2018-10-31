@@ -53,7 +53,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     evt.AssetId,
                     evt.IncludeFee,
                     evt.BlockchainType,
-                    evt.BlockchainAssetId
+                    evt.BlockchainAssetId,
+                    evt.EndpointsConfiguration
                 )
             );
 
@@ -151,7 +152,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                             .ToArray(),
                         TransactionBlock = aggregate.TransactionBlock,
                         TransactionFee = aggregate.TransactionFee,
-                        TransactionHash = aggregate.TransactionHash
+                        TransactionHash = aggregate.TransactionHash,
+                        EndpointsConfiguration = aggregate.EndpointsConfiguration
                     },
                     Self
                 );

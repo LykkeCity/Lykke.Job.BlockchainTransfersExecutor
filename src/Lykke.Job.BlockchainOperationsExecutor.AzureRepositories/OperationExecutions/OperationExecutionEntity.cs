@@ -33,6 +33,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
         public bool IncludeFee { get; set; }
         public string BlockchainType { get; set; }
         public string BlockchainAssetId { get; set; }
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; set; }
 
         public Guid? ActiveTransactionId { get; set; }
         public int ActiveTransactionNumber { get; set; }
@@ -75,6 +76,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 AssetId = aggregate.AssetId,
                 IncludeFee = aggregate.IncludeFee,
                 BlockchainAssetId = aggregate.BlockchainAssetId,
+                EndpointsConfiguration = aggregate.EndpointsConfiguration,
                 ActiveTransactionId = aggregate.ActiveTransactionId,
                 ActiveTransactionNumber = aggregate.ActiveTransactionNumber,
                 TransactionOutputs = aggregate.TransactionOutputs?
@@ -109,6 +111,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 IncludeFee,
                 BlockchainType,
                 BlockchainAssetId,
+                EndpointsConfiguration,
                 ActiveTransactionId,
                 ActiveTransactionNumber,
                 TransactionOutputs?

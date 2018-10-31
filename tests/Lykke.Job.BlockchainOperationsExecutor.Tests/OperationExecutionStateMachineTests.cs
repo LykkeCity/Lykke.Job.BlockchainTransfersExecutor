@@ -26,7 +26,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
             );
 
             // Act / Assert
@@ -73,7 +74,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToMany
             );
 
             // Act / Assert
@@ -116,7 +118,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
             );
 
             // Act / Assert
@@ -164,7 +167,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
             );
 
             // Act / Assert
@@ -208,7 +212,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
             );
 
             // Act / Assert
@@ -279,7 +284,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 "",
                 false,
                 "",
-                ""
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
             );
 
             // Act / Assert
