@@ -19,12 +19,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.2" />
+    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.12.0" />
     <PackageReference Include="Lykke.Cqrs" Version="7.0.0" />
     <!-- #if azurequeuesub -->
     <PackageReference Include="Lykke.JobTriggers" Version="2.2.0" />
     <!-- #endif -->
-    <PackageReference Include="Lykke.Logs" Version="7.1.0" />
+    <PackageReference Include="Lykke.Logs" Version="7.2.0" />
     <PackageReference Include="Lykke.Messaging" Version="6.2.0" />
     <PackageReference Include="Lykke.Messaging.RabbitMq" Version="2.1.0" />
     <!-- #if rabbitpub -->
