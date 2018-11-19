@@ -1,8 +1,10 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Lykke.Job.BlockchainOperationsExecutor.Contract;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using MessagePack;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
+namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution
 {
     /// <summary>
     /// Operation execution is started
@@ -22,19 +24,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         public string FromAddress { get; set; }
 
         /// <summary>
-        /// Destination address in the blockchain
+        /// Destination
         /// </summary>
-        public string ToAddress { get; set; }
+        public OperationOutput[] Outputs { get; set; }
 
         /// <summary>
         /// Lykke asset ID (not the blockchain one)
         /// </summary>
         public string AssetId { get; set; }
-
-        /// <summary>
-        /// Amount of funds to transfer
-        /// </summary>
-        public decimal Amount { get; set; }
 
         /// <summary>
         /// Flag, which indicates, that the fee should be included
@@ -51,5 +48,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// Blockchain asset ID
         /// </summary>
         public string BlockchainAssetId { get; set; }
+
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; set; }
     }
 }

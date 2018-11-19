@@ -1,4 +1,5 @@
 ﻿using System;
+using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using MessagePack;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution
@@ -12,8 +13,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionEx
         public string BlockchainType { get; set; }
         public string BlockchainAssetId { get;set; }
         public string FromAddress { get; set; }
-        public string ToAddress { get; set; }
-        public decimal Amount { get; set; }
+        public OperationOutput[] Outputs { get; set; }
         public bool IncludeFee { get; set; }
     }
 }

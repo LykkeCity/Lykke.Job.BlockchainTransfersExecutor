@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
@@ -37,11 +38,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -81,11 +81,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -97,11 +96,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -145,11 +143,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -189,11 +186,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -272,11 +268,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -286,11 +281,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 true
             );
 
@@ -325,7 +319,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             register.From(TransactionExecutionState.Started)
                 .On<SourceAddressLockedEvent>()
                 .WithPrecondition((a, e) => a.IncludeFee, (a, e) => "Include fee should be enabled")
-                .WithPrecondition((a, e) => a.Amount > 0, (a, e) => "Amount should be positive number")
+                .WithPrecondition((a, e) => a.Outputs.Single().Amount > 0, (a, e) => "Amount should be positive number")
                 .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             var core = register.Build();
@@ -336,11 +330,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 0)},
                 "",
                 "",
                 "",
-                "",
-                0,
                 false
             );
 
@@ -350,11 +343,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 Guid.NewGuid(),
                 0,
                 "",
+                new[] {new TransactionOutputValueType("", 1)},
                 "",
                 "",
                 "",
-                "",
-                1,
                 true
             );
 

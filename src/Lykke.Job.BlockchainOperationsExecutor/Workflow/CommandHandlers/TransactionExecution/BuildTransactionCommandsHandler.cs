@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -11,6 +13,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecut
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Lykke.Service.Assets.Client;
 using Lykke.Service.BlockchainApi.Client;
+using Lykke.Service.BlockchainApi.Client.Models;
 using Lykke.Service.BlockchainApi.Contract;
 using Lykke.Service.BlockchainSignFacade.Client;
 using ErrorResponseException = Lykke.Service.BlockchainApi.Client.ErrorResponseException;
@@ -51,14 +54,38 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
             try
             {
-                var buildingResult = await apiClient.BuildSingleTransactionAsync(
-                    command.TransactionId,
-                    command.FromAddress,
-                    wallet.AddressContext,
-                    command.ToAddress,
-                    blockchainAsset,
-                    command.Amount,
-                    command.IncludeFee);
+                TransactionBuildingResult buildingResult;
+
+                if (command.Outputs.Length > 1)
+                {
+                    buildingResult = await apiClient.BuildTransactionWithManyOutputsAsync
+                    (
+                        command.TransactionId,
+                        command.FromAddress,
+                        wallet.AddressContext,
+                        command.Outputs.Select(p => new BuildingTransactionOutput(p.Address, p.Amount)),
+                        blockchainAsset
+                    );
+                }
+                else if(command.Outputs.Length == 1)
+                {
+                    var destination = command.Outputs.Single();
+
+                    buildingResult = await apiClient.BuildSingleTransactionAsync
+                    (
+                        command.TransactionId,
+                        command.FromAddress,
+                        wallet.AddressContext,
+                        destination.Address,
+                        blockchainAsset,
+                        destination.Amount,
+                        command.IncludeFee
+                    );
+                }
+                else
+                {
+                    throw new InvalidOperationException("There should be at least one output");
+                }
 
                 _chaosKitty.Meow(command.TransactionId);
 

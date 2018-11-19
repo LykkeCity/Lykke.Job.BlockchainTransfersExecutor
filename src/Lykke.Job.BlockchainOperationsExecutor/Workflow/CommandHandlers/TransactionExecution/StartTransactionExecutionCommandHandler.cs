@@ -21,8 +21,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 BlockchainAssetId = command.BlockchainAssetId,
                 AssetId = command.AssetId,
                 FromAddress = command.FromAddress,
-                ToAddress = command.ToAddress,
-                Amount = command.Amount,
+                Outputs = command.Outputs,
                 IncludeFee = command.IncludeFee
             });
 

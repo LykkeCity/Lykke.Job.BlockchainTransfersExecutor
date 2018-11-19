@@ -1,4 +1,5 @@
-﻿using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
+﻿using System.Linq;
+using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
@@ -38,7 +39,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 outputs.On<TransactionExecutionCompletedEvent>()
                     .WithPrecondition((a, e) => a.ActiveTransactionNumber == e.TransactionNumber, (a, e) => $"Unexpected transaction number. Active transaction number is [{a.ActiveTransactionNumber}]")
                     .HandleTransition((a, e) => a.OnTransactionExecutionCompleted(
-                        e.TransactionAmount,
+                        e.TransactionOutputs?
+                            .Select(o => o.ToDomain())
+                            .ToArray(),
                         e.TransactionBlock,
                         e.TransactionFee,
                         e.TransactionHash));
@@ -47,7 +50,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                     .WithPrecondition((a, e) => a.ActiveTransactionNumber == e.TransactionNumber, (a, e) => $"Unexpected transaction number. Active transaction number is [{a.ActiveTransactionNumber}]")
                     .WithPrecondition((a, e) => e.ErrorCode != TransactionExecutionResult.Completed, (a, e) => $"Error code should be not {TransactionExecutionResult.Completed}")
                     .HandleTransition((a, e) => a.OnTransactionExecutionFailed(
-                        e.TransactionNumber,
                         e.ErrorCode.MapToOperationExecutionResult(),
                         e.Error));
             });
@@ -66,6 +68,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
             register.From(OperationExecutionState.Completed)
                 .On<OperationExecutionCompletedEvent>()
+                .HandleTransition((a, e) => a.OnNotifiedAboutEnding());
+
+            register.From(OperationExecutionState.Completed)
+                .On<OneToManyOperationExecutionCompletedEvent>()
                 .HandleTransition((a, e) => a.OnNotifiedAboutEnding());
 
             register.From(OperationExecutionState.Failed)
@@ -130,7 +136,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .Ignore<TransactionExecutionCompletedEvent>()
                 .Ignore<TransactionExecutionFailedEvent>()
                 .Ignore<OperationExecutionCompletedEvent>()
-                .Ignore<OperationExecutionFailedEvent>();
+                .Ignore<OperationExecutionFailedEvent>()
+                .Ignore<OneToManyOperationExecutionCompletedEvent>();
 
             return register.Build();
         }

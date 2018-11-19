@@ -8,8 +8,8 @@ using Lykke.Common;
 using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
+using Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle;
 using Lykke.Common.Log;
-using Lykke.Job.BlockchainOperationsExecutor.Core.Services;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Settings;
 using Lykke.Logs;
@@ -78,11 +78,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor
                             {
                                 o.MinLogLevel = Microsoft.Extensions.Logging.LogLevel.Information;
                                 o.SpamGuard.DisableGuarding();
+                                o.IncludeHealthNotifications();
                             });
                         options.AddAdditionalSlackChannel("CommonBlockChainIntegrationImportantMessages", o =>
                         {
                             o.MinLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning;
                             o.SpamGuard.DisableGuarding();
+                            o.IncludeHealthNotifications();
                         });
                     });
 

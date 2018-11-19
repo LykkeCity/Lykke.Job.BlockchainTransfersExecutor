@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
@@ -46,12 +47,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                 (
                     evt.OperationId,
                     evt.FromAddress,
-                    evt.ToAddress,
+                    evt.Outputs
+                        .Select(e => e.ToDomain())
+                        .ToArray(),
                     evt.AssetId,
-                    evt.Amount,
                     evt.IncludeFee,
                     evt.BlockchainType,
-                    evt.BlockchainAssetId
+                    evt.BlockchainAssetId,
+                    evt.EndpointsConfiguration
                 )
             );
 
@@ -95,9 +98,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         BlockchainType = aggregate.BlockchainType,
                         BlockchainAssetId = aggregate.BlockchainAssetId,
                         FromAddress = aggregate.FromAddress,
-                        ToAddress = aggregate.ToAddress,
+                        Outputs = aggregate.Outputs
+                            .Select(e => e.ToContract())
+                            .ToArray(),
                         AssetId = aggregate.AssetId,
-                        Amount = aggregate.Amount,
                         IncludeFee = aggregate.IncludeFee
                     },
                     CqrsModule.TransactionExecutor
@@ -132,16 +136,24 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     throw new InvalidOperationException("Active transaction id should be not null here");
                 }
 
+                if (aggregate.TransactionOutputs == null)
+                {
+                    throw new InvalidOperationException("Transaction outputs should be not null here");
+                }
+
                 sender.SendCommand
                 (
                     new NotifyOperationExecutionCompletedCommand
                     {
                         OperationId = aggregate.OperationId,
                         TransactionId = aggregate.ActiveTransactionId.Value,
-                        TransactionAmount = aggregate.TransactionAmount,
+                        TransactionOutputs = aggregate.TransactionOutputs
+                            .Select(x => x.ToContract())
+                            .ToArray(),
                         TransactionBlock = aggregate.TransactionBlock,
                         TransactionFee = aggregate.TransactionFee,
-                        TransactionHash = aggregate.TransactionHash
+                        TransactionHash = aggregate.TransactionHash,
+                        EndpointsConfiguration = aggregate.EndpointsConfiguration
                     },
                     Self
                 );
@@ -246,6 +258,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
         [UsedImplicitly]
         private async Task Handle(OperationExecutionCompletedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(OneToManyOperationExecutionCompletedEvent evt, ICommandSender sender)
         {
             var aggregate = await _repository.GetAsync(evt.OperationId);
 

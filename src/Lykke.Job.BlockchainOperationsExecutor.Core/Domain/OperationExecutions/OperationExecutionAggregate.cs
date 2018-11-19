@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
 {
@@ -20,66 +22,64 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         public Guid OperationId { get; }
 
         public string FromAddress { get; }
-        public string ToAddress { get; }
+        public IReadOnlyCollection<TransactionOutputValueType> Outputs { get; }
         public string AssetId { get; }
-        public decimal Amount { get; }
         public bool IncludeFee { get; }
         public string BlockchainType { get; }
         public string BlockchainAssetId { get; }
+        public OperationExecutionEndpointsConfiguration EndpointsConfiguration { get; }
 
         public Guid? ActiveTransactionId { get; private set; }
         public int ActiveTransactionNumber { get; private set; }
-        public decimal TransactionAmount { get; private set; }
+        public IReadOnlyCollection<TransactionOutputValueType> TransactionOutputs { get; private set; }
         public long TransactionBlock { get; private set; }
         public decimal TransactionFee { get; private set; }
         public string TransactionHash { get; private set; }
         public string Error { get; private set; }
 
-        private OperationExecutionAggregate(
-            string version,
+        private OperationExecutionAggregate(string version,
             DateTime startMoment,
             Guid operationId,
             string fromAddress,
-            string toAddress,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
-            decimal amount,
             bool includeFee,
             string blockchainType,
-            string blockchainAssetId)
+            string blockchainAssetId, 
+            OperationExecutionEndpointsConfiguration endpointsConfiguration)
         {
             Version = version;
             StartMoment = startMoment;
             OperationId = operationId;
             FromAddress = fromAddress;
-            ToAddress = toAddress;
+            Outputs = outputs;
             AssetId = assetId;
-            Amount = amount;
             IncludeFee = includeFee;
             BlockchainType = blockchainType;
             BlockchainAssetId = blockchainAssetId;
+            EndpointsConfiguration = endpointsConfiguration;
         }
 
-        public static OperationExecutionAggregate Start(
-            Guid operationId,
+        public static OperationExecutionAggregate Start(Guid operationId,
             string fromAddress,
-            string toAddress,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
-            decimal amount,
             bool includeFee,
             string blockchainType,
-            string blockchainAssetId)
+            string blockchainAssetId, 
+            OperationExecutionEndpointsConfiguration endpointsConfiguration)
         {
             return new OperationExecutionAggregate(
                 "*",
                 DateTime.UtcNow,
                 operationId,
                 fromAddress,
-                toAddress,
+                outputs,
                 assetId,
-                amount,
                 includeFee,
                 blockchainType,
-                blockchainAssetId)
+                blockchainAssetId,
+                endpointsConfiguration)
             {
                 State = OperationExecutionState.Started
             };
@@ -98,15 +98,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             DateTime? finishMoment,
             Guid operationId,
             string fromAddress,
-            string toAddress,
+            IReadOnlyCollection<TransactionOutputValueType> outputs,
             string assetId,
-            decimal amount,
             bool includeFee,
             string blockchainType,
             string blockchainAssetId,
+            OperationExecutionEndpointsConfiguration endpointsConfiguration,
             Guid? activeTransactionId,
             int activeTransactionNumber,
-            decimal transactionAmount,
+            IReadOnlyCollection<TransactionOutputValueType> transactionOutputs,
             long transactionBlock,
             decimal transactionFee,
             string transactionHash,
@@ -117,12 +117,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 startMoment,
                 operationId,
                 fromAddress,
-                toAddress,
+                outputs,
                 assetId,
-                amount,
                 includeFee,
                 blockchainType,
-                blockchainAssetId)
+                blockchainAssetId,
+                endpointsConfiguration)
             {
                 State = state,
                 Result = result,
@@ -134,7 +134,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 FinishMoment = finishMoment,
                 ActiveTransactionId = activeTransactionId,
                 ActiveTransactionNumber = activeTransactionNumber,
-                TransactionAmount = transactionAmount,
+                TransactionOutputs = transactionOutputs,
                 TransactionBlock = transactionBlock,
                 TransactionFee = transactionFee,
                 TransactionHash = transactionHash,
@@ -178,7 +178,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         }
 
         public void OnTransactionExecutionCompleted(
-            decimal transactionAmount, 
+            IReadOnlyCollection<TransactionOutputValueType> transactionOutputs, 
             long transactionBlock, 
             decimal transactionFee, 
             string transactionHash)
@@ -188,13 +188,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             TransactionFinishMoment = DateTime.UtcNow;
 
             Result = OperationExecutionResult.Completed;
-            TransactionAmount = transactionAmount;
+            TransactionOutputs = transactionOutputs;
             TransactionBlock = transactionBlock;
             TransactionFee = transactionFee;
             TransactionHash = transactionHash;
         }
 
-        public void OnTransactionExecutionFailed(int transactionNumber, OperationExecutionResult errorCode, string error)
+        public void OnTransactionExecutionFailed(OperationExecutionResult errorCode, string error)
         {
             State = OperationExecutionState.Failed;
 

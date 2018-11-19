@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Lykke.Job.BlockchainOperationsExecutor.Core.Services
+namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
 {
     public interface IStartupManager
     {
