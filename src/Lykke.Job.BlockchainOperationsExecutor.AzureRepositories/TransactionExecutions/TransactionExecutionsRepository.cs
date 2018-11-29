@@ -69,7 +69,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
             return Task.WhenAll
             (
-                SaveBlobEntityAsync(aggregate.OperationId, aggregate.BlockchainType, blobEntity),
+                SaveBlobEntityAsync(aggregate.TransactionId, aggregate.BlockchainType, blobEntity),
                 _aggregateRepository.SaveAsync(aggregate)
             );
         }
