@@ -48,6 +48,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
+            if (command.OperationId == Guid.Parse("40030b1f-84f9-4fae-82f1-9129f1617da1") ||
+                command.OperationId == Guid.Parse("e8d08cf1-3612-442e-b3f5-224503165a7b"))
+            {
+                publisher.PublishEvent(new TransactionExecutionFailedEvent
+                {
+                    OperationId = command.OperationId,
+                    TransactionId = command.TransactionId,
+                    TransactionNumber = command.TransactionNumber,
+                    ErrorCode = TransactionExecutionResult.AmountIsTooSmall,
+                    Error = "This transaction is aborted manually https://app.asana.com/0/0/929426179335799/f"
+                });
+            }
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
             var wallet = await _blockchainSignFacadeClient.GetWalletByPublicAddressAsync(command.BlockchainType, command.FromAddress);
