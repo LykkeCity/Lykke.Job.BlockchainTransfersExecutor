@@ -59,6 +59,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     ErrorCode = TransactionExecutionResult.AmountIsTooSmall,
                     Error = "This transaction is aborted manually https://app.asana.com/0/0/929426179335799/f"
                 });
+
+                return CommandHandlingResult.Ok();
             }
 
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
