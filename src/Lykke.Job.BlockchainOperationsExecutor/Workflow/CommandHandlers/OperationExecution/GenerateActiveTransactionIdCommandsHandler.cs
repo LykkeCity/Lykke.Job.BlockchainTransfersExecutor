@@ -70,7 +70,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
                                      "RebuildConfirmationResult will checked later again",
                             context: loggingContext);
 
-                        return CommandHandlingResult.Fail(_retryDelayProvider.TransactionRebuildRetryDelay);
+                        return CommandHandlingResult.Fail(_retryDelayProvider.RebuildingConfirmationCheckRetryDelay);
                     }
                     case RebuildConfirmationResult.Accepted:
                     {

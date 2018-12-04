@@ -48,7 +48,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     _settings.SourceAddressLockingRetryDelay,
                     _settings.WaitForTransactionRetryDelay,
                     _settings.NotEnoughBalanceRetryDelay,
-                    _settings.TransactionRebuildRetryDelay))
+                    _settings.RebuildingConfirmationCheckRetryDelay))
                 .AsSelf();
 
             builder.RegisterInstance(TransitionExecutionStateSwitcherBuilder.Build())
