@@ -47,7 +47,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.Register(c => new RetryDelayProvider(
                     _settings.SourceAddressLockingRetryDelay,
                     _settings.WaitForTransactionRetryDelay,
-                    _settings.NotEnoughBalanceRetryDelay))
+                    _settings.NotEnoughBalanceRetryDelay,
+                    _settings.TransactionRebuildRetryDelay))
                 .AsSelf();
 
             builder.RegisterInstance(TransitionExecutionStateSwitcherBuilder.Build())
@@ -136,7 +137,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(GenerateActiveTransactionIdCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<GenerateActiveTransactionIdCommandsHandler>()
-                    .PublishingEvents(typeof(ActiveTransactionIdGeneratedEvent))
+                    .PublishingEvents(typeof(ActiveTransactionIdGeneratedEvent), typeof(TransactionReBuildingRejectedEvent))
                     .With(commandsPipeline)
 
                     .ListeningCommands(typeof(ClearActiveTransactionCommand))
@@ -246,7 +247,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     (
                         typeof(TransactionExecutionCompletedEvent),
                         typeof(TransactionExecutionFailedEvent),
-                        typeof(TransactionExecutionRepeatRequestedEvent)
+                        typeof(TransactionExecutionRepeatRequestedEvent),
+                        typeof(TransactionExecutionCompletedEvent)
                     )
                     .From(TransactionExecutor)
                     .On(defaultRoute)
