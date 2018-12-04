@@ -9,6 +9,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract
     public enum OperationExecutionErrorCode
     {
         Unknown,
-        AmountTooSmall
+        AmountTooSmall,
+        RebuildingRejected
     }
 }

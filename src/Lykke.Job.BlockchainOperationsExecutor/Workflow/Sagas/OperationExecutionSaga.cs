@@ -70,7 +70,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     new GenerateActiveTransactionIdCommand
                     {
                         OperationId = aggregate.OperationId,
-                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber
+                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber,
+                        IsCashout = aggregate.IsCashout
                     },
                     Self
                 );
@@ -106,6 +107,46 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         IncludeFee = aggregate.IncludeFee
                     },
                     CqrsModule.TransactionExecutor
+                );
+
+                _chaosKitty.Meow(aggregate.OperationId);
+
+                await _repository.SaveAsync(aggregate);
+            }
+        }
+
+        [UsedImplicitly]
+        private async Task Handle(TransactionReBuildingRejectedEvent evt, ICommandSender sender)
+        {
+            var aggregate = await _repository.GetAsync(evt.OperationId);
+
+            if (_stateSwitcher.Switch(aggregate, evt))
+            {
+                if (!aggregate.Result.HasValue)
+                {
+                    throw new InvalidOperationException("Result should be not null here");
+                }
+
+                if (aggregate.Result.Value == OperationExecutionResult.Completed)
+                {
+                    throw new InvalidOperationException($"Result can't be {nameof(OperationExecutionResult.Completed)} here");
+                }
+
+                if (!aggregate.ActiveTransactionId.HasValue)
+                {
+                    throw new InvalidOperationException("Active transaction id should be not null here");
+                }
+
+                sender.SendCommand
+                (
+                    new NotifyOperationExecutionFailedCommand
+                    {
+                        OperationId = aggregate.OperationId,
+                        TransactionId = aggregate.ActiveTransactionId.Value,
+                        Error = aggregate.Error,
+                        ErrorCode = aggregate.Result.Value.MapToOperationExecutionErrorCode()
+                    },
+                    Self
                 );
 
                 _chaosKitty.Meow(aggregate.OperationId);
@@ -246,7 +287,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                     new GenerateActiveTransactionIdCommand
                     {
                         OperationId = aggregate.OperationId,
-                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber
+                        ActiveTransactioNumber = aggregate.ActiveTransactionNumber,
+                        IsCashout = aggregate.IsCashout
                     },
                     Self
                 );

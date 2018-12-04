@@ -4,6 +4,7 @@
     {
         Completed,
         UnknownError,
-        AmountIsTooSmall
+        AmountIsTooSmall,
+        RebuildingRejected
     }
 }
