@@ -52,20 +52,21 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
 
                     return CommandHandlingResult.Ok();
                 }
-                
+
+                if (aggregate.IsFinished)
+                {
+                    _log.Warning("Operation already finished. " +
+                                 "Do nothing",
+                        context: loggingContext);
+
+                    return CommandHandlingResult.Ok();
+                }
+
+
                 switch (aggregate.RebuildConfirmationResult)
                 {
                     case RebuildConfirmationResult.Unconfirmed:
                     {
-                        if (aggregate.IsFinished)
-                        {
-                            _log.Warning("Transaction manual confirmation required, but operation already finished. " +
-                                         "Do nothing",
-                                context: loggingContext);
-
-                            return CommandHandlingResult.Ok();
-                        }
-
                         _log.Warning("Transaction rebuild manual confirmation required. " +
                                      "RebuildConfirmationResult will checked later again",
                             context: loggingContext);
