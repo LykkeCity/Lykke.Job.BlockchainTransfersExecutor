@@ -19,7 +19,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Contract.Events
         /// <summary>
         /// Transaction ID
         /// </summary>
-        public Guid TransactionId { get; set; }
+        public Guid? TransactionId { get; set; }
 
         /// <summary>
         /// Error description

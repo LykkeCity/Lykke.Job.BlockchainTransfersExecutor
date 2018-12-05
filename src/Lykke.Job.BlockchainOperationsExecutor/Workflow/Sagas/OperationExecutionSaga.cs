@@ -139,8 +139,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
                         OperationId = aggregate.OperationId,
                         Error = aggregate.Error,
                         ErrorCode = aggregate.Result.Value.MapToOperationExecutionErrorCode(),
-                        TransactionId = Guid.Empty // active transactionId is already cleared
-                                                   // TODO update contract OperationExecutionFailedEvent.TransactionId to nullable
+                        TransactionId = null
                     },
                     Self
                 );
