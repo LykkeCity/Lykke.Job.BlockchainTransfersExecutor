@@ -247,8 +247,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     (
                         typeof(TransactionExecutionCompletedEvent),
                         typeof(TransactionExecutionFailedEvent),
-                        typeof(TransactionExecutionRepeatRequestedEvent),
-                        typeof(TransactionReBuildingRejectedEvent)
+                        typeof(TransactionExecutionRepeatRequestedEvent)
                     )
                     .From(TransactionExecutor)
                     .On(defaultRoute)
@@ -258,6 +257,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(NotifyOperationExecutionFailedCommand),
                         typeof(ClearActiveTransactionCommand)
                     )
+                    .To(OperationsExecutor)
+                    .With(commandsPipeline)
+
+                    .ListeningEvents(typeof(TransactionReBuildingRejectedEvent))
+                    .From(OperationsExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(NotifyOperationExecutionFailedCommand))
                     .To(OperationsExecutor)
                     .With(commandsPipeline)
 
