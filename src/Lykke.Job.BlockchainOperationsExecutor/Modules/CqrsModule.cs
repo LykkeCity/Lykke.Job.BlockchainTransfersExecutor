@@ -248,7 +248,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         typeof(TransactionExecutionCompletedEvent),
                         typeof(TransactionExecutionFailedEvent),
                         typeof(TransactionExecutionRepeatRequestedEvent),
-                        typeof(TransactionExecutionCompletedEvent)
+                        typeof(TransactionReBuildingRejectedEvent)
                     )
                     .From(TransactionExecutor)
                     .On(defaultRoute)
