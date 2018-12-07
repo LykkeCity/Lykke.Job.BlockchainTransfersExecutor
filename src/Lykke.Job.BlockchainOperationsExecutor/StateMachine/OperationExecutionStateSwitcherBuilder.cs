@@ -70,7 +70,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
                     outputs.On<TransactionReBuildingRejectedEvent>()
                         .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
-                        .HandleTransition((a, e) => a.OnTransactionReBuildingRejected());
+                        .HandleTransition((a, e) => a.OnTransactionExecutionFailed(OperationExecutionResult.RebuildingRejected, "Rebuilding rejected"));
                 });
                 
 

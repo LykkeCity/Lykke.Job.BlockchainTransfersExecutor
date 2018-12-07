@@ -46,7 +46,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
 
                 if (aggregate.ActiveTransactionNumber > command.ActiveTransactioNumber)
                 {
-                    _log.Warning("Command already handled" +
+                    _log.Warning("Command already handled. " +
                                  "Do nothing",
                         context: loggingContext);
 
