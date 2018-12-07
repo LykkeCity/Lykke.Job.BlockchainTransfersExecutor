@@ -22,7 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .WithPrecondition((a, e) => e.TransactionNumber == 1, (a, e) => "Transaction number should be 1")
                 .WithPrecondition((a, e) => a.ActiveTransactionNumber == 0, (a, e) => "Active transaction number should be 0")
                 .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
-                .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber)); ;
+                .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber));
 
             register.From(OperationExecutionState.ActiveTransactionIdGenerated)
                 .On<TransactionExecutionStartedEvent>()
@@ -70,7 +70,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
                     outputs.On<TransactionReBuildingRejectedEvent>()
                         .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
-                        .HandleTransition((a, e) => a.OnTransactionReBuildingRejected());
+                        .HandleTransition((a, e) => a.OnTransactionExecutionFailed(OperationExecutionResult.RebuildingRejected, "Rebuilding rejected"));
                 });
                 
 

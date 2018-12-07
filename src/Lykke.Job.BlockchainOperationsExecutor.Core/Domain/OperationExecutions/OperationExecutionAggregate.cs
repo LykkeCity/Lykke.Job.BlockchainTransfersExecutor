@@ -213,17 +213,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             Error = error;
         }
 
-        public void OnTransactionReBuildingRejected()
-        {
-            State = OperationExecutionState.Failed;
-
-            TransactionFinishMoment = DateTime.UtcNow;
-
-            Result = OperationExecutionResult.RebuildingRejected;
-            Error = "Rebuilding rejected";
-        }
-
-
         public void OnNotifiedAboutEnding()
         {
             State = OperationExecutionState.NotifiedAboutEnding;
