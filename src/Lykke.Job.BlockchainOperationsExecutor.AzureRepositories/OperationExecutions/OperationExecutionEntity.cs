@@ -44,6 +44,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
         public string TransactionHash { get; set; }
         public string Error { get; set; }
 
+        public RebuildConfirmationResult RebuildConfirmationResult { get; set; }
+
         // ReSharper restore MemberCanBePrivate.Global
 
         #endregion
@@ -85,7 +87,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 TransactionBlock = aggregate.TransactionBlock,
                 TransactionFee = aggregate.TransactionFee,
                 TransactionHash = aggregate.TransactionHash,
-                Error = aggregate.Error
+                Error = aggregate.Error,
+                RebuildConfirmationResult = aggregate.RebuildConfirmationResult
             };
         }
 
@@ -120,7 +123,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExec
                 TransactionBlock,
                 TransactionFee,
                 TransactionHash,
-                Error);
+                Error,
+                RebuildConfirmationResult);
         }
 
         #endregion        

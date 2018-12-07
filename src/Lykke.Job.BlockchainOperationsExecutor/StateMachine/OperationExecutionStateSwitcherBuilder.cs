@@ -60,11 +60,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .WithPrecondition((a, e) => a.ActiveTransactionId != null, (a, e) => "Active transaction should be not null")
                 .HandleTransition((a, e) => a.OnActiveTransactionCleared());
 
-            register.From(OperationExecutionState.ActiveTransactionCleared)
-                .On<ActiveTransactionIdGeneratedEvent>()
-                .WithPrecondition((a, e) => e.TransactionNumber == a.ActiveTransactionNumber + 1, (a, e) => $"Transaction number should be active transaction number [{a.ActiveTransactionNumber}] + 1")
-                .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
-                .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber));
+            
+            register.From(OperationExecutionState.ActiveTransactionCleared, outputs =>
+                {
+                    outputs.On<ActiveTransactionIdGeneratedEvent>()
+                        .WithPrecondition((a, e) => e.TransactionNumber == a.ActiveTransactionNumber + 1, (a, e) => $"Transaction number should be active transaction number [{a.ActiveTransactionNumber}] + 1")
+                        .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
+                        .HandleTransition((a, e) => a.OnActiveTransactionIdGenerated(e.TransactionId, e.TransactionNumber));
+
+                    outputs.On<TransactionReBuildingRejectedEvent>()
+                        .WithPrecondition((a, e) => a.ActiveTransactionId == null, (a, e) => "Active transaction should be null")
+                        .HandleTransition((a, e) => a.OnTransactionExecutionFailed(OperationExecutionResult.RebuildingRejected, "Rebuilding rejected"));
+                });
+                
 
             register.From(OperationExecutionState.Completed)
                 .On<OperationExecutionCompletedEvent>()
@@ -86,6 +94,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.ActiveTransactionIdGenerated)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber)
                 .Ignore<TransactionExecutionRepeatRequestedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber)
                 .Ignore<ActiveTransactionClearedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber);
@@ -93,6 +102,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.TransactionExecutionInProgress)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
                 .Ignore<TransactionExecutionRepeatRequestedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber)
                 .Ignore<ActiveTransactionClearedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber);
@@ -100,6 +110,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.TransactionExecutionRepeatRequested)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
                 .Ignore<TransactionExecutionRepeatRequestedEvent>((a, e) => a.ActiveTransactionNumber >= e.TransactionNumber)
                 .Ignore<ActiveTransactionClearedEvent>((a, e) => a.ActiveTransactionNumber > e.TransactionNumber);
@@ -114,6 +125,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.Completed)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>()
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<TransactionExecutionRepeatRequestedEvent>()
                 .Ignore<ActiveTransactionClearedEvent>()
@@ -122,6 +134,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.Failed)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>()
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<TransactionExecutionRepeatRequestedEvent>()
                 .Ignore<ActiveTransactionClearedEvent>()
@@ -130,6 +143,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
             register.In(OperationExecutionState.NotifiedAboutEnding)
                 .Ignore<OperationExecutionStartedEvent>()
                 .Ignore<ActiveTransactionIdGeneratedEvent>()
+                .Ignore<TransactionReBuildingRejectedEvent>()
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<TransactionExecutionRepeatRequestedEvent>()
                 .Ignore<ActiveTransactionClearedEvent>()

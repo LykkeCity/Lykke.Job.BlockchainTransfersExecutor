@@ -271,6 +271,94 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
         }
 
         [Fact]
+        public void Test_Execution_With_Manual_Rejection()
+        {
+            // Arrange
+
+            var switcher = OperationExecutionStateSwitcherBuilder.Build();
+            var aggregate = OperationExecutionAggregate.Start
+            (
+                Guid.NewGuid(),
+                "",
+                new[] { new TransactionOutputValueType("", 0) },
+                "",
+                false,
+                "",
+                "",
+                OperationExecutionEndpointsConfiguration.OneToOne
+            );
+
+            // Act / Assert
+
+            Assert.Equal(OperationExecutionState.Started, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+            {
+                TransactionNumber = 1
+            }));
+            Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
+
+            foreach (var transactionNumber in Enumerable.Range(2, 2))
+            {
+                Assert.True(switcher.Switch(aggregate, new TransactionExecutionRepeatRequestedEvent
+                {
+                    ErrorCode = TransactionExecutionResult.RebuildingIsRequired,
+                    TransactionNumber = transactionNumber - 1
+                }));
+                Assert.Equal(OperationExecutionState.TransactionExecutionRepeatRequested, aggregate.State);
+
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent
+                {
+                    TransactionNumber = transactionNumber - 1
+                }));
+                Assert.Equal(OperationExecutionState.ActiveTransactionCleared, aggregate.State);
+
+                Assert.True(switcher.Switch(aggregate, new ActiveTransactionIdGeneratedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
+                Assert.Equal(OperationExecutionState.ActiveTransactionIdGenerated, aggregate.State);
+
+                Assert.True(switcher.Switch(aggregate, new TransactionExecutionStartedEvent
+                {
+                    TransactionNumber = transactionNumber
+                }));
+                Assert.Equal(OperationExecutionState.TransactionExecutionInProgress, aggregate.State);
+            }
+
+            Assert.True(switcher.Switch(aggregate, new TransactionExecutionRepeatRequestedEvent
+            {
+                ErrorCode = TransactionExecutionResult.RebuildingIsRequired,
+                TransactionNumber = 3
+            }));
+            Assert.Equal(OperationExecutionState.TransactionExecutionRepeatRequested, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new ActiveTransactionClearedEvent
+            {
+                TransactionNumber = 3
+            }));
+
+            Assert.Equal(OperationExecutionState.ActiveTransactionCleared, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new TransactionReBuildingRejectedEvent()
+            {
+            }));
+
+            Assert.Equal(OperationExecutionState.Failed, aggregate.State);
+
+            Assert.True(switcher.Switch(aggregate, new OperationExecutionFailedEvent()));
+
+            Assert.Equal(OperationExecutionState.NotifiedAboutEnding, aggregate.State);
+        }
+
+
+        [Fact]
         public void Test_Execution_With_Double_Transaction_Repeat_To_Failure()
         {
             // Arrange

@@ -8,7 +8,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExec
     public class NotifyOperationExecutionFailedCommand
     {
         public Guid OperationId { get; set; }
-        public Guid TransactionId { get; set; }
+        public Guid? TransactionId { get; set; }
         public string Error { get; set; }
         public OperationExecutionErrorCode ErrorCode { get; set; }
     }

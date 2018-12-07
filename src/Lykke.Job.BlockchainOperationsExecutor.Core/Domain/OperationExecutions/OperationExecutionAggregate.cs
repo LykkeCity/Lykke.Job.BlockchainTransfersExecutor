@@ -37,6 +37,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
         public string TransactionHash { get; private set; }
         public string Error { get; private set; }
 
+        public bool IsCashout => IncludeFee == false;
+        public bool IsFinished => Result != null;
+
+        public RebuildConfirmationResult RebuildConfirmationResult { get; private set; }
+
         private OperationExecutionAggregate(string version,
             DateTime startMoment,
             Guid operationId,
@@ -110,7 +115,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
             long transactionBlock,
             decimal transactionFee,
             string transactionHash,
-            string error)
+            string error,
+            RebuildConfirmationResult rebuildConfirmationResult)
         {
             return new OperationExecutionAggregate(
                 version,
@@ -138,7 +144,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
                 TransactionBlock = transactionBlock,
                 TransactionFee = transactionFee,
                 TransactionHash = transactionHash,
-                Error = error
+                Error = error,
+                RebuildConfirmationResult = rebuildConfirmationResult
             };
         }
 
@@ -150,6 +157,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions
 
             ActiveTransactionId = transactionId;
             ActiveTransactionNumber = transactionNumber;
+
+            RebuildConfirmationResult = RebuildConfirmationResult.Unconfirmed;
         }
 
         public void OnTransactionExecutionStarted()

@@ -58,6 +58,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Mappers
                 case OperationExecutionResult.AmountIsTooSmall:
                     return OperationExecutionErrorCode.AmountTooSmall;
 
+                case OperationExecutionResult.RebuildingRejected:
+                    return OperationExecutionErrorCode.RebuildingRejected;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(source), source, null);
             }
