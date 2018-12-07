@@ -33,7 +33,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Operat
         public async Task<CommandHandlingResult> Handle(GenerateActiveTransactionIdCommand command, IEventPublisher publisher)
         {
             if (command.IsCashout 
-                && command.ActiveTransactioNumber > 0)  // generate active transaction id after rebuild command
+                && command.ActiveTransactioNumber > 0)  // First transaction executes always without manual confirmation
             {
                 var aggregate = await _repository.GetAsync(command.OperationId);
 
