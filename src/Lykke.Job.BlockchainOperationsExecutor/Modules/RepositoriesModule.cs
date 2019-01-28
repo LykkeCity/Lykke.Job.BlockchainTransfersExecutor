@@ -33,8 +33,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 .As<ITransactionExecutionsRepository>()
                 .SingleInstance();
 
-            builder.Register(c => SourceAddressLocksRepository.Create(_dbSettings.Nested(x => x.DataConnString), c.Resolve<ILogFactory>()))
-                .As<ISourceAddresLocksRepoistory>()
+            builder.Register(c => AddressLocksRepository.Create(_dbSettings.Nested(x => x.DataConnString), c.Resolve<ILogFactory>()))
+                .As<IAddressLocksRepository>()
                 .SingleInstance();
 
             builder.Register(c => CommandHandlerEventRepository.Create(_dbSettings.Nested(x => x.DataConnString),
