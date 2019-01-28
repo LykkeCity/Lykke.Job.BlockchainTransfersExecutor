@@ -4,6 +4,7 @@
     {
         Started,
         SourceAddressLocked,
+        SourceAndTargetAddressesLocked,
         Built,
         BuildingFailed,
         Signed,
@@ -13,6 +14,7 @@
         WaitingForEndingFailed,
         SourceAddressReleased,
         Completed,
+        SourceAndTargetAddressesReleased,
         Cleared
     }
 }
