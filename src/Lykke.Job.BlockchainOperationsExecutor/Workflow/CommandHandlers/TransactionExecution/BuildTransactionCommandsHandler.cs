@@ -35,7 +35,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             RetryDelayProvider retryDelayProvider,
             IBlockchainApiClientProvider apiClientProvider,
             IAssetsServiceWithCache assetsService,
-            ISourceAddresLocksRepoistory sourceAddresLocksRepoistory,
+            IAddressLocksRepository addressLocksRepository,
             IBlockchainSignFacadeClient blockchainSignFacadeClient)
         {
             _log = logFactory.CreateLog(this);

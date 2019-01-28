@@ -12,14 +12,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public DateTime StartMoment { get; }
         public DateTime? SourceAddressLockingMoment { get; private set; }
+        public DateTime? SourceAndTargetAddressesLockingMoment { get; private set; }
         public DateTime? BuildingMoment { get; private set; }
         public DateTime? SigningMoment { get; private set; }
         public DateTime? BroadcastingMoment { get; private set; }
         public DateTime? FinishMoment { get; private set; }
         public DateTime? SourceAddressReleasingMoment { get; private set; }
+        public DateTime? SourceAndTargetAddressesReleasingMoment { get; private set; }
         public DateTime? ClearingMoment { get; private set; }
         public DateTime? BuildingFailureMoment { get; private set; }
-        public DateTime? BroadcastinFailureMoment { get; private set; }
+        public DateTime? BroadcastingFailureMoment { get; private set; }
         public DateTime? WaitingForEndingStartMoment { get; private set; }
         public DateTime? WaitingForEndingFailureMoment { get; private set; }
 
@@ -42,7 +44,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public string Hash { get; private set; }
         public string Error { get; private set; }
         public string FromAddressContext { get; private set; }
-        public bool WasLocked => SourceAddressLockingMoment.HasValue;
+        public bool WasLocked => SourceAddressLockingMoment.HasValue || SourceAndTargetAddressesLockingMoment.HasValue;
 
         private TransactionExecutionAggregate(
             string version,
@@ -104,14 +106,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             TransactionExecutionResult? result,
             DateTime startMoment,
             DateTime? sourceAddressLockingMoment,
+            DateTime? sourceAndTargetAddressesLockingMoment,
             DateTime? buildingMoment,
             DateTime? signingMoment,
             DateTime? broadcastingMoment,
             DateTime? finishMoment,
             DateTime? sourceAddressReleasingMoment,
+            DateTime? sourceAndTargetAddressReleasingMoment,
             DateTime? clearingMoment,
             DateTime? buildingFailureMoment,
-            DateTime? broadcastinFailureMoment,
+            DateTime? broadcastingFailureMoment,
             DateTime? waitingForEndingStartMoment,
             DateTime? waitingForEndingFailureMoment,
             Guid operationId,
@@ -148,14 +152,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             {
                 Result = result,
                 SourceAddressLockingMoment = sourceAddressLockingMoment,
+                SourceAndTargetAddressesLockingMoment = sourceAndTargetAddressesLockingMoment,
                 BuildingMoment = buildingMoment,
                 SigningMoment = signingMoment,
                 BroadcastingMoment = broadcastingMoment,
                 FinishMoment = finishMoment,
                 SourceAddressReleasingMoment = sourceAddressReleasingMoment,
+                SourceAndTargetAddressesReleasingMoment = sourceAndTargetAddressReleasingMoment,
                 ClearingMoment = clearingMoment,
                 BuildingFailureMoment = buildingFailureMoment,
-                BroadcastinFailureMoment = broadcastinFailureMoment,
+                BroadcastingFailureMoment = broadcastingFailureMoment,
                 WaitingForEndingStartMoment = waitingForEndingStartMoment,
                 WaitingForEndingFailureMoment = waitingForEndingFailureMoment,
                 FromAddressContext = fromAddressContext,
@@ -174,6 +180,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             State = TransactionExecutionState.SourceAddressLocked;
 
             SourceAddressLockingMoment = DateTime.UtcNow;
+        }
+
+        public void OnSourceAndTargetAddressesLocked()
+        {
+            State = TransactionExecutionState.SourceAndTargetAddressesLocked;
+
+            SourceAndTargetAddressesLockingMoment = DateTime.UtcNow;
         }
         
         public void OnBuilt(string fromAddressContext, string transactionContext)
@@ -197,9 +210,16 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public void OnBroadcasted()
         {
-            State = TransactionExecutionState.Broadcasted;
+            if (SourceAndTargetAddressesLockingMoment.HasValue)
+            {
+                OnWaitingForEndingStarted();
+            }
+            else
+            {
+                State = TransactionExecutionState.Broadcasted;
 
-            BroadcastingMoment = DateTime.UtcNow;
+                BroadcastingMoment = DateTime.UtcNow;
+            }
         }
 
         public void OnSourceAddressLockReleased()
@@ -207,6 +227,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
             State = TransactionExecutionState.SourceAddressReleased;
 
             SourceAddressReleasingMoment = DateTime.UtcNow;
+        }
+
+        public void OnSourceAndTargetAddressLocksReleased()
+        {
+            State = TransactionExecutionState.SourceAndTargetAddressesReleased;
+            
+            SourceAndTargetAddressesReleasingMoment = DateTime.UtcNow;
         }
 
         public void OnCompleted(IReadOnlyCollection<TransactionOutputValueType> outputs, long block, decimal fee, string hash)
@@ -253,7 +280,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
             State = TransactionExecutionState.BroadcastingFailed;
 
-            BroadcastinFailureMoment = DateTime.UtcNow;
+            BroadcastingFailureMoment = DateTime.UtcNow;
 
             Result = errorCode;
             Error = error;

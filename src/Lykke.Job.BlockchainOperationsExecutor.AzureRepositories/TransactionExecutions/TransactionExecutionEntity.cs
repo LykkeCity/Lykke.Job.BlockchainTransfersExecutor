@@ -18,11 +18,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
         public DateTime StartMoment { get; set; }
         public DateTime? SourceAddressLockingMoment { get; set; }
+        public DateTime? SourceAndTargetAddressesLockingMoment { get; set; }
         public DateTime? BuildingMoment { get; set; }
         public DateTime? SigningMoment { get; set; }
         public DateTime? BroadcastingMoment { get; set; }
         public DateTime? FinishMoment { get; set; }
         public DateTime? SourceAddressReleaseMoment { get; set; }
+        public DateTime? SourceAndTargetAddressesReleasingMoment { get; set; }
         public DateTime? ClearedMoment { get; set; }
         public DateTime? BuildingFailureMoment { get; set; }
         public DateTime? BroadcastinFailureMoment { get; set; }
@@ -65,15 +67,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 Result = aggregate.Result,
                 StartMoment = aggregate.StartMoment,
                 SourceAddressLockingMoment = aggregate.SourceAddressLockingMoment,
+                SourceAndTargetAddressesLockingMoment = aggregate.SourceAndTargetAddressesLockingMoment,
                 BuildingMoment = aggregate.BuildingMoment,
                 SigningMoment = aggregate.SigningMoment,
                 BroadcastingMoment = aggregate.BroadcastingMoment,
                 FinishMoment = aggregate.FinishMoment,
                 BuildingFailureMoment = aggregate.BuildingFailureMoment,
-                BroadcastinFailureMoment = aggregate.BroadcastinFailureMoment,
+                BroadcastinFailureMoment = aggregate.BroadcastingFailureMoment,
                 WaitingForEndingStartMoment = aggregate.WaitingForEndingStartMoment,
                 WaitingForEndingFailureMoment = aggregate.WaitingForEndingFailureMoment,
                 SourceAddressReleaseMoment = aggregate.SourceAddressReleasingMoment,
+                SourceAndTargetAddressesReleasingMoment = aggregate.SourceAndTargetAddressesReleasingMoment,
                 ClearedMoment = aggregate.ClearingMoment,
                 OperationId = aggregate.OperationId,
                 TransactionId = aggregate.TransactionId,
@@ -105,11 +109,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 Result,
                 StartMoment,
                 SourceAddressLockingMoment,
+                SourceAndTargetAddressesLockingMoment,
                 BuildingMoment,
                 SigningMoment,
                 BroadcastingMoment,
                 FinishMoment,
                 SourceAddressReleaseMoment,
+                SourceAndTargetAddressesReleasingMoment,
                 ClearedMoment,
                 BuildingFailureMoment,
                 BroadcastinFailureMoment,
