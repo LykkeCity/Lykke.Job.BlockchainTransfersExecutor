@@ -33,11 +33,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(SignTransactionCommand command, IEventPublisher publisher)
         {
-            var alredyPublishedEvt = await _commandHandlerEventRepository.TryGetEventAsync(command.TransactionId, CommandHandlerId);
+            var alreadyPublishedEvt = await _commandHandlerEventRepository.TryGetEventAsync(command.TransactionId, CommandHandlerId);
 
-            if (alredyPublishedEvt != null)
+            if (alreadyPublishedEvt != null)
             {
-                publisher.PublishEvent(alredyPublishedEvt);
+                publisher.PublishEvent(alreadyPublishedEvt);
 
                 return CommandHandlingResult.Ok();
             }
@@ -59,15 +59,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 throw new InvalidOperationException("Sign service returned the empty transaction");
             }
 
-            var evt = new TransactionSignedEvent
-            {
-                OperationId = command.OperationId,
-                TransactionId = command.TransactionId,
-                SignedTransaction = transactionSigningResult.SignedTransaction
-            };
-
-            await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId, CommandHandlerId, evt);
-            publisher.PublishEvent(evt);
+            publisher.PublishEvent(await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId,
+                CommandHandlerId,
+                new TransactionSignedEvent
+                {
+                    OperationId = command.OperationId,
+                    TransactionId = command.TransactionId,
+                    SignedTransaction = transactionSigningResult.SignedTransaction
+                }));
 
             return CommandHandlingResult.Ok();
         }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions
@@ -8,6 +6,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
     public interface ICommandHandlerEventRepository
     {
         Task<object> TryGetEventAsync(Guid aggregateId, string commandHandlerId);
-        Task InsertEventAsync<T>(Guid aggregateId, string commandHandlerId, T eventData);
+        Task<T> InsertEventAsync<T>(Guid aggregateId, string commandHandlerId, T eventData);
     }
 }

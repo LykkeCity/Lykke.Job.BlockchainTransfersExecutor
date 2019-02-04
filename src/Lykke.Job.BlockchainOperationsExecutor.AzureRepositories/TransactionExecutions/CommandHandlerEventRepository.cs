@@ -62,7 +62,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 }
 
                 var containerName = BuildBlobContainerName(commandHandlerId);
-                var fileName = BuildBlobFileName(aggregateId);
+                var fileName = BuildBlobFileName(aggregateId, entity.CorrelationId);
 
                 if (await _blob.HasBlobAsync(containerName, fileName))
                 {
@@ -77,7 +77,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             return null;
         }
 
-        public async Task InsertEventAsync<T>(Guid aggregateId, string commandHandlerId, T eventData)
+        public async Task<T> InsertEventAsync<T>(Guid aggregateId, string commandHandlerId, T eventData)
         {
             if (!_typeKeyDictionary.ContainsKey(typeof(T)))
             {
@@ -89,28 +89,31 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
             var correlationId = Guid.NewGuid();
 
-            try
+            await SaveBlobEntityAsync(aggregateId, correlationId, commandHandlerId, eventData);
+            
+            await _storage.InsertAsync(new CommandHandlerEventEntity
             {
-                await _storage.InsertAsync(new CommandHandlerEventEntity
-                {
-                    AggregateId = aggregateId,
-                    CommandHandlerId = commandHandlerId,
-                    EventTypeKey = _typeKeyDictionary[typeof(T)],
-                    PartitionKey = CommandHandlerEventEntity.GeneratePartitionKey(aggregateId),
-                    RowKey = CommandHandlerEventEntity.GenerateRowKey(commandHandlerId),
-                    CorrelationId = correlationId
-                });
+                AggregateId = aggregateId,
+                CommandHandlerId = commandHandlerId,
+                EventTypeKey = _typeKeyDictionary[typeof(T)],
+                PartitionKey = CommandHandlerEventEntity.GeneratePartitionKey(aggregateId),
+                RowKey = CommandHandlerEventEntity.GenerateRowKey(commandHandlerId),
+                CorrelationId = correlationId
+            });
 
-                await SaveBlobEntityAsync(aggregateId, commandHandlerId, eventData);
-            }
-            catch (Exception)
+            var result =  await TryGetEventAsync(aggregateId, commandHandlerId);
+
+            if (result == null)
             {
-                await _storage.DeleteIfExistAsync(CommandHandlerEventEntity.GeneratePartitionKey(aggregateId),
-                    CommandHandlerEventEntity.GenerateRowKey(commandHandlerId),
-                    ent => ent.CorrelationId == correlationId);
-
-                throw;
+                throw new ArgumentException("Stored event should be not null there");
             }
+
+            if (!(result is T))
+            {
+                throw new ArgumentException($"Event should be of type {typeof(T).Name}");
+            }
+
+            return (T) result;
         }
 
         private static string BuildBlobContainerName(string commandHandlerId)
@@ -118,18 +121,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             return $"command-handler-event-data-{commandHandlerId}";
         }
 
-        private static string BuildBlobFileName(Guid aggregateId)
+        private static string BuildBlobFileName(Guid aggregateId, Guid correlationId)
         {
-            return aggregateId.ToString();
+            return $"{aggregateId}-{correlationId}";
         }
 
         private async Task SaveBlobEntityAsync(
             Guid aggregateId,
+            Guid correlationId,
             string commandHandlerId,
             object data)
         {
             var containerName = BuildBlobContainerName(commandHandlerId);
-            var blobName = BuildBlobFileName(aggregateId);
+            var blobName = BuildBlobFileName(aggregateId, correlationId);
 
             using (var stream = new MemoryStream())
             using (var textWriter = new StreamWriter(stream))

@@ -57,11 +57,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
             var wallet = await _blockchainSignFacadeClient.GetWalletByPublicAddressAsync(command.BlockchainType, command.FromAddress);
 
-            var alredyPublishedEvt = await _commandHandlerEventRepository.TryGetEventAsync(command.TransactionId, CommandHandlerId);
+            var alreadyPublishedEvt = await _commandHandlerEventRepository.TryGetEventAsync(command.TransactionId, 
+                CommandHandlerId);
 
-            if (alredyPublishedEvt != null)
+            if (alreadyPublishedEvt != null)
             {
-                publisher.PublishEvent(alredyPublishedEvt);
+                publisher.PublishEvent(alreadyPublishedEvt);
+
                 return CommandHandlingResult.Ok();
             }
 
@@ -102,16 +104,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
 
                 _chaosKitty.Meow(command.TransactionId);
 
-                var evt = new TransactionBuiltEvent
-                {
-                    OperationId = command.OperationId,
-                    TransactionId = command.TransactionId,
-                    TransactionContext = buildingResult.TransactionContext,
-                    FromAddressContext = wallet.AddressContext
-                };
-
-                await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId, CommandHandlerId, evt);
-                publisher.PublishEvent(evt);
+                publisher.PublishEvent(await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId, 
+                    CommandHandlerId,
+                    new TransactionBuiltEvent
+                    {
+                        OperationId = command.OperationId,
+                        TransactionId = command.TransactionId,
+                        TransactionContext = buildingResult.TransactionContext,
+                        FromAddressContext = wallet.AddressContext
+                    }));
 
                 return CommandHandlingResult.Ok();
             }
@@ -119,17 +120,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             {
                 _log.Warning("API said, that amount is too small", context: command);
 
-                var evt = new TransactionExecutionFailedEvent
-                {
-                    OperationId = command.OperationId,
-                    TransactionId = command.TransactionId,
-                    TransactionNumber = command.TransactionNumber,
-                    ErrorCode = e.ErrorCode.MapToTransactionExecutionResult(),
-                    Error = e.Error.GetSummaryMessage()
-                };
+                
 
-                await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId, CommandHandlerId, evt);
-                publisher.PublishEvent(evt);
+                publisher.PublishEvent(await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId,
+                    CommandHandlerId,
+                    new TransactionExecutionFailedEvent
+                    {
+                        OperationId = command.OperationId,
+                        TransactionId = command.TransactionId,
+                        TransactionNumber = command.TransactionNumber,
+                        ErrorCode = e.ErrorCode.MapToTransactionExecutionResult(),
+                        Error = e.Error.GetSummaryMessage()
+                    }));
 
                 return CommandHandlingResult.Ok();
             }
@@ -141,15 +143,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             catch (TransactionAlreadyBroadcastedException)
             {
                 _log.Info("API said, that transaction already was broadcasted", command);
-
-                var evt = new TransactionBuildingRejectedEvent
-                {
-                    OperationId = command.OperationId,
-                    TransactionId = command.TransactionId
-                };
-
-                await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId, CommandHandlerId, evt);
-                publisher.PublishEvent(evt);
+                
+                publisher.PublishEvent(await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId,
+                    CommandHandlerId,
+                    new TransactionBuildingRejectedEvent
+                    {
+                        OperationId = command.OperationId,
+                        TransactionId = command.TransactionId
+                    }));
 
                 return CommandHandlingResult.Ok();
             }
