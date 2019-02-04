@@ -40,7 +40,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.Register(c => CommandHandlerEventRepository.Create(_dbSettings.Nested(x => x.DataConnString),
                     c.Resolve<ILogFactory>(),
                     CommandHandlerEventConfigurer.ConfigureCapturedEvents()))
-                .As<ITransactionExecutionsRepository>()
+                .As<ICommandHandlerEventRepository>()
                 .SingleInstance();
         }
     }
