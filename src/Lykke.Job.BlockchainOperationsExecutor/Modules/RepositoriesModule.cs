@@ -5,6 +5,7 @@ using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecut
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.TransactionExecution;
 using Lykke.SettingsReader;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Modules
@@ -34,6 +35,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
             builder.Register(c => AddressLocksRepository.Create(_dbSettings.Nested(x => x.DataConnString), c.Resolve<ILogFactory>()))
                 .As<IAddressLocksRepository>()
+                .SingleInstance();
+
+            builder.Register(c => CommandHandlerEventRepository.Create(_dbSettings.Nested(x => x.DataConnString),
+                    c.Resolve<ILogFactory>(),
+                    CommandHandlerEventConfigurer.ConfigureCapturedEvents()))
+                .As<ITransactionExecutionsRepository>()
                 .SingleInstance();
         }
     }
