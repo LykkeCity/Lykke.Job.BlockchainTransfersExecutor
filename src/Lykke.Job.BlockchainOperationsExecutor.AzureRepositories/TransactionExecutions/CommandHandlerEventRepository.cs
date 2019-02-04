@@ -118,12 +118,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
         private static string BuildBlobContainerName(string commandHandlerId)
         {
-            return $"command-handler-event-data-{commandHandlerId}";
+            return $"stored-evts-{commandHandlerId.ToLower()}";
         }
 
         private static string BuildBlobKeyName(Guid aggregateId, Guid correlationId)
         {
-            return $"{aggregateId}-{correlationId}";
+            return $"{aggregateId:N}-{correlationId:N}";
         }
 
         private async Task SaveBlobEntityAsync(
@@ -146,7 +146,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 await stream.FlushAsync();
 
                 stream.Position = 0;
-                
+
                 await _blob.SaveBlobAsync(containerName, blobName, stream);
             }
         }
