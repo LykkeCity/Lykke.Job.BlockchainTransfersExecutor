@@ -62,15 +62,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 }
 
                 var containerName = BuildBlobContainerName(commandHandlerId);
-                var fileName = BuildBlobFileName(aggregateId, entity.CorrelationId);
-
-                if (await _blob.HasBlobAsync(containerName, fileName))
-                {
-                    throw new ArgumentException("Unable to find blob data");
-                }
+                var keyName = BuildBlobKeyName(aggregateId, entity.CorrelationId);
 
                 return JsonConvert.DeserializeObject(
-                    await _blob.GetAsTextAsync(containerName, fileName),
+                    await _blob.GetAsTextAsync(containerName, keyName),
                     _keyTypesDictionary[entity.EventTypeKey]);
             }
 
@@ -79,6 +74,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
         public async Task<T> InsertEventAsync<T>(Guid aggregateId, string commandHandlerId, T eventData)
         {
+            if (string.IsNullOrEmpty(commandHandlerId))
+            {
+                throw new ArgumentNullException(nameof(commandHandlerId));
+            }
+
             if (!_typeKeyDictionary.ContainsKey(typeof(T)))
             {
                 throw new ArgumentException($"Using {typeof(T).Name} not configured. " +
@@ -121,7 +121,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             return $"command-handler-event-data-{commandHandlerId}";
         }
 
-        private static string BuildBlobFileName(Guid aggregateId, Guid correlationId)
+        private static string BuildBlobKeyName(Guid aggregateId, Guid correlationId)
         {
             return $"{aggregateId}-{correlationId}";
         }
@@ -133,7 +133,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             object data)
         {
             var containerName = BuildBlobContainerName(commandHandlerId);
-            var blobName = BuildBlobFileName(aggregateId, correlationId);
+            var blobName = BuildBlobKeyName(aggregateId, correlationId);
 
             using (var stream = new MemoryStream())
             using (var textWriter = new StreamWriter(stream))
