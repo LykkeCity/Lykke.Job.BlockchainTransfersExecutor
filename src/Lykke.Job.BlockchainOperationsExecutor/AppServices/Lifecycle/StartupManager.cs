@@ -30,7 +30,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AppServices.Lifecycle
         {
             _log.Info("Starting Cqrs engine...");
 
-            _cqrsEngine.Start();
+            _cqrsEngine.StartAll();
 
             await Task.CompletedTask;
         }
