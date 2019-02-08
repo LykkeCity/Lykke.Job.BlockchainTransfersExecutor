@@ -32,6 +32,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                     .HandleTransition((a, e) => a.OnBuildingFailed(e.ErrorCode, e.Error));
             });
 
+            register.From(TransactionExecutionState.SourceAndTargetAddressesLocked, outputs =>
+            {
+                outputs.On<TransactionBuiltEvent>()
+                    .HandleTransition((a, e) => a.OnBuilt(e.FromAddressContext, e.TransactionContext));
+
+                outputs.On<TransactionExecutionFailedEvent>()
+                    .HandleTransition((a, e) => a.OnBuildingFailed(e.ErrorCode, e.Error));
+            });
+            
             register.From(TransactionExecutionState.Built)
                 .On<TransactionSignedEvent>()
                 .HandleTransition((a, e) => a.OnSigned(e.SignedTransaction));
