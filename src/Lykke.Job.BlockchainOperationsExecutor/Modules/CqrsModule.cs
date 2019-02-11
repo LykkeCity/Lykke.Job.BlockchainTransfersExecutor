@@ -88,6 +88,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         .MapMessageId<SignTransactionCommand>(x => x.OperationId.ToString())
                         .MapMessageId<StartTransactionExecutionCommand>(x => x.OperationId.ToString())
                         .MapMessageId<WaitForTransactionEndingCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<StartOperationExecutionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<StartOneToManyOutputsExecutionCommand>(x => x.OperationId.ToString())
 
                         //Events
                         .MapMessageId<ActiveTransactionClearedEvent>(x => x.OperationId.ToString())
@@ -104,7 +106,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         .MapMessageId<TransactionExecutionRepeatRequestedEvent>(x => x.OperationId.ToString())
                         .MapMessageId<TransactionExecutionStartedEvent>(x => x.OperationId.ToString())
                         .MapMessageId<TransactionReBuildingRejectedEvent>(x => x.OperationId.ToString())
-                        .MapMessageId<TransactionSignedEvent>(x => x.OperationId.ToString());
+                        .MapMessageId<TransactionSignedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OneToManyOperationExecutionCompletedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OperationExecutionCompletedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OperationExecutionFailedEvent>(x => x.OperationId.ToString());
 
                     #endregion
                 });
