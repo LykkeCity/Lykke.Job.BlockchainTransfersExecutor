@@ -109,7 +109,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         .MapMessageId<TransactionSignedEvent>(x => x.OperationId.ToString())
                         .MapMessageId<OneToManyOperationExecutionCompletedEvent>(x => x.OperationId.ToString())
                         .MapMessageId<OperationExecutionCompletedEvent>(x => x.OperationId.ToString())
-                        .MapMessageId<OperationExecutionFailedEvent>(x => x.OperationId.ToString());
+                        .MapMessageId<OperationExecutionFailedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<BroadcastedTransactionClearedEvent>(x => x.OperationId.ToString());
 
                     #endregion
                 });
