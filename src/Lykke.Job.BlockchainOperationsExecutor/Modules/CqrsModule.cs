@@ -4,6 +4,7 @@ using Autofac.Features.ResolveAnything;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Cqrs.Configuration;
+using Lykke.Cqrs.MessageCancellation.Interceptors;
 using Lykke.Job.BlockchainOperationsExecutor.Contract;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Commands;
 using Lykke.Job.BlockchainOperationsExecutor.Contract.Events;
@@ -66,6 +67,54 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 t.Namespace == typeof(StartOperationExecutionCommandsHandler).Namespace ||
                 t.Namespace == typeof(StartTransactionExecutionCommandHandler).Namespace));
 
+            //CQRS Message Cancellation
+            Lykke.Cqrs.MessageCancellation.Configuration.ContainerBuilderExtensions.RegisterCqrsMessageCancellation(
+                builder,
+                (options) =>
+                {
+                    #region Registry
+
+                    //Commands
+                    options.Value
+                        .MapMessageId<ClearActiveTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<GenerateActiveTransactionIdCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<NotifyOperationExecutionCompletedCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<NotifyOperationExecutionFailedCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<BroadcastTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<BuildTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<ClearBroadcastedTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<LockSourceAddressCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<ReleaseSourceAddressLockCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<SignTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<StartTransactionExecutionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<WaitForTransactionEndingCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<StartOperationExecutionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<StartOneToManyOutputsExecutionCommand>(x => x.OperationId.ToString())
+
+                        //Events
+                        .MapMessageId<ActiveTransactionClearedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<ActiveTransactionIdGeneratedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OperationExecutionStartedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<BroadcastTransactionCommand>(x => x.OperationId.ToString())
+                        .MapMessageId<SourceAddressLockedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<SourceAddressLockReleasedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionBroadcastedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionBuildingRejectedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionBuiltEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionExecutionCompletedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionExecutionFailedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionExecutionRepeatRequestedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionExecutionStartedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionReBuildingRejectedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<TransactionSignedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OneToManyOperationExecutionCompletedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OperationExecutionCompletedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<OperationExecutionFailedEvent>(x => x.OperationId.ToString())
+                        .MapMessageId<BroadcastedTransactionClearedEvent>(x => x.OperationId.ToString());
+
+                    #endregion
+                });
+
             builder.Register(CreateEngine)
                 .As<ICqrsEngine>()
                 .SingleInstance()
@@ -109,6 +158,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
+                #region CQRS Message Cancellation
+                Register.CommandInterceptor<MessageCancellationCommandInterceptor>(),
+                Register.EventInterceptor<MessageCancellationEventInterceptor>(),
+                #endregion
                 Register.DefaultEndpointResolver
                 (
                     new RabbitMqConventionEndpointResolver
