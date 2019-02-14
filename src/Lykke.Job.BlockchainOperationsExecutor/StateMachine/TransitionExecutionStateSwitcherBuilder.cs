@@ -118,6 +118,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .On<BroadcastedTransactionClearedEvent>()
                 .HandleTransition((a, e) => a.OnCleared());
 
+            register.From(TransactionExecutionState.Cleared)
+                .On<SourceAndTargetAddressLocksReleasedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAndTargetAddressLocksReleased());
+
             // Ignore events which already processed and possibly could be retried due to infrastructure failures
 
             register.In(TransactionExecutionState.Started)
