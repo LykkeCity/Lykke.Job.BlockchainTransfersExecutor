@@ -76,7 +76,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             return _storage.CreateIfNotExistsAsync(new AddressLockEntity
             {
                 PartitionKey = partitionKey,
-                RowKey = rowKey
+                RowKey = rowKey,
+                LockOwner = operationId
             });
         }
 
