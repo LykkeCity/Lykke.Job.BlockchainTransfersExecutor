@@ -125,7 +125,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 await ConcurrentlyLockOutputAsync(to);
                 await ConcurrentlyLockInputAsync(to);
 
-                if (!await IsInputInExclusiveLockAsync(to))
+                if (await IsInputInExclusiveLockAsync(to))
                 {
                     return retryLater;
                 }
