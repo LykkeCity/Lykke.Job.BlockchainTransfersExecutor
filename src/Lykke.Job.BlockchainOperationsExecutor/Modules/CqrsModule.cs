@@ -161,10 +161,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
+                
                 #region CQRS Message Cancellation
+                
                 Register.CommandInterceptor<MessageCancellationCommandInterceptor>(),
                 Register.EventInterceptor<MessageCancellationEventInterceptor>(),
+                
                 #endregion
+                
                 Register.DefaultEndpointResolver
                 (
                     new RabbitMqConventionEndpointResolver
@@ -193,7 +197,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(GenerateActiveTransactionIdCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<GenerateActiveTransactionIdCommandsHandler>()
-                    .PublishingEvents(typeof(ActiveTransactionIdGeneratedEvent), typeof(TransactionReBuildingRejectedEvent))
+                    .PublishingEvents
+                    (
+                        typeof(ActiveTransactionIdGeneratedEvent), 
+                        typeof(TransactionReBuildingRejectedEvent)
+                    )
                     .With(commandsPipeline)
 
                     .ListeningCommands(typeof(ClearActiveTransactionCommand))
@@ -205,9 +213,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(NotifyOperationExecutionCompletedCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<NotifyOperationExecutionCompletedCommandsHandler>()
-                    .PublishingEvents(
+                    .PublishingEvents
+                    (
                         typeof(OperationExecutionCompletedEvent),
-                        typeof(OneToManyOperationExecutionCompletedEvent))
+                        typeof(OneToManyOperationExecutionCompletedEvent)
+                    )
                     .With(commandsPipeline)
 
                     .ListeningCommands(typeof(NotifyOperationExecutionFailedCommand))
@@ -272,7 +282,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .ListeningCommands(typeof(ReleaseSourceAndTargetAddressLocksCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAndTargetAddressLocksCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
+                    .PublishingEvents(typeof(SourceAndTargetAddressLocksReleasedEvent))
                     .With(commandsPipeline)
                     
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
