@@ -85,6 +85,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                     command.OperationId
                 );
             }
+
+            Task<bool> IsInputInExclusiveLockAsync(string address)
+            {
+                return _addressLocksRepository.IsInputInExclusiveLockAsync
+                (
+                    command.BlockchainType,
+                    address
+                );
+            }
             
             #endregion
             
@@ -116,7 +125,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 await ConcurrentlyLockOutputAsync(to);
                 await ConcurrentlyLockInputAsync(to);
 
-                if (!await TryExclusivelyLockInputAsync(to))
+                if (!await IsInputInExclusiveLockAsync(to))
                 {
                     return retryLater;
                 }
