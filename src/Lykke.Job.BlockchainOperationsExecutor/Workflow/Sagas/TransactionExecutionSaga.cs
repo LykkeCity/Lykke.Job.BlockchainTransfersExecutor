@@ -216,7 +216,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             if (_stateSwitcher.Switch(aggregate, evt))
             {
-                if (_blockchainSettingsProvider.GetIsExclusiveWithdrawalsRequired(aggregate.BlockchainType))
+                if (aggregate.ExclusiveLockSet)
                 {
                     sender.SendCommand
                     (
@@ -312,7 +312,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             if (_stateSwitcher.Switch(aggregate, evt))
             {
-                if (_blockchainSettingsProvider.GetIsExclusiveWithdrawalsRequired(aggregate.BlockchainType))
+                if (aggregate.ExclusiveLockSet)
                 {
                     sender.SendCommand
                     (
@@ -391,7 +391,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
             // another go futher and passed Broadcast step. Since stuck thread has blocked source addres due to Build step retry,
             // we need to unconditionally release source address.
 
-            if (_blockchainSettingsProvider.GetIsExclusiveWithdrawalsRequired(aggregate.BlockchainType))
+            if (aggregate.ExclusiveLockSet)
             {
                 sender.SendCommand
                 (
@@ -431,7 +431,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             if (_stateSwitcher.Switch(aggregate, evt))
             {
-                if (_blockchainSettingsProvider.GetIsExclusiveWithdrawalsRequired(aggregate.BlockchainType))
+                if (aggregate.ExclusiveLockSet)
                 {
                     sender.SendCommand
                     (
@@ -496,7 +496,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
             if (_stateSwitcher.Switch(aggregate, evt))
             {
-                if (_blockchainSettingsProvider.GetIsExclusiveWithdrawalsRequired(aggregate.BlockchainType))
+                if (aggregate.ExclusiveLockSet)
                 {
                     sender.SendCommand
                     (

@@ -47,14 +47,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         public Task ReleaseInputConcurrentLockAsync(string blockchainType, string address, Guid operationId)
             => ReleaseAddressConcurrentLockAsync(blockchainType, address, operationId,Input);
 
-        public Task ReleaseInputExclusiveLockAsync(string blockchainType, string address)
-            => ReleaseAddressExclusiveLockAsync(blockchainType, address, Input);
+        public Task ReleaseInputExclusiveLockAsync(string blockchainType, string address, Guid operationId)
+            => ReleaseAddressExclusiveLockAsync(blockchainType, address, operationId, Input);
 
         public Task ReleaseOutputConcurrentLockAsync(string blockchainType, string address, Guid operationId)
             => ReleaseAddressConcurrentLockAsync(blockchainType, address, operationId,Output);
 
-        public Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address)
-            => ReleaseAddressExclusiveLockAsync(blockchainType, address, Output);
+        public Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address, Guid operationId)
+            => ReleaseAddressExclusiveLockAsync(blockchainType, address, operationId, Output);
 
         public Task<bool> TryExclusivelyLockInputAsync(string blockchainType, string address, Guid operationId)
             => TryExclusivelyLockAddressAsync(blockchainType, address, operationId, Input);
@@ -98,9 +98,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
             string direction)
         {
             var partitionKey = GetPartitionKey(blockchainType, address, direction);
+            var rowKey = GetExclusiveLockRowKey();
 
-            return (await _storage.GetDataAsync(partitionKey))
-                .Any(x => x.RowKey == GetExclusiveLockRowKey());
+            return await _storage.GetDataAsync(partitionKey, rowKey) != null;
         }
 
         private Task ReleaseAddressConcurrentLockAsync(
@@ -118,12 +118,13 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         private Task ReleaseAddressExclusiveLockAsync(
             string blockchainType,
             string address,
+            Guid operationId,
             string direction)
         {
             var partitionKey = GetPartitionKey(blockchainType, address, direction);
             var rowKey = GetExclusiveLockRowKey();
             
-            return _storage.DeleteIfExistAsync(partitionKey, rowKey);
+            return _storage.DeleteIfExistAsync(partitionKey, rowKey, @lock => @lock.LockOwner == operationId);
         }
 
         private async Task<bool> TryExclusivelyLockAddressAsync(

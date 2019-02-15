@@ -60,7 +60,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             builder.RegisterInstance(new BlockchainSettingsProvider
                 (
                     enabledBlockchains.ToDictionary(x => x.Type, x => x.HotWalletAddress),
-                    enabledBlockchains.ToDictionary(x => x.Type, x => x.IsExclusiveWithdrawalsRequired)
+                    enabledBlockchains.ToDictionary(x => x.Type, x => x.ExclusiveWithdrawalsRequired)
                 ))
                 .As<IBlockchainSettingsProvider>();
         }

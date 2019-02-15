@@ -42,7 +42,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 return _locksRepository.ReleaseInputExclusiveLockAsync
                 (
                     command.BlockchainType,
-                    address
+                    address,
+                    command.OperationId
                 );
             }
 
@@ -61,7 +62,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 return _locksRepository.ReleaseOutputExclusiveLockAsync
                 (
                     command.BlockchainType,
-                    address
+                    address,
+                    command.OperationId
                 );
             }
             
