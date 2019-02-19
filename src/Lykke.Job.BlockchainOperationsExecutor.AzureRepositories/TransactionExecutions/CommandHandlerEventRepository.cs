@@ -101,24 +101,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                 CorrelationId = correlationId
             });
 
-            var result =  await TryGetEventAsync(aggregateId, commandHandlerId);
-
-            if (result == null)
-            {
-                throw new ArgumentException("Stored event should be not null there");
-            }
-
-            if (!(result is T))
-            {
-                throw new ArgumentException($"Event should be of type {typeof(T).Name}");
-            }
-
-            return (T) result;
+            return eventData;
         }
 
         private static string BuildBlobContainerName(string commandHandlerId)
         {
-            return $"stored-evts-{commandHandlerId.ToLower()}";
+            return $"outbox-evts-{commandHandlerId.ToLower()}";
         }
 
         private static string BuildBlobKeyName(Guid aggregateId, Guid correlationId)
