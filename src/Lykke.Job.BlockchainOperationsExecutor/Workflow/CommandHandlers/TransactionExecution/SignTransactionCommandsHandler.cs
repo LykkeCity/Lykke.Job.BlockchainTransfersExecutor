@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
 using Lykke.Service.BlockchainSignFacade.Client;
@@ -15,18 +16,32 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
     {
         private readonly IBlockchainSignFacadeClient _signFacadeClient;
         private readonly IChaosKitty _chaosKitty;
+        private readonly ICommandHandlerEventRepository _commandHandlerEventRepository;
+
+        private const string CommandHandlerId = "SignTransactionCommandsHandler";
 
         public SignTransactionCommandsHandler(
             IBlockchainSignFacadeClient signFacadeClient,
-            IChaosKitty chaosKitty)
+            IChaosKitty chaosKitty, 
+            ICommandHandlerEventRepository commandHandlerEventRepository)
         {
             _signFacadeClient = signFacadeClient;
             _chaosKitty = chaosKitty;
+            _commandHandlerEventRepository = commandHandlerEventRepository;
         }
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(SignTransactionCommand command, IEventPublisher publisher)
         {
+            var alreadyPublishedEvt = await _commandHandlerEventRepository.TryGetEventAsync(command.TransactionId, CommandHandlerId);
+
+            if (alreadyPublishedEvt != null)
+            {
+                publisher.PublishEvent(alreadyPublishedEvt);
+
+                return CommandHandlingResult.Ok();
+            }
+
             var transactionSigningResult = await _signFacadeClient.SignTransactionAsync
             (
                 blockchainType: command.BlockchainType,
@@ -44,12 +59,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 throw new InvalidOperationException("Sign service returned the empty transaction");
             }
 
-            publisher.PublishEvent(new TransactionSignedEvent
-            {
-                OperationId = command.OperationId,
-                TransactionId = command.TransactionId,
-                SignedTransaction = transactionSigningResult.SignedTransaction
-            });
+            publisher.PublishEvent(await _commandHandlerEventRepository.InsertEventAsync(command.TransactionId,
+                CommandHandlerId,
+                new TransactionSignedEvent
+                {
+                    OperationId = command.OperationId,
+                    TransactionId = command.TransactionId,
+                    SignedTransaction = transactionSigningResult.SignedTransaction
+                }));
 
             return CommandHandlingResult.Ok();
         }
