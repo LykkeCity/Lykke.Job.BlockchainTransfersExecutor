@@ -59,7 +59,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 .As<IStateSwitcher<OperationExecutionAggregate>>();
 
             // Sagas
-            builder.RegisterType<TransactionExecutionSaga>();
+            builder.RegisterType<TransactionWithExclusiveLocksExecutionSaga>();
+            builder.RegisterType<TransactionWithNonExclusiveLocksExecutionSaga>();
             builder.RegisterType<OperationExecutionSaga>();
 
             // Command handlers
@@ -161,14 +162,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 messagingEngine,
                 new DefaultEndpointProvider(),
                 true,
-                
+
                 #region CQRS Message Cancellation
-                
+
                 Register.CommandInterceptor<MessageCancellationCommandInterceptor>(),
                 Register.EventInterceptor<MessageCancellationEventInterceptor>(),
-                
+
                 #endregion
-                
+
                 Register.DefaultEndpointResolver
                 (
                     new RabbitMqConventionEndpointResolver
@@ -199,7 +200,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .WithCommandsHandler<GenerateActiveTransactionIdCommandsHandler>()
                     .PublishingEvents
                     (
-                        typeof(ActiveTransactionIdGeneratedEvent), 
+                        typeof(ActiveTransactionIdGeneratedEvent),
                         typeof(TransactionReBuildingRejectedEvent)
                     )
                     .With(commandsPipeline)
@@ -248,7 +249,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .WithCommandsHandler<LockSourceAndTargetAddressesCommandsHandler>()
                     .PublishingEvents(typeof(SourceAndTargetAddressesLockedEvent))
                     .With(commandsPipeline)
-                    
+
                     .ListeningCommands(typeof(BuildTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
@@ -284,7 +285,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .WithCommandsHandler<ReleaseSourceAndTargetAddressLocksCommandsHandler>()
                     .PublishingEvents(typeof(SourceAndTargetAddressLocksReleasedEvent))
                     .With(commandsPipeline)
-                    
+
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<WaitForTransactionEndingCommandsHandler>()
@@ -360,26 +361,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     )
                     .From(OperationsExecutor)
                     .On(defaultRoute)
-                
+
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
-                Register.Saga<TransactionExecutionSaga>($"{TransactionExecutor}.saga")
+                Register.Saga<TransactionWithNonExclusiveLocksExecutionSaga>($"{TransactionExecutor}.saga")
                     .ListeningEvents(typeof(TransactionExecutionStartedEvent))
                     .From(TransactionExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands
-                    (
-                        typeof(LockSourceAddressCommand),
-                        typeof(LockSourceAndTargetAddressesCommand)
-                    )
+                    .PublishingCommands(typeof(LockSourceAddressCommand))
                     .To(TransactionExecutor)
                     .With(commandsPipeline)
 
-                    .ListeningEvents
-                    (
-                        typeof(SourceAddressLockedEvent),
-                        typeof(SourceAndTargetAddressesLockedEvent)
-                    )
+                    .ListeningEvents(typeof(SourceAddressLockedEvent))
                     .From(TransactionExecutor)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(BuildTransactionCommand))
@@ -397,8 +390,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingCommands
                     (
                         typeof(SignTransactionCommand),
-                        typeof(ReleaseSourceAddressLockCommand),
-                        typeof(ReleaseSourceAndTargetAddressLocksCommand)
+                        typeof(ReleaseSourceAddressLockCommand)
                     )
                     .To(TransactionExecutor)
                     .With(commandsPipeline)
@@ -418,12 +410,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     )
                     .From(TransactionExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands
-                    (
-                        typeof(ReleaseSourceAddressLockCommand),
-                        typeof(ReleaseSourceAndTargetAddressLocksCommand),
-                        typeof(WaitForTransactionEndingCommand)
-                    )
+                    .PublishingCommands(typeof(ReleaseSourceAddressLockCommand))
                     .To(TransactionExecutor)
                     .With(commandsPipeline)
 
@@ -446,24 +433,79 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     )
                     .From(TransactionExecutor)
                     .On(defaultRoute)
-                    .PublishingCommands
-                    (
-                        typeof(ClearBroadcastedTransactionCommand),
-                        typeof(ReleaseSourceAndTargetAddressLocksCommand)
-                    )
+                    .PublishingCommands(typeof(ClearBroadcastedTransactionCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+
+                    .ListeningEvents(typeof(BroadcastedTransactionClearedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+
+                    .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
+                
+                Register.Saga<TransactionWithExclusiveLocksExecutionSaga>($"{TransactionExecutor}.exclusive-locks.saga")
+                    .ListeningEvents(typeof(TransactionExecutionStartedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(LockSourceAndTargetAddressesCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+
+                    .ListeningEvents(typeof(SourceAndTargetAddressesLockedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(BuildTransactionCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+                    
+                    .ListeningEvents(typeof(TransactionBuiltEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(SignTransactionCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+                    
+                    .ListeningEvents(typeof(TransactionSignedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(BroadcastTransactionCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+                    
+                    .ListeningEvents(typeof(TransactionBroadcastedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(WaitForTransactionEndingCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+                    
+                    .ListeningEvents(typeof(TransactionExecutionCompletedEvent))
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(ReleaseSourceAndTargetAddressLocksCommand))
                     .To(TransactionExecutor)
                     .With(commandsPipeline)
                     
                     .ListeningEvents
                     (
-                        typeof(SourceAndTargetAddressLocksReleasedEvent)
+                        typeof(TransactionExecutionCompletedEvent),
+                        typeof(TransactionBuildingRejectedEvent),
+                        typeof(TransactionExecutionFailedEvent),
+                        typeof(TransactionExecutionRepeatRequestedEvent)
                     )
+                    .From(TransactionExecutor)
+                    .On(defaultRoute)
+                    .PublishingCommands(typeof(ReleaseSourceAndTargetAddressLocksCommand))
+                    .To(TransactionExecutor)
+                    .With(commandsPipeline)
+                    
+                    .ListeningEvents(typeof(SourceAndTargetAddressLocksReleasedEvent))
                     .From(TransactionExecutor)
                     .On(defaultRoute)
                     .PublishingCommands(typeof(ClearBroadcastedTransactionCommand))
                     .To(TransactionExecutor)
                     .With(commandsPipeline)
-
+                    
                     .ListeningEvents(typeof(BroadcastedTransactionClearedEvent))
                     .From(TransactionExecutor)
                     .On(defaultRoute)

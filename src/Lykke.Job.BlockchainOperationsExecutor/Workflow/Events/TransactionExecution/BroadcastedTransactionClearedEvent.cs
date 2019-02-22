@@ -8,7 +8,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExec
     /// Transaction is removed from the list of the broadcasted transactions in the blockchain API 
     /// </summary>
     [MessagePackObject(keyAsPropertyName: true)]
-    public class BroadcastedTransactionClearedEvent
+    public class BroadcastedTransactionClearedEvent : ITransactionExecutionEvent
     {
         [UsedImplicitly(ImplicitUseKindFlags.Access)]
         public Guid OperationId { get; set; }
