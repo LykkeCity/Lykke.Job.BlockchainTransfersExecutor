@@ -86,27 +86,27 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         #region Handlers
 
         [UsedImplicitly]
-        private Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionBuiltEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionBuiltEventAsync);
         
         [UsedImplicitly]
-        private Task Handle(TransactionSignedEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionSignedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionSignedEventAsync);
         
         [UsedImplicitly]
-        private Task Handle(TransactionBroadcastedEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionBroadcastedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionBroadcastedEventAsync);
         
         [UsedImplicitly]
-        private Task Handle(TransactionExecutionCompletedEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionExecutionCompletedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionExecutionCompletedEventAsync);
         
         [UsedImplicitly]
-        private Task Handle(BroadcastedTransactionClearedEvent evt, ICommandSender sender)
+        protected Task Handle(BroadcastedTransactionClearedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnBroadcastedTransactionClearedEventAsync);
 
         [UsedImplicitly]
-        private async Task Handle(TransactionBuildingRejectedEvent evt, ICommandSender sender)
+        protected async Task Handle(TransactionBuildingRejectedEvent evt, ICommandSender sender)
         {
             // This event could be triggered only if process was splitted on several threads and one thread is stuck in Build step while
             // another go further and passed Broadcast step. Since stuck thread has blocked source address due to Build step retry,
@@ -118,11 +118,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         }
         
         [UsedImplicitly]
-        private Task Handle(TransactionExecutionFailedEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionExecutionFailedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionExecutionFailedEventAsync);
         
         [UsedImplicitly]
-        private Task Handle(TransactionExecutionRepeatRequestedEvent evt, ICommandSender sender)
+        protected Task Handle(TransactionExecutionRepeatRequestedEvent evt, ICommandSender sender)
             => Handle(evt, sender, OnTransactionExecutionRepeatRequestedEventAsync);
 
         protected async Task Handle<T>(
