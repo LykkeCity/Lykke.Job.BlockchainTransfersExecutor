@@ -12,7 +12,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Settings.Blockchain
 
         [Optional]
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
-        public bool IsExclusiveWithdrawalsRequired { get; set; }
+        public bool ExclusiveWithdrawalsRequired { get; set; }
         
         [UsedImplicitly(ImplicitUseKindFlags.Assign)]
         public string Type { get; set; }

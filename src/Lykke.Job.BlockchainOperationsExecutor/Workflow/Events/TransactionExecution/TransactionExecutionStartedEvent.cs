@@ -5,7 +5,7 @@ using MessagePack;
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution
 {
     [MessagePackObject(keyAsPropertyName: true)]
-    public class TransactionExecutionStartedEvent
+    public class TransactionExecutionStartedEvent : ITransactionExecutionEvent
     {
         public Guid OperationId { get; set; }
         public Guid TransactionId { get; set; }

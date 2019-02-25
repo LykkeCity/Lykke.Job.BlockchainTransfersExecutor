@@ -22,7 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Services.Blockchains
             return GetSettingValue(_hotWalletAddressSettings, blockchainType);
         }
 
-        public bool GetIsExclusiveWithdrawalsRequired(string blockchainType)
+        public bool GetExclusiveWithdrawalsRequired(string blockchainType)
         {
             return GetSettingValue(_exclusiveWithdrawalsRequiredSettings, blockchainType);
         }

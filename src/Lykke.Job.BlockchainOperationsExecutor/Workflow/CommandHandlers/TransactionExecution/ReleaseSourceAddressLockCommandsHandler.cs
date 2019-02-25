@@ -28,7 +28,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             await _locksRepository.ReleaseOutputExclusiveLockAsync
             (
                 command.BlockchainType,
-                command.FromAddress
+                command.FromAddress,
+                command.OperationId
             );
 
             _chaosKitty.Meow(command.TransactionId);

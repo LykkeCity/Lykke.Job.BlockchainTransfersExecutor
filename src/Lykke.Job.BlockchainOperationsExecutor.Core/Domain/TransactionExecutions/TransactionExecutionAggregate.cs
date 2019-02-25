@@ -45,6 +45,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         public string Error { get; private set; }
         public string FromAddressContext { get; private set; }
         public bool WasLocked => SourceAddressLockingMoment.HasValue || SourceAndTargetAddressesLockingMoment.HasValue;
+        public bool ExclusiveLockSet => SourceAndTargetAddressesLockingMoment.HasValue;
 
         private TransactionExecutionAggregate(
             string version,
@@ -210,7 +211,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public void OnBroadcasted()
         {
-            if (SourceAndTargetAddressesLockingMoment.HasValue)
+            if (ExclusiveLockSet)
             {
                 OnWaitingForEndingStarted();
             }

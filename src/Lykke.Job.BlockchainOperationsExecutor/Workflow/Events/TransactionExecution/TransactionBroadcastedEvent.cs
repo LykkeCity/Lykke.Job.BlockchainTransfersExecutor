@@ -8,7 +8,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExec
     /// Blockchain transaction is broadcasted event
     /// </summary>
     [MessagePackObject(keyAsPropertyName: true)]
-    public class TransactionBroadcastedEvent
+    public class TransactionBroadcastedEvent : ITransactionExecutionEvent
     {
         [UsedImplicitly(ImplicitUseKindFlags.Access)]
         public Guid OperationId { get; set; }

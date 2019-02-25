@@ -11,9 +11,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
         
         Task<bool> IsInputInExclusiveLockAsync(string blockchainType, string address);
 
-        Task ReleaseInputExclusiveLockAsync(string blockchainType, string address);
+        Task ReleaseInputExclusiveLockAsync(string blockchainType, string address, Guid operationId);
         
-        Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address);
+        Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address, Guid operationId);
 
         Task ReleaseInputConcurrentLockAsync(string blockchainType, string address, Guid operationId);
         

@@ -5,7 +5,7 @@ using MessagePack;
 namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution
 {
     [MessagePackObject(keyAsPropertyName: true)]
-    public class SourceAddressLockedEvent
+    public class SourceAddressLockedEvent : ITransactionExecutionEvent
     {
         [UsedImplicitly(ImplicitUseKindFlags.Access)]
         public Guid OperationId { get; set; }

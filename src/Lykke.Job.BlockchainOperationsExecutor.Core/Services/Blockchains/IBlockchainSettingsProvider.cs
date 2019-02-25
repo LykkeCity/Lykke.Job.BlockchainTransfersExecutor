@@ -4,6 +4,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains
     {
         string GetHotWalletAddress(string blockchainType);
         
-        bool GetIsExclusiveWithdrawalsRequired(string blockchainType);
+        bool GetExclusiveWithdrawalsRequired(string blockchainType);
     }
 }
