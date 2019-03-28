@@ -30,8 +30,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
     public class CqrsModule : Module
     {
         private static readonly string OperationsExecutor = BlockchainOperationsExecutorBoundedContext.Name;
-        public static readonly string TransactionExecutor = "bcn-integration.transactions-executor";
-        public static readonly string TransactionExecutorWithExclusiveLocks = "bcn-integration.transactions-executor-with-exclusive-locks";
+        public const string TransactionExecutor = "bcn-integration.transactions-executor";
+        public const string TransactionExecutorWithExclusiveLocks = "bcn-integration.transactions-executor-with-exclusive-locks";
 
         private readonly CqrsSettings _settings;
         private readonly string _rabbitMqVirtualHost;
@@ -60,8 +60,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 .As<IStateSwitcher<OperationExecutionAggregate>>();
 
             // Sagas
-            builder.RegisterType<TransactionWithExclusiveLocksExecutionSaga>();
-            builder.RegisterType<TransactionWithNonExclusiveLocksExecutionSaga>();
+            builder.RegisterType<TransactionExecutionSagaWithExclusiveLocks>();
+            builder.RegisterType<TransactionExecutionSaga>();
             builder.RegisterType<OperationExecutionSaga>();
 
             // Command handlers
@@ -70,7 +70,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 t.Namespace == typeof(StartTransactionExecutionCommandHandler).Namespace));
 
             //CQRS Message Cancellation
-            Lykke.Cqrs.MessageCancellation.Configuration.ContainerBuilderExtensions.RegisterCqrsMessageCancellation(
+            Cqrs.MessageCancellation.Configuration.ContainerBuilderExtensions.RegisterCqrsMessageCancellation(
                 builder,
                 (options) =>
                 {
@@ -251,12 +251,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .PublishingEvents(typeof(SourceAddressLockedEvent))
                     .With(commandsPipeline)
 
-                    .ListeningCommands(typeof(LockSourceAndTargetAddressesCommand))
-                    .On(defaultRoute)
-                    .WithCommandsHandler<LockSourceAndTargetAddressesCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAndTargetAddressesLockedEvent))
-                    .With(commandsPipeline)
-
                     .ListeningCommands(typeof(BuildTransactionCommand))
                     .On(defaultRoute)
                     .WithCommandsHandler<BuildTransactionCommandsHandler>()
@@ -285,12 +279,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     .On(defaultRoute)
                     .WithCommandsHandler<ReleaseSourceAddressLockCommandsHandler>()
                     .PublishingEvents(typeof(SourceAddressLockReleasedEvent))
-                    .With(commandsPipeline)
-
-                    .ListeningCommands(typeof(ReleaseSourceAndTargetAddressLocksCommand))
-                    .On(defaultRoute)
-                    .WithCommandsHandler<ReleaseSourceAndTargetAddressLocksCommandsHandler>()
-                    .PublishingEvents(typeof(SourceAndTargetAddressLocksReleasedEvent))
                     .With(commandsPipeline)
 
                     .ListeningCommands(typeof(WaitForTransactionEndingCommand))
@@ -469,7 +457,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 
                 #region TransactionExecutor Saga
                 
-                Register.Saga<TransactionWithNonExclusiveLocksExecutionSaga>($"{TransactionExecutor}.saga")
+                Register.Saga<TransactionExecutionSaga>($"{TransactionExecutor}.saga")
                     .ListeningEvents(typeof(TransactionExecutionStartedEvent))
                     .From(TransactionExecutor)
                     .On(defaultRoute)
@@ -550,9 +538,9 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 
                 #endregion
 
-                #region TransactionExecutorWithExclusiveLocks
+                #region TransactionExecutor Saga With Exclusive Locks
                 
-                Register.Saga<TransactionWithExclusiveLocksExecutionSaga>($"{TransactionExecutorWithExclusiveLocks}.saga")
+                Register.Saga<TransactionExecutionSagaWithExclusiveLocks>($"{TransactionExecutorWithExclusiveLocks}.saga")
                     .ListeningEvents(typeof(TransactionExecutionStartedEvent))
                     .From(TransactionExecutorWithExclusiveLocks)
                     .On(defaultRoute)
