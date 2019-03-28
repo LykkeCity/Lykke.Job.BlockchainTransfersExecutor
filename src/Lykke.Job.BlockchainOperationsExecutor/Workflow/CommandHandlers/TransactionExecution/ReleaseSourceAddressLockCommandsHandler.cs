@@ -12,20 +12,25 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
     public class ReleaseSourceAddressLockCommandsHandler
     {
         private readonly IChaosKitty _chaosKitty;
-        private readonly ISourceAddresLocksRepoistory _locksRepoistory;
+        private readonly IAddressLocksRepository _locksRepository;
 
         public ReleaseSourceAddressLockCommandsHandler(
             IChaosKitty chaosKitty,
-            ISourceAddresLocksRepoistory locksRepoistory)
+            IAddressLocksRepository locksRepository)
         {
             _chaosKitty = chaosKitty;
-            _locksRepoistory = locksRepoistory;
+            _locksRepository = locksRepository;
         }
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(ReleaseSourceAddressLockCommand command, IEventPublisher publisher)
         {
-            await _locksRepoistory.ReleaseLockAsync(command.BlockchainType, command.FromAddress, command.TransactionId);
+            await _locksRepository.ReleaseOutputExclusiveLockAsync
+            (
+                command.BlockchainType,
+                command.FromAddress,
+                command.OperationId
+            );
 
             _chaosKitty.Meow(command.TransactionId);
 

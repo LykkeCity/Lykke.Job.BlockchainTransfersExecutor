@@ -8,7 +8,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExec
     /// Transaction source address lock is released event
     /// </summary>
     [MessagePackObject(keyAsPropertyName: true)]
-    public class SourceAddressLockReleasedEvent
+    public class SourceAddressLockReleasedEvent : ITransactionExecutionEvent
     {
         [UsedImplicitly(ImplicitUseKindFlags.Access)]
         public Guid OperationId { get; set; }

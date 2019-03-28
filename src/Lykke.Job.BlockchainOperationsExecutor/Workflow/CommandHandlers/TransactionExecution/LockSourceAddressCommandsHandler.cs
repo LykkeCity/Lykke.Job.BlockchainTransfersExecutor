@@ -15,20 +15,20 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         private readonly ILog _log;
         private readonly IChaosKitty _chaosKitty;
         private readonly ITransactionExecutionsRepository _transactionExecutionsRepository;
-        private readonly ISourceAddresLocksRepoistory _sourceAddresLocksRepoistory;
+        private readonly IAddressLocksRepository _addressLocksRepository;
         private readonly RetryDelayProvider _retryDelayProvider;
 
         public LockSourceAddressCommandsHandler(
             ILogFactory logFactory,
             IChaosKitty chaosKitty,
             ITransactionExecutionsRepository transactionExecutionsRepository,
-            ISourceAddresLocksRepoistory sourceAddresLocksRepoistory, 
+            IAddressLocksRepository addressLocksRepository, 
             RetryDelayProvider retryDelayProvider)
         {
             _log = logFactory.CreateLog(this);
             _chaosKitty = chaosKitty;
             _transactionExecutionsRepository = transactionExecutionsRepository;
-            _sourceAddresLocksRepoistory = sourceAddresLocksRepoistory;
+            _addressLocksRepository = addressLocksRepository;
             _retryDelayProvider = retryDelayProvider;
         }
 
@@ -44,25 +44,29 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 return CommandHandlingResult.Ok();
             }
 
-            var isSourceAdressCaptured = await _sourceAddresLocksRepoistory.TryGetLockAsync(
+            var sourceAddressLocked = await _addressLocksRepository.TryExclusivelyLockOutputAsync
+            (
                 command.BlockchainType,
                 command.FromAddress,
-                command.TransactionId);
+                command.TransactionId
+            );
 
-            if (!isSourceAdressCaptured)
+            if (sourceAddressLocked)
+            {
+                _chaosKitty.Meow(command.TransactionId);
+
+                publisher.PublishEvent(new SourceAddressLockedEvent
+                {
+                    OperationId = command.OperationId,
+                    TransactionId = command.TransactionId
+                });
+
+                return CommandHandlingResult.Ok();
+            }
+            else
             {
                 return CommandHandlingResult.Fail(_retryDelayProvider.SourceAddressLockingRetryDelay);
             }
-
-            _chaosKitty.Meow(command.TransactionId);
-
-            publisher.PublishEvent(new SourceAddressLockedEvent
-            {
-                OperationId = command.OperationId,
-                TransactionId = command.TransactionId
-            });
-
-            return CommandHandlingResult.Ok();
         }
     }
 }
