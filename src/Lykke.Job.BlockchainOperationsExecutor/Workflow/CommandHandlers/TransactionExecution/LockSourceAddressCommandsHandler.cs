@@ -48,7 +48,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             (
                 command.BlockchainType,
                 command.FromAddress,
-                command.OperationId
+                command.TransactionId
             );
 
             if (sourceAddressLocked)
