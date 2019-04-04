@@ -52,7 +52,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 (
                     command.BlockchainType,
                     address,
-                    command.OperationId
+                    command.TransactionId
                 );
             }
             
@@ -62,7 +62,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 (
                     command.BlockchainType,
                     address,
-                    command.OperationId
+                    command.TransactionId
                 );
             }
             
@@ -72,7 +72,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 (
                     command.BlockchainType,
                     address,
-                    command.OperationId
+                    command.TransactionId
                 );
             }
             
@@ -82,7 +82,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                 (
                     command.BlockchainType,
                     address,
-                    command.OperationId
+                    command.TransactionId
                 );
             }
 

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Autofac;
 using Common.Log;
 using Lykke.Common.Log;
@@ -51,7 +52,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         logFactory.CreateLog(this).Info(
                             "Blockchains registration",
                             $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
-                        return new BlockchainApiClient(logFactory, blockchain.ApiUrl);
+                        return new BlockchainApiClient(logFactory, blockchain.ApiUrl, TimeSpan.FromSeconds(5));
                     })
                     .Named<IBlockchainApiClient>(blockchain.Type)
                     .SingleInstance();

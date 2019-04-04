@@ -35,49 +35,49 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
 
         #region Interface implementation
         
-        public Task ConcurrentlyLockInputAsync(string blockchainType, string address, Guid operationId)
-            => ConcurrentlyLockAddressAsync(blockchainType, address, operationId, Input);
+        public Task ConcurrentlyLockInputAsync(string blockchainType, string address, Guid transactionId)
+            => ConcurrentlyLockAddressAsync(blockchainType, address, transactionId, Input);
 
-        public Task ConcurrentlyLockOutputAsync(string blockchainType, string address, Guid operationId)
-            => ConcurrentlyLockAddressAsync(blockchainType, address, operationId, Output);
+        public Task ConcurrentlyLockOutputAsync(string blockchainType, string address, Guid transactionId)
+            => ConcurrentlyLockAddressAsync(blockchainType, address, transactionId, Output);
         
         public Task<bool> IsInputInExclusiveLockAsync(string blockchainType, string address)
             => IsAddressInExclusiveLockAsync(blockchainType, address, Input);
 
-        public Task ReleaseInputConcurrentLockAsync(string blockchainType, string address, Guid operationId)
-            => ReleaseAddressConcurrentLockAsync(blockchainType, address, operationId,Input);
+        public Task ReleaseInputConcurrentLockAsync(string blockchainType, string address, Guid transactionId)
+            => ReleaseAddressConcurrentLockAsync(blockchainType, address, transactionId,Input);
 
-        public Task ReleaseInputExclusiveLockAsync(string blockchainType, string address, Guid operationId)
-            => ReleaseAddressExclusiveLockAsync(blockchainType, address, operationId, Input);
+        public Task ReleaseInputExclusiveLockAsync(string blockchainType, string address, Guid transactionId)
+            => ReleaseAddressExclusiveLockAsync(blockchainType, address, transactionId, Input);
 
-        public Task ReleaseOutputConcurrentLockAsync(string blockchainType, string address, Guid operationId)
-            => ReleaseAddressConcurrentLockAsync(blockchainType, address, operationId,Output);
+        public Task ReleaseOutputConcurrentLockAsync(string blockchainType, string address, Guid transactionId)
+            => ReleaseAddressConcurrentLockAsync(blockchainType, address, transactionId,Output);
 
-        public Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address, Guid operationId)
-            => ReleaseAddressExclusiveLockAsync(blockchainType, address, operationId, Output);
+        public Task ReleaseOutputExclusiveLockAsync(string blockchainType, string address, Guid transactionId)
+            => ReleaseAddressExclusiveLockAsync(blockchainType, address, transactionId, Output);
 
-        public Task<bool> TryExclusivelyLockInputAsync(string blockchainType, string address, Guid operationId)
-            => TryExclusivelyLockAddressAsync(blockchainType, address, operationId, Input);
+        public Task<bool> TryExclusivelyLockInputAsync(string blockchainType, string address, Guid transactionId)
+            => TryExclusivelyLockAddressAsync(blockchainType, address, transactionId, Input);
 
-        public Task<bool> TryExclusivelyLockOutputAsync(string blockchainType, string address, Guid operationId)
-            => TryExclusivelyLockAddressAsync(blockchainType, address, operationId, Output);
+        public Task<bool> TryExclusivelyLockOutputAsync(string blockchainType, string address, Guid transactionId)
+            => TryExclusivelyLockAddressAsync(blockchainType, address, transactionId, Output);
 
         #endregion
 
         private Task ConcurrentlyLockAddressAsync(
             string blockchainType,
             string address,
-            Guid operationId,
+            Guid transactionId,
             string direction)
         {
             var partitionKey = GetPartitionKey(blockchainType, address, direction);
-            var rowKey = GetConcurrentLockRowKey(operationId);
+            var rowKey = GetConcurrentLockRowKey(transactionId);
             
             return _storage.CreateIfNotExistsAsync(new AddressLockEntity
             {
                 PartitionKey = partitionKey,
                 RowKey = rowKey,
-                LockOwner = operationId
+                LockOwner = transactionId
             });
         }
 
@@ -106,11 +106,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         private Task ReleaseAddressConcurrentLockAsync(
             string blockchainType,
             string address,
-            Guid operationId,
+            Guid transactionId,
             string direction)
         {
             var partitionKey = GetPartitionKey(blockchainType, address, direction);
-            var rowKey = GetConcurrentLockRowKey(operationId);
+            var rowKey = GetConcurrentLockRowKey(transactionId);
             
             return _storage.DeleteIfExistAsync(partitionKey, rowKey);
         }
@@ -118,19 +118,19 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         private Task ReleaseAddressExclusiveLockAsync(
             string blockchainType,
             string address,
-            Guid operationId,
+            Guid transactionId,
             string direction)
         {
             var partitionKey = GetPartitionKey(blockchainType, address, direction);
             var rowKey = GetExclusiveLockRowKey();
             
-            return _storage.DeleteIfExistAsync(partitionKey, rowKey, @lock => @lock.LockOwner == operationId);
+            return _storage.DeleteIfExistAsync(partitionKey, rowKey, @lock => @lock.LockOwner == transactionId);
         }
 
         private async Task<bool> TryExclusivelyLockAddressAsync(
             string blockchainType,
             string address,
-            Guid operationId,
+            Guid transactionId,
             string direction)
         {
             if (await IsAddressInConcurrentLockAsync(blockchainType, address, direction))
@@ -148,7 +148,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                     {
                         PartitionKey = partitionKey,
                         RowKey = rowKey,
-                        LockOwner = operationId
+                        LockOwner = transactionId
                     };
                 }
                 
@@ -159,7 +159,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
                     LockFactory
                 );
 
-                return @lock.LockOwner == operationId;
+                return @lock.LockOwner == transactionId;
             }
         }
 
@@ -171,8 +171,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionEx
         private static string GetExclusiveLockRowKey()
             => "exclusive";
 
-        private static string GetConcurrentLockRowKey(Guid operationId)
-            => $"concurrent-{operationId}";
+        private static string GetConcurrentLockRowKey(Guid transactionId)
+            => $"concurrent-{transactionId}";
         
         #endregion
     }
