@@ -289,6 +289,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutio
 
         public void OnWaitingForEndingStarted()
         {
+            if (!ExclusiveLockSet)
+            {
+                OnSourceAddressLockReleased();
+            }
+            
             State = TransactionExecutionState.WaitingForEnding;
 
             WaitingForEndingStartMoment = DateTime.UtcNow;
