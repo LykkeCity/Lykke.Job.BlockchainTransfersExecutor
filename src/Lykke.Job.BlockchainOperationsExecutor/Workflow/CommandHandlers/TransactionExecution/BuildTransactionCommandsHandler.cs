@@ -53,6 +53,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
+            _log.Info("Command received. Will be retried.", command);
+
+            return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);
             var wallet = await _blockchainSignFacadeClient.GetWalletByPublicAddressAsync(command.BlockchainType, command.FromAddress);

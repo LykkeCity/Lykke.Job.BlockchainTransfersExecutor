@@ -36,6 +36,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
+            _log.Info("Command received. Will be retried.", command);
+
+            return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
+
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.TransactionId, command.SignedTransaction);
 
