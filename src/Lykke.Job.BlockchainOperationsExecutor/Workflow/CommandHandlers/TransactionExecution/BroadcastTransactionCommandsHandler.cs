@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Controllers;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
@@ -36,10 +37,6 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
-            _log.Info("Command received. Will be retried.", command);
-
-            return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
-
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.TransactionId, command.SignedTransaction);
 

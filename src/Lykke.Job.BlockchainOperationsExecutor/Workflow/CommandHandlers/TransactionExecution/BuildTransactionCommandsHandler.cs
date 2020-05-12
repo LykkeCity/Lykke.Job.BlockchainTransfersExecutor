@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Controllers;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
@@ -53,9 +54,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BuildTransactionCommand command, IEventPublisher publisher)
         {
-            _log.Info("Command received. Will be retried.", command);
+            if (!AllowedWithdrawals.List.ContainsKey(command.OperationId))
+            {
+                _log.Warning("Operation is not allowed. Will be retried.", context: command);
 
-            return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
+                return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
+            }
 
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
             var blockchainAsset = await apiClient.GetAssetAsync(command.BlockchainAssetId);

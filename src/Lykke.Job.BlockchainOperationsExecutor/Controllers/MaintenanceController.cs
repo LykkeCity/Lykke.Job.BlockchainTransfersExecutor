@@ -1,10 +1,17 @@
-﻿using Lykke.Cqrs;
+﻿using System;
+using System.Collections.Concurrent;
+using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.Controllers
 {
+    public static class AllowedWithdrawals
+    {
+        public static readonly ConcurrentDictionary<Guid,bool> List = new ConcurrentDictionary<Guid, bool>();
+    }
+
     [Route("api/maintenance")]
     public class MaintenanceController : ControllerBase
     {
@@ -19,6 +26,17 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Controllers
         public async void SendWaitForTransactionEndingCommand([FromBody] WaitForTransactionEndingCommand command)
         {
             _cqrsEngine.SendCommand(command, $"{CqrsModule.TransactionExecutor}.saga", CqrsModule.TransactionExecutor);
+        }
+
+        [HttpPost("commands/allow-withdrawal")]
+        public async void SendWaitForTransactionEndingCommand([FromBody] AllowWithdrawalRequest request)
+        {
+            AllowedWithdrawals.List.TryAdd(request.OperationId, true);
+        }
+
+        public class AllowWithdrawalRequest
+        {
+            public Guid OperationId { get; set; }
         }
     }
 }
