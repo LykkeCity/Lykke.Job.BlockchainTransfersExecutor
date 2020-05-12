@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Castle.Core.Logging;
+using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
@@ -16,9 +19,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Controllers
     public class MaintenanceController : ControllerBase
     {
         private readonly ICqrsEngine _cqrsEngine;
+        private ILog _log;
 
-        public MaintenanceController(ICqrsEngine cqrsEngine)
+        public MaintenanceController(ICqrsEngine cqrsEngine, ILogFactory logFactory)
         {
+            _log = logFactory.CreateLog(this);
             _cqrsEngine = cqrsEngine;
         }
 
@@ -31,6 +36,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Controllers
         [HttpPost("commands/allow-withdrawal")]
         public async void SendWaitForTransactionEndingCommand([FromBody] AllowWithdrawalRequest request)
         {
+            _log.Warning("Operation added to the allowed list", context: request);
+
             AllowedWithdrawals.List.TryAdd(request.OperationId, true);
         }
 
