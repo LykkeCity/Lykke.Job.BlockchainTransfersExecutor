@@ -58,7 +58,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
             {
                 _log.Warning("Operation is not allowed. Will be retried.", context: command);
 
-                return CommandHandlingResult.Fail(TimeSpan.FromMinutes(1));
+                return CommandHandlingResult.Fail(TimeSpan.FromMinutes(5));
             }
 
             var apiClient = _apiClientProvider.Get(command.BlockchainType);
