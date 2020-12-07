@@ -26,5 +26,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Controllers
         {
             _cqrsEngine.SendCommand(command, $"{CqrsModule.TransactionExecutor}.saga", CqrsModule.TransactionExecutor);
         }
+
+        [HttpPost("commands/send-sign-transaction-command")]
+        public async void SendWaitForTransactionEndingCommand([FromBody] BroadcastTransactionCommand command)
+        {
+            _cqrsEngine.SendCommand(command, $"{CqrsModule.TransactionExecutor}.saga", CqrsModule.TransactionExecutor);
+        }
     }
 }
