@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Autofac;
 using Common.Log;
 using Lykke.Common.Log;
@@ -38,7 +39,12 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 .As<IBlockchainSignFacadeClient>()
                 .SingleInstance();
 
-            foreach (var blockchain in _blockchainsIntegrationSettings.Blockchains.Where(b => !b.IsDisabled))
+
+            var enabledBlockchains = _blockchainsIntegrationSettings.Blockchains
+                .Where(b => !b.IsDisabled)
+                .ToList();
+            
+            foreach (var blockchain in enabledBlockchains)
             {
                 builder.Register(ctx =>
                     {
@@ -46,11 +52,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                         logFactory.CreateLog(this).Info(
                             "Blockchains registration",
                             $"Registering blockchain: {blockchain.Type} -> \r\nAPI: {blockchain.ApiUrl}\r\nHW: {blockchain.HotWalletAddress}");
-                        return new BlockchainApiClient(logFactory, blockchain.ApiUrl);
+                        return new BlockchainApiClient(logFactory, blockchain.ApiUrl, TimeSpan.FromSeconds(5));
                     })
                     .Named<IBlockchainApiClient>(blockchain.Type)
                     .SingleInstance();
             }
+
+            builder.RegisterInstance(new BlockchainSettingsProvider
+                (
+                    enabledBlockchains.ToDictionary(x => x.Type, x => x.HotWalletAddress),
+                    enabledBlockchains.ToDictionary(x => x.Type, x => x.ExclusiveWithdrawalsRequired)
+                ))
+                .As<IBlockchainSettingsProvider>();
         }
 
         private IBlockchainSignFacadeClient CreateBlockchainSignFacadeClient(ILog log)

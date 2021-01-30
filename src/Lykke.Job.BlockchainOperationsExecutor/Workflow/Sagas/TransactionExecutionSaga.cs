@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Mappers;
 using Lykke.Job.BlockchainOperationsExecutor.Modules;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine;
@@ -18,15 +19,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
     {
         private static string Self => CqrsModule.TransactionExecutor;
 
+        private readonly IBlockchainSettingsProvider _blockchainSettingsProvider;
         private readonly IChaosKitty _chaosKitty;
         private readonly ITransactionExecutionsRepository _repository;
         private readonly IStateSwitcher<TransactionExecutionAggregate> _stateSwitcher;
 
         public TransactionExecutionSaga(
+            IBlockchainSettingsProvider blockchainSettingsProvider,
             IChaosKitty chaosKitty,
             ITransactionExecutionsRepository repository, 
             IStateSwitcher<TransactionExecutionAggregate> stateSwitcher)
         {
+            _blockchainSettingsProvider = blockchainSettingsProvider;
             _chaosKitty = chaosKitty;
             _repository = repository;
             _stateSwitcher = stateSwitcher;
@@ -35,6 +39,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         [UsedImplicitly]
         private async Task Handle(TransactionExecutionStartedEvent evt, ICommandSender sender)
         {
+            if (ExclusiveWithdrawalsLockingRequired(evt))
+            {
+                return;
+            }
+
             var aggregate = await _repository.GetOrAddAsync(
                 evt.TransactionId,
                 () => TransactionExecutionAggregate.Start(
@@ -266,8 +275,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
         {
             var aggregate = await _repository.GetAsync(evt.TransactionId);
 
-            // This event could be triggered only if process was splitted on several threads and one thread is stuck in Build step while
-            // another go futher and passed Broadcast step. Since stuck thread has blocked source addres due to Build step retry,
+            // This event could be triggered only if process was split on several threads and one thread is stuck in Build step while
+            // another go further and passed Broadcast step. Since stuck thread has blocked source address due to Build step retry,
             // we need to unconditionally release source address.
 
             sender.SendCommand
@@ -375,6 +384,11 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas
 
                 await _repository.SaveAsync(aggregate);
             }
+        }
+        
+        private bool ExclusiveWithdrawalsLockingRequired(TransactionExecutionStartedEvent evt)
+        {
+            return _blockchainSettingsProvider.GetExclusiveWithdrawalsRequired(evt.BlockchainType);
         }
     }
 }

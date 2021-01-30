@@ -346,9 +346,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             Assert.Equal(OperationExecutionState.ActiveTransactionCleared, aggregate.State);
 
-            Assert.True(switcher.Switch(aggregate, new TransactionReBuildingRejectedEvent()
-            {
-            }));
+            Assert.True(switcher.Switch(aggregate, new TransactionReBuildingRejectedEvent()));
 
             Assert.Equal(OperationExecutionState.Failed, aggregate.State);
 

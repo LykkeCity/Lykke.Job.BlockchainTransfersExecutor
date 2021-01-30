@@ -14,9 +14,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
             register.GetCurrentStateWith(aggregate => aggregate.State);
 
-            register.From(TransactionExecutionState.Started)
-                .On<SourceAddressLockedEvent>()
-                .HandleTransition((a, e) => a.OnSourceAddressLocked());
+            register.From(TransactionExecutionState.Started, outputs =>
+            {
+                outputs.On<SourceAddressLockedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAddressLocked());
+
+                outputs.On<SourceAndTargetAddressesLockedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAndTargetAddressesLocked());
+            });
 
             register.From(TransactionExecutionState.SourceAddressLocked, outputs =>
             {
@@ -27,6 +32,15 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                     .HandleTransition((a, e) => a.OnBuildingFailed(e.ErrorCode, e.Error));
             });
 
+            register.From(TransactionExecutionState.SourceAndTargetAddressesLocked, outputs =>
+            {
+                outputs.On<TransactionBuiltEvent>()
+                    .HandleTransition((a, e) => a.OnBuilt(e.FromAddressContext, e.TransactionContext));
+
+                outputs.On<TransactionExecutionFailedEvent>()
+                    .HandleTransition((a, e) => a.OnBuildingFailed(e.ErrorCode, e.Error));
+            });
+            
             register.From(TransactionExecutionState.Built)
                 .On<TransactionSignedEvent>()
                 .HandleTransition((a, e) => a.OnSigned(e.SignedTransaction));
@@ -65,25 +79,48 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                     .HandleTransition((a, e) => a.OnWaitingForEndingFailed(e.ErrorCode, e.Error));
             });
 
-            register.From(TransactionExecutionState.Completed)
+            register.From(TransactionExecutionState.Completed, outputs =>
+            {
+                outputs.On<BroadcastedTransactionClearedEvent>()
+                    .HandleTransition((a, e) => a.OnCleared());
+                
+                outputs.On<SourceAndTargetAddressLocksReleasedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAndTargetAddressLocksReleased());
+            });
+
+            register.From(TransactionExecutionState.SourceAndTargetAddressesReleased)
                 .On<BroadcastedTransactionClearedEvent>()
                 .HandleTransition((a, e) => a.OnCleared());
-
+            
             register.From(TransactionExecutionState.WaitingForEndingFailed)
                 .On<BroadcastedTransactionClearedEvent>()
                 .HandleTransition((a, e) => a.OnCleared());
 
-            register.From(TransactionExecutionState.BuildingFailed)
-                .On<SourceAddressLockReleasedEvent>()
-                .HandleTransition((a, e) => a.OnSourceAddressLockReleased());
+            register.From(TransactionExecutionState.BuildingFailed, outputs =>
+            {
+                outputs.On<SourceAddressLockReleasedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAddressLockReleased());
+                
+                outputs.On<SourceAndTargetAddressLocksReleasedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAndTargetAddressLocksReleased());
+            });
 
-            register.From(TransactionExecutionState.BroadcastingFailed)
-                .On<SourceAddressLockReleasedEvent>()
-                .HandleTransition((a, e) => a.OnSourceAddressLockReleased());
+            register.From(TransactionExecutionState.BroadcastingFailed, outputs =>
+            {
+                outputs.On<SourceAddressLockReleasedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAddressLockReleased());
+                
+                outputs.On<SourceAndTargetAddressLocksReleasedEvent>()
+                    .HandleTransition((a, e) => a.OnSourceAndTargetAddressLocksReleased());
+            });
 
             register.From(TransactionExecutionState.SourceAddressReleased)
                 .On<BroadcastedTransactionClearedEvent>()
                 .HandleTransition((a, e) => a.OnCleared());
+
+            register.From(TransactionExecutionState.Cleared)
+                .On<SourceAndTargetAddressLocksReleasedEvent>()
+                .HandleTransition((a, e) => a.OnSourceAndTargetAddressLocksReleased());
 
             // Ignore events which already processed and possibly could be retried due to infrastructure failures
 
@@ -94,6 +131,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<SourceAddressLockedEvent>();
 
+            register.In(TransactionExecutionState.SourceAndTargetAddressesLocked)
+                .Ignore<TransactionExecutionStartedEvent>()
+                .Ignore<SourceAndTargetAddressesLockedEvent>();
+            
             register.In(TransactionExecutionState.Built)
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<SourceAddressLockedEvent>()
@@ -161,6 +202,18 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 .Ignore<TransactionExecutionFailedEvent>()
                 .Ignore<TransactionExecutionRepeatRequestedEvent>();          
 
+            register.In(TransactionExecutionState.SourceAndTargetAddressesReleased)
+                .Ignore<TransactionExecutionStartedEvent>()
+                .Ignore<SourceAddressLockedEvent>()
+                .Ignore<SourceAndTargetAddressesLockedEvent>()
+                .Ignore<TransactionBuiltEvent>()
+                .Ignore<TransactionSignedEvent>()
+                .Ignore<TransactionBroadcastedEvent>()
+                .Ignore<SourceAddressLockReleasedEvent>()
+                .Ignore<SourceAndTargetAddressLocksReleasedEvent>()
+                .Ignore<TransactionExecutionFailedEvent>()
+                .Ignore<TransactionExecutionRepeatRequestedEvent>();
+            
             register.In(TransactionExecutionState.Cleared)
                 .Ignore<TransactionExecutionStartedEvent>()
                 .Ignore<SourceAddressLockedEvent>()
