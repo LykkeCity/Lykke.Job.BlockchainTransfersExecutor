@@ -19,6 +19,7 @@ using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.OperationExecutio
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.OperationExecution;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
+using Lykke.Job.BlockchainOperationsExecutor.Workflow.Interceptors;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Sagas;
 using Lykke.Messaging;
 using Lykke.Messaging.RabbitMq;
@@ -61,6 +62,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
             // Sagas
             builder.RegisterType<TransactionExecutionSaga>();
             builder.RegisterType<OperationExecutionSaga>();
+
+            // Interceptors
+            builder.RegisterType<ErrorsCommandInterceptor>();
+            builder.RegisterType<ErrorsEventInterceptor>();
 
             // Command handlers
             builder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(t =>
@@ -159,6 +164,8 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                 new DefaultEndpointProvider(),
                 true,
                 #region CQRS Message Cancellation
+                Register.CommandInterceptor<ErrorsCommandInterceptor>(),
+                Register.EventInterceptor<ErrorsEventInterceptor>(),
                 Register.CommandInterceptor<MessageCancellationCommandInterceptor>(),
                 Register.EventInterceptor<MessageCancellationEventInterceptor>(),
                 #endregion
@@ -335,7 +342,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
                     )
                     .From(OperationsExecutor)
                     .On(defaultRoute)
-                
+
                     .ProcessingOptions(defaultRoute).MultiThreaded(8).QueueCapacity(1024),
 
                 Register.Saga<TransactionExecutionSaga>($"{TransactionExecutor}.saga")

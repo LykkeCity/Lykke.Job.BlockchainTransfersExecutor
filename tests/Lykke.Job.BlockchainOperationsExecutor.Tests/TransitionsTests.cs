@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Events.TransactionExecution;
@@ -54,7 +55,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             Assert.True(result);
             Assert.Equal(TransactionExecutionState.SourceAddressLocked, aggregate.State);
         }
-        
+
         [Fact]
         public void Can_Proceed_Valid_Transaction_Multiple_Register()
         {
@@ -152,7 +153,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             // Act / Assert
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<UnexpectedEventException>(() =>
             {
                 core.Switch(aggregate, new TransactionBuiltEvent());
             });
@@ -199,7 +200,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             var result2 = core.Switch(aggregate, new SourceAddressLockedEvent());
             var result3 = core.Switch(aggregate, new TransactionExecutionStartedEvent());
             var result4 = core.Switch(aggregate, new SourceAddressLockedEvent());
-            
+
             // Assert
 
             Assert.False(result1);
@@ -257,7 +258,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
                 .HandleTransition((a, e) => a.OnSourceAddressLocked());
 
             register.In(TransactionExecutionState.Started)
-                .Ignore<SourceAddressLockedEvent>((a, e) => a.IncludeFee) 
+                .Ignore<SourceAddressLockedEvent>((a, e) => a.IncludeFee)
                 .Ignore<TransactionExecutionStartedEvent>();
 
             var core = register.Build();
@@ -295,7 +296,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             var result21 = core.Switch(aggregate2, new TransactionExecutionStartedEvent());
             var result22 = core.Switch(aggregate2, new SourceAddressLockedEvent());
-            
+
             // Assert
 
             Assert.False(result11);
@@ -352,7 +353,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
 
             // Act
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<UnexpectedEventException>(() =>
             {
                 try
                 {
@@ -366,7 +367,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Tests
             });
 
             var result21 = core.Switch(aggregate2, new SourceAddressLockedEvent());
-            
+
             // Assert
 
             Assert.Equal(TransactionExecutionState.Started, aggregate1.State);
