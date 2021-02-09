@@ -27,7 +27,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Interceptors
             }
             catch (UnexpectedEventException ex)
             {
-                _log.Warning(ex.Message, ex);
+                _log.Warning($"{nameof(UnexpectedEventException)} handled", ex);
                 return CommandHandlingResult.Fail(TimeSpan.FromSeconds(10));
             }
         }
