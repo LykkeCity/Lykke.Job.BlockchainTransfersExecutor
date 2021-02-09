@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.StateMachine.Building;
 
 namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 {
-    internal class StateSwitcher<TAggregate, TState>: IStateSwitcher<TAggregate> 
+    internal class StateSwitcher<TAggregate, TState>: IStateSwitcher<TAggregate>
         where TState : struct, IConvertible
     {
         private readonly IReadOnlyDictionary<StateTransition<TState>, TransitionRegistration> _transitions;
@@ -13,7 +14,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
         private readonly Func<TAggregate, TState> _currentStateGetter;
 
         public StateSwitcher(
-            IReadOnlyDictionary<StateTransition<TState>, TransitionRegistration> transitions, 
+            IReadOnlyDictionary<StateTransition<TState>, TransitionRegistration> transitions,
             IReadOnlyDictionary<StateTransition<TState>, TransitionIgnoringRegistration> ignoredTransitions,
             Func<TAggregate, TState> currentStateGetter)
         {
@@ -36,7 +37,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
 
             var currentState = _currentStateGetter.Invoke(aggregate);
             var transitionToProcess = new StateTransition<TState>(currentState, @event.GetType());
-            
+
             if(_ignoredTransitions.TryGetValue(transitionToProcess, out var ignoredTransition))
             {
                 if (ignoredTransition.IsAdditionalConditionsSatisfied(aggregate, @event))
@@ -53,7 +54,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 {
                     var errorMessage = string.Join("\r\n\t- ", preconditionErrors);
 
-                    throw new InvalidOperationException(
+                    throw new UnexpectedEventException(
                         $"Can't process event {@event.GetType().Name} in state {currentState} due to next preconditions:\r\n\t- {errorMessage}");
                 }
 
@@ -62,7 +63,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.StateMachine
                 return true;
             }
 
-            throw new InvalidOperationException($"Unexpected event {@event.GetType().Name} in state {currentState}");
+            throw new UnexpectedEventException($"Unexpected event {@event.GetType().Name} in state {currentState}");
         }
     }
 }
