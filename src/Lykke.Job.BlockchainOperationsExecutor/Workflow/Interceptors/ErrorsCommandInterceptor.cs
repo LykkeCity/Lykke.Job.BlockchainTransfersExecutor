@@ -22,8 +22,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.Interceptors
         {
             try
             {
-                await context.InvokeNextAsync();
-                return CommandHandlingResult.Ok();
+                return await context.InvokeNextAsync();
             }
             catch (UnexpectedEventException ex)
             {
