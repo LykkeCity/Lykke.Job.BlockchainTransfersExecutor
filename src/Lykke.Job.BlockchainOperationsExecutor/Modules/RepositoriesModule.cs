@@ -2,6 +2,7 @@
 using Lykke.Common.Log;
 using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.AzureRepositories.TransactionExecutions;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.OperationExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Settings.JobSettings;
@@ -21,6 +22,10 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<InMemoryTransactionsToRebuildRepository>()
+                .As<ITransactionsToRebuildRepository>()
+                .SingleInstance();
+
             builder.Register(c => OperationExecutionsRepository.Create(_dbSettings.Nested(x => x.DataConnString), c.Resolve<ILogFactory>()))
                 .As<IOperationExecutionsRepository>()
                 .SingleInstance();
