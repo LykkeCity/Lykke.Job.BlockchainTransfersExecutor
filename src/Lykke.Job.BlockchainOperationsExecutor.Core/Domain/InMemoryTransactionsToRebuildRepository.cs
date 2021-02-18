@@ -9,7 +9,7 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Core.Domain
 {
     public class InMemoryTransactionsToRebuildRepository : ITransactionsToRebuildRepository
     {
-        private readonly ConcurrentDictionary<Guid, bool> _storage = new();
+        private readonly ConcurrentDictionary<Guid, bool> _storage = new ConcurrentDictionary<Guid, bool>();
 
         public Task<IReadOnlyCollection<Guid>> GetAll()
         {
