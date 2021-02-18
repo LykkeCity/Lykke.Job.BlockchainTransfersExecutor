@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
+using Lykke.Job.BlockchainOperationsExecutor.Core.Domain;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Domain.TransactionExecutions;
 using Lykke.Job.BlockchainOperationsExecutor.Core.Services.Blockchains;
 using Lykke.Job.BlockchainOperationsExecutor.Workflow.Commands.TransactionExecution;
@@ -20,24 +21,28 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
         private readonly ILog _log;
         private readonly IBlockchainApiClientProvider _apiClientProvider;
         private readonly RetryDelayProvider _retryDelayProvider;
+        private readonly ITransactionsToRebuildRepository _transactionsToRebuildRepository;
 
         public BroadcastTransactionCommandsHandler(
             IChaosKitty chaosKitty,
             ILogFactory logFactory,
             IBlockchainApiClientProvider apiClientProvider, 
-            RetryDelayProvider retryDelayProvider)
+            RetryDelayProvider retryDelayProvider,
+            ITransactionsToRebuildRepository transactionsToRebuildRepository)
         {
             _chaosKitty = chaosKitty;
             _log = logFactory.CreateLog(this);
             _apiClientProvider = apiClientProvider;
             _retryDelayProvider = retryDelayProvider;
+            _transactionsToRebuildRepository = transactionsToRebuildRepository;
         }
 
         [UsedImplicitly]
         public async Task<CommandHandlingResult> Handle(BroadcastTransactionCommand command, IEventPublisher publisher)
         {
-            var apiClient = _apiClientProvider.Get(command.BlockchainType);
-            var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.TransactionId, command.SignedTransaction);
+            var broadcastingResult = await _transactionsToRebuildRepository.Contains(command.TransactionId) ?
+                TransactionBroadcastingResult.BuildingShouldBeRepeated :
+                await Broadcast(command);
 
             _chaosKitty.Meow(command.TransactionId);
 
@@ -108,6 +113,14 @@ namespace Lykke.Job.BlockchainOperationsExecutor.Workflow.CommandHandlers.Transa
                         $"Transaction broadcastring result [{broadcastingResult}] is not supported."
                     );
             }
+        }
+
+        private async Task<TransactionBroadcastingResult> Broadcast(BroadcastTransactionCommand command)
+        {
+            var apiClient = _apiClientProvider.Get(command.BlockchainType);
+            var broadcastingResult = await apiClient.BroadcastTransactionAsync(command.TransactionId, command.SignedTransaction);
+
+            return broadcastingResult;
         }
     }
 }
